@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,14 +20,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.semantics.SemanticsProperties.ImeAction
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import androidx.lifecycle.ViewModel
 import com.noxapps.dinnerroulette3.ui.theme.DinnerRoulette3Theme
+import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,7 +43,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    optionsInput()
+                    OptionsInput()
                 }
             }
         }
@@ -46,7 +51,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun optionsInput() {
+fun OptionsInput(
+    viewModel: optionsViewModel = optionsViewModel(),
+) {
     var dd1Expanded by remember{ mutableStateOf(false) }
     var dd2Expanded by remember{ mutableStateOf(false) }
     var dd3Expanded by remember{ mutableStateOf(false) }
@@ -62,9 +69,10 @@ fun optionsInput() {
     val primaryCarbItems = listOf("Select...", "Any", "Pasta", "Potato", "Rice", "Other", "None")
     val triStateItems = listOf("Optional", "Yes", "No")
 
-    val ingredientsList = mutableListOf<String>("test1","test2")
-    val tagsList = mutableListOf<String>()
     var text by remember{ mutableStateOf("") }
+
+    val ingredients = remember{ mutableStateListOf<String>() }
+    val tags = remember{ mutableStateListOf<String>() }
 
     var meatContentIndex by remember{ mutableStateOf(0) }
     var primaryMeatIndex by remember{ mutableStateOf(0) }
@@ -78,13 +86,17 @@ fun optionsInput() {
     var ingredientsOpen by remember{mutableStateOf(false)}
     var tagsOpen by remember{mutableStateOf(false)}
 
+    val primaryOrange = Color(0xFFFFE8B5)
 
     Box(modifier= Modifier
         .fillMaxSize()
-        .wrapContentSize(Alignment.TopStart)) {
+        .wrapContentSize(Alignment.TopStart)
+        .background(primaryOrange)) {
         Column() {
             Text(text = "Dinner Roulette")
-            Row(horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(horizontalArrangement = Arrangement.SpaceBetween,
+            modifier=Modifier
+                .padding(8.dp)) {
                 Text(text = "Meat Content:")
                 Text(text= meatContentItems[meatContentIndex],
                     textAlign = TextAlign.End, modifier = Modifier
@@ -106,14 +118,18 @@ fun optionsInput() {
                                 if(!carbExpanded) carbExpanded=index==3||index==4
                                 meatContentIndex = index
                                 dd1Expanded = false
-                            }, text = { Text(text = s, textAlign = TextAlign.End) })
+                            }, text = { Text(text = s, textAlign = TextAlign.End) },
+                                modifier=Modifier
+                                    .padding(8.dp))
                         }
                     }
                 }
 
             }
             if(meatExpanded){
-                Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier=Modifier
+                        .padding(8.dp)) {
                     Text(text = "Primary Meat:")
                     Text(
                         text = primaryMeatItems[primaryMeatIndex],
@@ -142,7 +158,9 @@ fun optionsInput() {
                 }
             }
             if(carbExpanded){
-                Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier=Modifier
+                        .padding(8.dp)) {
                     Text(text = "Primary Carbohydrate:")
                     Text(
                         text = primaryCarbItems[primaryCarbIndex],
@@ -172,7 +190,9 @@ fun optionsInput() {
             }
             if(additionalExpanded){
                 Column(){
-                    Row(horizontalArrangement = Arrangement.SpaceBetween){
+                    Row(horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier=Modifier
+                            .padding(8.dp)){
                         Text(text = "Spice Content:")
                         Text(
                             text = triStateItems[spiceIndex],
@@ -197,7 +217,9 @@ fun optionsInput() {
                             }
                         }
                     }
-                    Row(horizontalArrangement = Arrangement.SpaceBetween){
+                    Row(horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier=Modifier
+                            .padding(8.dp)){
                         Text(text = "Cheese Content:")
                         Text(
                             text = triStateItems[cheeseIndex],
@@ -222,21 +244,25 @@ fun optionsInput() {
                             }
                         }
                     }
-                    Row(modifier = Modifier.fillMaxWidth(),
+                    Row(modifier = Modifier.fillMaxWidth()
+                            .padding(8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically){
+                        verticalAlignment = Alignment.CenterVertically,
+                    ){
                         Text(text = "Gluten Free:")
                         Switch(checked = glutenChecked, onCheckedChange = { glutenChecked=it})
 
                     }
-                    Row(modifier = Modifier.fillMaxWidth(),
+                    Row(modifier = Modifier.fillMaxWidth()
+                        .padding(8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically){
                         Text(text = "Lactose Free:")
                         Switch(checked = lactoseChecked, onCheckedChange = { lactoseChecked=it})
                         
                     }
-                    Row(modifier = Modifier.fillMaxWidth(),
+                    Row(modifier = Modifier.fillMaxWidth()
+                        .padding(8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically){
                         Text(text = "Additional Ingredients:")
@@ -247,7 +273,8 @@ fun optionsInput() {
                         }
 
                     }
-                    Row(modifier = Modifier.fillMaxWidth(),
+                    Row(modifier = Modifier.fillMaxWidth()
+                        .padding(8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically){
                         Text(text = "Descriptive Tags:")
@@ -255,6 +282,18 @@ fun optionsInput() {
                             tagsOpen=true
                         }) {
                             Text(text = "Edit")
+                        }
+
+                    }
+                    Row(modifier = Modifier.fillMaxWidth()
+                        .padding(8.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically){
+
+                        Button(onClick = {
+
+                        }) {
+                            Text(text = "Generate Recipe")
                         }
 
                     }
@@ -269,14 +308,15 @@ fun optionsInput() {
             modifier = Modifier
                 .fillMaxSize()
                 .wrapContentSize(Alignment.TopStart)
+                .background(Color.White)
         ) {Column() {
             Text("Additional Ingredients:")
             Row() {
-                ingredientsList.forEachIndexed() { index, s ->
+                ingredients.forEachIndexed() { index, s ->
                     ClickableText(text = AnnotatedString(s), onClick={
-                        ingredientsList.removeAt(index)
-                        Log.e("ingredient list", ingredientsList.toString())
+                        ingredients.remove(s)
                     })
+
                 }
             }
 
@@ -289,9 +329,7 @@ fun optionsInput() {
                     keyboardOptions = KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Done),
                     keyboardActions = KeyboardActions(
                         onDone = {
-                            ingredientsList+=text
-                            Log.e("ingredient list", ingredientsList.toString())
-                            ingredientsOpen=false
+                            ingredients.add(text)
                             text=""
                         }
                     )
@@ -314,12 +352,13 @@ fun optionsInput() {
             modifier = Modifier
                 .fillMaxSize()
                 .wrapContentSize(Alignment.TopStart)
+                .background(Color.White)
         ) {
             Column() {
                 Text("Descriptive Tags:")
                 Row() {
-                    tagsList.forEachIndexed() { index, s ->
-                        ClickableText(text = AnnotatedString(s), onClick={tagsList.removeAt(index)})
+                    tags.forEachIndexed() { index, s ->
+                        ClickableText(text = AnnotatedString(s), onClick={tags.remove(s)})
                     }
                 }
 
@@ -332,8 +371,8 @@ fun optionsInput() {
                         keyboardOptions = KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Done),
                         keyboardActions = KeyboardActions(
                             onDone = {
-                                tagsList.add(text)
-                                Log.e("tags list", tagsList.toString())
+                                tags.add(text)
+                                //Log.e("tags list", tagsList.toString())
                                 text=""
                             }
                         )
@@ -352,14 +391,11 @@ fun optionsInput() {
 }
 
 
-@Composable
-fun ingredientsinput(ingredientsList:MutableList<String>,  text:String, ingredientsOpen:Boolean){
-}
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     DinnerRoulette3Theme {
-        optionsInput()
+        OptionsInput()
     }
 }
