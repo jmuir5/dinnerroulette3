@@ -1,6 +1,7 @@
 package com.noxapps.dinnerroulette3
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -24,7 +25,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -74,7 +74,7 @@ fun OptionsInput(
         "Salmon",
         "White Fish"
     )
-    val primaryCarbItems = listOf("Select...", "Any", "Pasta", "Potato", "Rice", "Other", "None")
+    val primaryCarbItems = listOf("Select...", "Any", "Pasta", "Potato", "Rice", "Bread", "Other", "None")
     val triStateItems = listOf("Optional", "Yes", "No")
 
     var text by remember { mutableStateOf("") }
@@ -131,6 +131,7 @@ fun OptionsInput(
                                 meatExpanded = index == 1 || index == 2
                                 if (!carbExpanded) carbExpanded = index == 3 || index == 4
                                 meatContentIndex = index
+
                                 dd1Expanded = false
                             }, text = { Text(text = s, textAlign = TextAlign.End) },
                                 modifier = Modifier
@@ -168,6 +169,7 @@ fun OptionsInput(
                                     carbExpanded = true
                                     primaryMeatIndex = index
                                     dd2Expanded = false
+
                                 }, text = { Text(text = s, textAlign = TextAlign.End) })
                             }
                         }
@@ -323,6 +325,18 @@ fun OptionsInput(
                     ) {
 
                         Button(onClick = {
+                            val query = Query(meatContentItems[meatContentIndex],
+                                primaryMeatItems[primaryMeatIndex],
+                                primaryCarbItems[primaryCarbIndex],
+                                spiceIndex,
+                                cheeseIndex,
+                                glutenChecked,
+                                lactoseChecked,
+                                ingredients,
+                                tags)
+                            var question2=viewModel.generateQuestion(query)
+                            Log.d("constructed question", question2)
+                            //viewModel.getResponse(question2)
 
                         }) {
                             Text(text = "Generate Recipe")
