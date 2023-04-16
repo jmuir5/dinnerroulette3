@@ -15,3 +15,9 @@ class Query(
 
     }
 }
+
+class QandA(
+    val question:Query,
+    val answer:GptResponse,
+    val name:String
+    )

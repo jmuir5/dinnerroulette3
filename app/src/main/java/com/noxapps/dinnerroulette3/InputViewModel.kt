@@ -5,13 +5,19 @@ import androidx.lifecycle.ViewModel
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONArray
-import org.json.JSONObject
 import java.io.IOException
+import java.util.concurrent.TimeUnit
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.decodeFromString
 
-class optionsViewModel: ViewModel() {
+class InputViewModel: ViewModel() {
     init{}
-    private val client = OkHttpClient()
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(300, TimeUnit.SECONDS)
+        .writeTimeout(300, TimeUnit.SECONDS)
+        .readTimeout(300, TimeUnit.SECONDS)
+        .build()
+
 
     fun generateQuestion(input:Query):String{
         var question = "give me a recipe for a "
@@ -46,7 +52,7 @@ class optionsViewModel: ViewModel() {
         }
         if (input.additionalIngredients.size>0&&input.descriptiveTags.size>0)question+="; and "
 
-        if (input.additionalIngredients.size>0) {
+        if (input.descriptiveTags.size>0) {
             question += "fits the following descriptors: "
             if (input.spiceContent>0){
                 if (input.spiceContent==2)question+= "not "
@@ -67,15 +73,21 @@ class optionsViewModel: ViewModel() {
     }
 
     //https://platform.openai.com/docs/api-reference/making-requests
-    fun getResponse(question: String, callback: (String) -> Unit){
+    fun getResponse(question: String, callback: (GptResponse) -> Unit){
         val apiKey="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"
-        val url="https://api.openai.com/v1/engines/text-davinci-003/completions"
+        val url="https://api.openai.com/v1/chat/completions"
+        /*You are a recipe generating bot that recieves a natural language prompt and returns a recipe suited to an intermediate home cook.
+        The prompt will end with "[fin]", indicating the intended end of the prompt. you are to output a recipe in the format:
+        [title]title of recipe;;;
+        [desc]breif description of recipe;;;
+        [ingr]list of ingredients in metric units;;;
+        [method]recipe method;;;
+        [notes] optionally include any appropriate notes;;;*/
 
         val requestBody="""
             {
-            "prompt": "$question",
-            "max_tokens": 1000,
-            "temperature": 0.3
+            "model": "gpt-3.5-turbo",
+            "messages": [{"role": "user", "content":"$question"}]
             }
         """.trimIndent()
 
@@ -99,10 +111,11 @@ class optionsViewModel: ViewModel() {
                 else{
                     Log.v("data","empty")
                 }
-                val jsonObject= JSONObject(body)
-                val jsonArray: JSONArray =jsonObject.getJSONArray("choices")
-                val textResult=jsonArray.getJSONObject(0).getString("text")
-                callback(textResult)
+                val output = body?.let { Json.decodeFromString<GptResponse>(it) }
+                //val jsonObject= JSONObject(body)
+                //val jsonArray: JSONArray =jsonObject.getJSONArray("choices")
+                //val textResult=jsonArray.getJSONObject(0).getString("message")
+                callback(output!!)
             }
         })
     }
