@@ -30,6 +30,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -329,7 +330,146 @@ fun DrawerRecipeItem(input:QandA, index:Int, contentLocation:String, navControll
 
 @Composable
 fun Settings(){
+    var text by remember { mutableStateOf("") }
+    var tagsOpen by remember { mutableStateOf(false) }
+    val tags = remember { mutableStateListOf<String>() }
+
+    val tokenText = store.getAccessToken.collectAsState(initial = "").value
     Text(text = "Settings Page")
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = "Lactose Free:")
+        //Switch(checked = lactoseChecked, onCheckedChange = { lactoseChecked = it })
+
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = "Descriptive Tags:")
+        Button(onClick = {
+            tagsOpen = true
+        }) {
+            Text(text = "Edit")
+        }
+
+    }
+
+    if (tagsOpen) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .fillMaxHeight()
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null
+                ) {
+                    /* doSomething() */
+                }
+                .wrapContentSize(Alignment.TopStart)
+                .background(com.noxapps.dinnerroulette3.ui.theme.ObfsuGrey)
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Center)
+                //.background(com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange)
+                //.clip(RoundedCornerShape(10.dp))
+                //.border(BorderStroke(1.dp,com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .width(IntrinsicSize.Min)
+                        .height(IntrinsicSize.Min)
+                        .wrapContentSize(Alignment.Center)
+                        .background(com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange)
+                        .clip(RoundedCornerShape(10.dp))
+                        .border(
+                            BorderStroke(
+                                1.dp,
+                                com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
+                            )
+                        )
+                ) {
+                    Column() {
+                        Text("Descriptive Tags:")
+                        Row(modifier = Modifier
+                            .padding(start = 5.dp, end=5.dp)) {
+                            Text(text = "")
+                            tags.forEachIndexed() { index, s ->
+                                Row() {
+                                    Box(modifier = Modifier
+                                        .background(ObfsuGrey)
+                                        .padding(3.dp)
+                                        .clickable(
+                                            interactionSource = interactionSource,
+                                            indication = null
+                                        ) {
+                                            tags.remove(s)
+                                        }) {
+                                        Row() {
+                                            Text(s)
+                                            Icon(
+                                                Icons.Filled.Close,
+                                                contentDescription = "Delete",
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.size(1.dp))
+                                }
+                            }
+                        }
+
+                        Row() {
+                            val maxChar = 17
+                            TextField(
+                                value = text,
+                                onValueChange = {
+                                    if (it.length <= maxChar) text = it
+                                },
+                                label = { Text("Add Tags") },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Done),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        tags.add(text)
+                                        text = ""
+                                    }
+                                )
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(onClick = {
+                                tagsOpen = false
+                                text = ""
+                            }) {
+                                Text(text = "Retrun")
+                            }
+                        }
+
+                    }
+                }
+            }
+
+        }
+    }
 }
 
 @Composable
@@ -349,8 +489,7 @@ fun NewInput(
     var dd1Expanded by remember { mutableStateOf(false) }
     var dd2Expanded by remember { mutableStateOf(false) }
     var dd3Expanded by remember { mutableStateOf(false) }
-    var dd4Expanded by remember { mutableStateOf(false) }
-    var dd5Expanded by remember { mutableStateOf(false) }
+
 
     var meatExpanded by remember { mutableStateOf(false) }
     var carbExpanded by remember { mutableStateOf(false) }
@@ -370,24 +509,25 @@ fun NewInput(
     )
     val primaryCarbItems =
         listOf("Select...", "Any", "Pasta", "Potato", "Rice", "Bread", "Other", "None")
-    val triStateItems = listOf("Optional", "Yes", "No")
+
 
     var text by remember { mutableStateOf("") }
 
+    var cuisineText by remember { mutableStateOf("(Optional)") }
+
     val ingredients = remember { mutableStateListOf<String>() }
+    val exclIngredients = remember { mutableStateListOf<String>() }
     val tags = remember { mutableStateListOf<String>() }
 
 
     var meatContentIndex by remember { mutableStateOf(0) }
     var primaryMeatIndex by remember { mutableStateOf(0) }
     var primaryCarbIndex by remember { mutableStateOf(0) }
-    var spiceIndex by remember { mutableStateOf(0) }
-    var cheeseIndex by remember { mutableStateOf(0) }
 
-    var glutenChecked by remember { mutableStateOf(false) }
-    var lactoseChecked by remember { mutableStateOf(false) }
 
-    var ingredientsOpen by remember { mutableStateOf(false) }
+    var cuisine by remember { mutableStateOf(false) }
+    var addIngredientsOpen by remember { mutableStateOf(false) }
+    var removeIngredientsOpen by remember { mutableStateOf(false) }
     var tagsOpen by remember { mutableStateOf(false) }
     var processing by remember { mutableStateOf(false) }
 
@@ -413,7 +553,11 @@ fun NewInput(
                 modifier = Modifier
                     .padding(8.dp)
             ) {
-                Text(text = "Meat Content:")
+                Text(text = "Meat Content:", modifier = Modifier
+                    .clickable(onClick = {
+                        dd1Expanded = true
+                    })
+                )
                 Text(
                     text = meatContentItems[meatContentIndex],
                     textAlign = TextAlign.End, modifier = Modifier
@@ -422,6 +566,7 @@ fun NewInput(
                             dd1Expanded = true
                         })
                 )
+
 
                 DropdownMenu(
                     expanded = dd1Expanded,
@@ -451,7 +596,11 @@ fun NewInput(
                     modifier = Modifier
                         .padding(8.dp)
                 ) {
-                    Text(text = "Primary Meat:")
+                    Text(text = "Primary Meat:",modifier = Modifier
+                        .clickable(onClick = {
+                            dd2Expanded = true
+                        })
+                    )
                     Text(
                         text = primaryMeatItems[primaryMeatIndex],
                         textAlign = TextAlign.End, modifier = Modifier
@@ -485,7 +634,11 @@ fun NewInput(
                     modifier = Modifier
                         .padding(8.dp)
                 ) {
-                    Text(text = "Primary Carbohydrate:")
+                    Text(text = "Primary Carbohydrate:",modifier = Modifier
+                        .clickable(onClick = {
+                            dd3Expanded = true
+                        })
+                    )
                     Text(
                         text = primaryCarbItems[primaryCarbIndex],
                         textAlign = TextAlign.End, modifier = Modifier
@@ -519,80 +672,20 @@ fun NewInput(
                         modifier = Modifier
                             .padding(8.dp)
                     ) {
-                        Text(text = "Spice Content:")
                         Text(
-                            text = triStateItems[spiceIndex],
+                            text = "Cuisine:", modifier = Modifier
+                                .clickable(onClick = {
+                                    cuisine = true
+                                })
+                        )
+                        Text(
+                            text = cuisineText,
                             textAlign = TextAlign.End, modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable(onClick = {
-                                    dd4Expanded = true
+                                    cuisine = true
                                 })
                         )
-
-                        DropdownMenu(
-                            expanded = dd4Expanded,
-                            onDismissRequest = { dd4Expanded = false },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            triStateItems.forEachIndexed() { index, s ->
-                                DropdownMenuItem(onClick = {
-                                    spiceIndex = index
-                                    dd4Expanded = false
-                                }, text = { Text(text = s, textAlign = TextAlign.End) })
-
-                            }
-                        }
-                    }
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .padding(8.dp)
-                    ) {
-                        Text(text = "Cheese Content:")
-                        Text(
-                            text = triStateItems[cheeseIndex],
-                            textAlign = TextAlign.End, modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(onClick = {
-                                    dd5Expanded = true
-                                })
-                        )
-
-                        DropdownMenu(
-                            expanded = dd5Expanded,
-                            onDismissRequest = { dd5Expanded = false },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            triStateItems.forEachIndexed() { index, s ->
-                                DropdownMenuItem(onClick = {
-                                    cheeseIndex = index
-                                    dd5Expanded = false
-                                }, text = { Text(text = s, textAlign = TextAlign.End) })
-
-                            }
-                        }
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(text = "Gluten Free:")
-                        Switch(checked = glutenChecked, onCheckedChange = { glutenChecked = it })
-
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "Lactose Free:")
-                        Switch(checked = lactoseChecked, onCheckedChange = { lactoseChecked = it })
-
                     }
                     Row(
                         modifier = Modifier
@@ -603,7 +696,22 @@ fun NewInput(
                     ) {
                         Text(text = "Additional Ingredients:")
                         Button(onClick = {
-                            ingredientsOpen = true
+                            addIngredientsOpen = true
+                        }) {
+                            Text(text = "Edit")
+                        }
+
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = "Exclude Ingredients:")
+                        Button(onClick = {
+                            removeIngredientsOpen = true
                         }) {
                             Text(text = "Edit")
                         }
@@ -632,14 +740,10 @@ fun NewInput(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Button(onClick = {
-                            val query = Query(
+                            /*val query = Query(
                                 meatContentItems[meatContentIndex],
                                 primaryMeatItems[primaryMeatIndex],
                                 primaryCarbItems[primaryCarbIndex],
-                                spiceIndex,
-                                cheeseIndex,
-                                glutenChecked,
-                                lactoseChecked,
                                 ingredients,
                                 tags
                             )
@@ -657,7 +761,7 @@ fun NewInput(
                                 MainScope().launch { navController.navigate(Paths.Recipe.Path + "/${items.size - 1}") }
 
 
-                            }
+                            }*/
 
 
                         }) {
@@ -671,7 +775,89 @@ fun NewInput(
 
         }
     }
-    if (ingredientsOpen) {
+
+    if (cuisine) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .fillMaxHeight()
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null
+                ) {
+                    /* doSomething() */
+                }
+                .wrapContentSize(Alignment.TopStart)
+                .background(com.noxapps.dinnerroulette3.ui.theme.ObfsuGrey)
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Center)
+                //.background(com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange)
+                //.clip(RoundedCornerShape(10.dp))
+                //.border(BorderStroke(1.dp,com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .width(IntrinsicSize.Min)
+                        .height(IntrinsicSize.Min)
+                        .wrapContentSize(Alignment.Center)
+                        .background(com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange)
+                        .clip(RoundedCornerShape(10.dp))
+                        .border(
+                            BorderStroke(
+                                1.dp,
+                                com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
+                            )
+                        )
+                ) {
+                    Column() {
+                        Text("Add Cuisine:")
+                        Row() {
+                            val maxChar = 17
+                            TextField(
+                                value = text,
+                                onValueChange = {
+                                    if (it.length <= maxChar) text = it
+                                },
+                                label = { Text("add ingredients") },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Done),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        cuisineText = text
+                                        text = ""
+                                    }
+                                )
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(onClick = {
+                                addIngredientsOpen = false
+                                text = ""
+                            }) {
+                                Text(text = "Cancel")
+                            }
+                        }
+
+                    }
+
+                }
+            }
+        }
+
+    }
+    
+    if (addIngredientsOpen) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -715,17 +901,37 @@ fun NewInput(
                         Row() {
                             Text(text = "")
                             ingredients.forEachIndexed() { index, s ->
-                                ClickableText(text = AnnotatedString(s), onClick = {
-                                    ingredients.remove(s)
-                                })
-
+                                Row() {
+                                    Box(modifier = Modifier
+                                        .background(ObfsuGrey)
+                                        .padding(3.dp)
+                                        .clickable(
+                                            interactionSource = interactionSource,
+                                            indication = null
+                                        ) {
+                                            ingredients.remove(s)
+                                        }) {
+                                        Row() {
+                                            Text(s)
+                                            Icon(
+                                                Icons.Filled.Close,
+                                                contentDescription = "Delete",
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.size(1.dp))
+                                }
                             }
                         }
 
                         Row() {
+                            val maxChar = 17
                             TextField(
                                 value = text,
-                                onValueChange = { text = it },
+                                onValueChange = {
+                                    if (it.length <= maxChar) text = it
+                                },
                                 label = { Text("add ingredients") },
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Done),
@@ -744,7 +950,115 @@ fun NewInput(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Button(onClick = {
-                                ingredientsOpen = false
+                                addIngredientsOpen = false
+                                text = ""
+                            }) {
+                                Text(text = "Retrun")
+                            }
+                        }
+
+                    }
+
+                }
+            }
+        }
+
+    }
+
+    if (removeIngredientsOpen) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .fillMaxHeight()
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null
+                ) {
+                    /* doSomething() */
+                }
+                .wrapContentSize(Alignment.TopStart)
+                .background(com.noxapps.dinnerroulette3.ui.theme.ObfsuGrey)
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Center)
+                //.background(com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange)
+                //.clip(RoundedCornerShape(10.dp))
+                //.border(BorderStroke(1.dp,com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .width(IntrinsicSize.Min)
+                        .height(IntrinsicSize.Min)
+                        .wrapContentSize(Alignment.Center)
+                        .background(com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange)
+                        .clip(RoundedCornerShape(10.dp))
+                        .border(
+                            BorderStroke(
+                                1.dp,
+                                com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
+                            )
+                        )
+                ) {
+                    Column() {
+                        Text("Excluded Ingredients:",)
+                        Row() {
+                            Text(text = "")
+                            exclIngredients.forEachIndexed() { index, s ->
+                                Row() {
+                                    Box(modifier = Modifier
+                                        .background(ObfsuGrey)
+                                        .padding(3.dp)
+                                        .clickable(
+                                            interactionSource = interactionSource,
+                                            indication = null
+                                        ) {
+                                            exclIngredients.remove(s)
+                                        }) {
+                                        Row() {
+                                            Text(s)
+                                            Icon(
+                                                Icons.Filled.Close,
+                                                contentDescription = "Delete",
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.size(1.dp))
+                                }
+                            }
+                        }
+
+                        Row() {
+                            val maxChar = 17
+                            TextField(
+                                value = text,
+                                onValueChange = {
+                                    if (it.length <= maxChar) text = it
+                                },
+                                label = { Text("exclude ingredients") },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Done),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        exclIngredients.add(text)
+                                        text = ""
+                                    }
+                                )
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(onClick = {
+                                removeIngredientsOpen = false
                                 text = ""
                             }) {
                                 Text(text = "Retrun")
@@ -800,26 +1114,47 @@ fun NewInput(
                 ) {
                     Column() {
                         Text("Descriptive Tags:")
-                        Row() {
+                        Row(modifier = Modifier
+                            .padding(start = 5.dp, end=5.dp)) {
                             Text(text = "")
                             tags.forEachIndexed() { index, s ->
-                                ClickableText(
-                                    text = AnnotatedString(s),
-                                    onClick = { tags.remove(s) })
+                                Row() {
+                                    Box(modifier = Modifier
+                                        .background(ObfsuGrey)
+                                        .padding(3.dp)
+                                        .clickable(
+                                            interactionSource = interactionSource,
+                                            indication = null
+                                        ) {
+                                            tags.remove(s)
+                                        }) {
+                                        Row() {
+                                            Text(s)
+                                            Icon(
+                                                Icons.Filled.Close,
+                                                contentDescription = "Delete",
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.size(1.dp))
+                                }
                             }
                         }
 
                         Row() {
+                            val maxChar = 17
                             TextField(
                                 value = text,
-                                onValueChange = { text = it },
+                                onValueChange = {
+                                    if (it.length <= maxChar) text = it
+                                },
                                 label = { Text("Add Tags") },
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Done),
                                 keyboardActions = KeyboardActions(
                                     onDone = {
                                         tags.add(text)
-                                        //Log.e("tags list", tagsList.toString())
                                         text = ""
                                     }
                                 )
