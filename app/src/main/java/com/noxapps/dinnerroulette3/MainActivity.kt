@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -26,29 +25,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.navigation.NavHostController
 import com.noxapps.dinnerroulette3.ui.theme.*
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.*
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navOptions
+import kotlinx.coroutines.flow.first
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "saveData")
-val EXAMPLE_COUNTER = stringPreferencesKey("storedResponse")
+val savedPreferences = stringPreferencesKey("savedPreferences")
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -126,8 +123,7 @@ fun MainScaffold(){
     )
 }
 val testRecipe=QandA(
-    Query("yes", "chicken", "bread", 1,
-        2,false, false, mutableListOf<String>("none"), mutableListOf("none")),
+    Query("yes", "chicken", "bread", mutableListOf("none"), mutableListOf<String>("none"), mutableListOf("none")),
     GptResponse("tester", "test response", 0,"test", listOf(GptChoices(0,
         GptMessage("role", "[title]Pork and Potato Stew;;;\n" +
                 "[desc]This hearty stew is perfect for a cozy night in. Tender pork and potatoes are simmered in a savory tomato-based sauce until everything is melt-in-your-mouth delicious.;;;\n" +
@@ -155,8 +151,7 @@ val testRecipe=QandA(
                 "[notes]This stew can be made a day ahead of time and reheated for an easy weeknight meal. Feel free to add any additional vegetables you have on hand, such as carrots or celery. Enjoy![fin]"),"finish"
     )),GptUsage(1, 1, 2) ), "Pork and Potato Stew - beginner")
 val testRecipe2=QandA(
-    Query("yes", "chicken", "bread", 1,
-        2,false, false, mutableListOf<String>("none"), mutableListOf("none")),
+    Query("yes", "chicken", "bread",  mutableListOf("none"), mutableListOf<String>("none"), mutableListOf("none")),
     GptResponse("tester", "test response", 0,"test", listOf(GptChoices(0,
         GptMessage("role", "[title]Pork and Potato Skillet;;\n" +
                 "[desc]This Pork and Potato skillet recipe is a savory, one-pan meal that is perfect for a quick and easy dinner. The potatoes are cooked until crispy and the pork is juicy and flavorful.;;\n" +
@@ -190,8 +185,7 @@ val testRecipe2=QandA(
                 "[notes]If you don't have chicken broth, you can use vegetable broth or water instead. You can also add other vegetables like carrots, zucchini or mushrooms to the skillet."),"finish"
     )),GptUsage(1, 1, 2) ), "Pork and Potato Skillet - intermediate")
 val testRecipe3=QandA(
-    Query("yes", "chicken", "bread", 1,
-        2,false, false, mutableListOf<String>("none"), mutableListOf("none")),
+    Query("yes", "chicken", "bread",  mutableListOf<String>("none"), mutableListOf("none"), mutableListOf("none")),
     GptResponse("tester", "test response", 0,"test", listOf(GptChoices(0,
         GptMessage("role", "[title]Pork and Potato Stew;;;\n" +
                 "[desc]A hearty and comforting stew made with tender pork and creamy potatoes.;;;\n" +
@@ -328,42 +322,97 @@ fun DrawerRecipeItem(input:QandA, index:Int, contentLocation:String, navControll
 
 }
 
+
+
 @Composable
 fun Settings(){
+    val context = LocalContext.current
+    val store = UserStore(context)
+    val scope = rememberCoroutineScope()
+    val interactionSource = remember { MutableInteractionSource() }
+
+    var imperial by remember { mutableStateOf(false) }
+    var fahrenheit by remember { mutableStateOf(false) }
+
     var text by remember { mutableStateOf("") }
-    var tagsOpen by remember { mutableStateOf(false) }
-    val tags = remember { mutableStateListOf<String>() }
+    var allergensOpen by remember { mutableStateOf(false) }
 
-    val tokenText = store.getAccessToken.collectAsState(initial = "").value
-    Text(text = "Settings Page")
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = "Lactose Free:")
-        //Switch(checked = lactoseChecked, onCheckedChange = { lactoseChecked = it })
+    val allergens = remember { mutableStateListOf<String>() }
 
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = "Descriptive Tags:")
-        Button(onClick = {
-            tagsOpen = true
-        }) {
-            Text(text = "Edit")
+    val loadedData = runBlocking { context.dataStore.data.first() }
+    loadedData[savedPreferences]?.let { Log.d("saved preferences2", it) }
+
+    loadedData[savedPreferences]?.let{
+        val retrievedData = Json.decodeFromString<Settings>(it)
+        imperial=retrievedData.imperial
+        fahrenheit=retrievedData.fahrenheit
+        retrievedData.allergens.forEach(){ allergen->
+            if(!allergens.contains(allergen))allergens.add(allergen)
         }
 
     }
 
-    if (tagsOpen) {
+
+
+    Text(text = "Settings Page")
+    Column() {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Use Imperial Units")
+            Switch(checked = imperial, onCheckedChange = { imperial = it })
+
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Use Fahrenheit")
+            Switch(checked = fahrenheit, onCheckedChange = { fahrenheit = it })
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Alergens / Intolerances")
+            Button(onClick = {
+                allergensOpen = true
+            }) {
+                Text(text = "Edit")
+            }
+
+        }
+        Row(
+            modifier = Modifier
+                .padding(4.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(onClick = {
+                val toSave = Settings(imperial, fahrenheit, allergens.toList())
+                scope.launch {
+                    context.dataStore.edit { settings ->
+                        settings[savedPreferences] = Json.encodeToString(toSave)
+                    }
+                }
+            }) {
+                Text(text = "Save")
+            }
+        }
+    }
+
+
+    if (allergensOpen) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -407,7 +456,7 @@ fun Settings(){
                         Row(modifier = Modifier
                             .padding(start = 5.dp, end=5.dp)) {
                             Text(text = "")
-                            tags.forEachIndexed() { index, s ->
+                            allergens.forEachIndexed() { index, s ->
                                 Row() {
                                     Box(modifier = Modifier
                                         .background(ObfsuGrey)
@@ -416,7 +465,7 @@ fun Settings(){
                                             interactionSource = interactionSource,
                                             indication = null
                                         ) {
-                                            tags.remove(s)
+                                            allergens.remove(s)
                                         }) {
                                         Row() {
                                             Text(s)
@@ -444,7 +493,7 @@ fun Settings(){
                                 keyboardOptions = KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Done),
                                 keyboardActions = KeyboardActions(
                                     onDone = {
-                                        tags.add(text)
+                                        allergens.add(text)
                                         text = ""
                                     }
                                 )
@@ -457,7 +506,7 @@ fun Settings(){
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Button(onClick = {
-                                tagsOpen = false
+                                allergensOpen = false
                                 text = ""
                             }) {
                                 Text(text = "Retrun")
@@ -694,7 +743,7 @@ fun NewInput(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "Additional Ingredients:")
+                        Text(text = "Add Ingredients:")
                         Button(onClick = {
                             addIngredientsOpen = true
                         }) {
@@ -709,7 +758,7 @@ fun NewInput(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "Exclude Ingredients:")
+                        Text(text = "Excluded Ingredients:")
                         Button(onClick = {
                             removeIngredientsOpen = true
                         }) {
@@ -740,22 +789,19 @@ fun NewInput(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Button(onClick = {
-                            /*val query = Query(
+                            val query = Query(
                                 meatContentItems[meatContentIndex],
                                 primaryMeatItems[primaryMeatIndex],
                                 primaryCarbItems[primaryCarbIndex],
                                 ingredients,
+                                exclIngredients,
                                 tags
                             )
                             var question2 = viewModel.generateQuestion(query)
                             Log.d("constructed question", question2)
                             processing=true
-
-                            viewModel.getResponse(question2) { it ->
-                                Log.e("output recipe", Json.encodeToString(it))
-                                runBlocking { store.saveToken(Json.encodeToString(it)) }
-                                var confirmationString: String = store.getAccessToken.toString()
-                                Log.e("confirmation String", confirmationString)
+                            /*
+                            viewModel.getResponse(question2, context) { it ->
                                 items.add(QandA(query, it, "test recieved recipe"))
 
                                 MainScope().launch { navController.navigate(Paths.Recipe.Path + "/${items.size - 1}") }
@@ -824,13 +870,15 @@ fun NewInput(
                                 onValueChange = {
                                     if (it.length <= maxChar) text = it
                                 },
-                                label = { Text("add ingredients") },
+                                label = { Text("Select Cuisine") },
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Done),
                                 keyboardActions = KeyboardActions(
                                     onDone = {
                                         cuisineText = text
+                                        cuisine = false
                                         text = ""
+
                                     }
                                 )
                             )
@@ -842,7 +890,7 @@ fun NewInput(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Button(onClick = {
-                                addIngredientsOpen = false
+                                cuisine = false
                                 text = ""
                             }) {
                                 Text(text = "Cancel")

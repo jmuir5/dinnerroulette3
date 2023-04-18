@@ -1,7 +1,11 @@
 package com.noxapps.dinnerroulette3
 
+import android.content.Context
 import android.util.Log
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -45,26 +49,22 @@ class InputViewModel: ViewModel() {
         if (carbFlag==2) question+= "with an unconventional carbohydrate "
         if(input.primaryCarb=="None") question+= "with no carbohydrates "
 
-        if (input.additionalIngredients.size>0||input.descriptiveTags.size>0)question+="that "
+        if (input.additionalIngredients.size>0||input.excludedIngredients.size>0||input.descriptiveTags.size>0)question+="that "
         if (input.additionalIngredients.size>0) {
             question += "includes the following ingredients: "
-            input.additionalIngredients.forEach { s -> question += s + ", " }
+            input.additionalIngredients.forEach { s -> question += "$s, " }
+        }
+        if (input.additionalIngredients.size>0&&input.excludedIngredients.size>0)question+="; and "
+
+        if (input.excludedIngredients.size>0) {
+            question += "excludes the following ingredients: "
+            input.excludedIngredients.forEach { s -> question += "$s, " }
         }
         if (input.additionalIngredients.size>0&&input.descriptiveTags.size>0)question+="; and "
 
         if (input.descriptiveTags.size>0) {
             question += "fits the following descriptors: "
-            if (input.spiceContent>0){
-                if (input.spiceContent==2)question+= "not "
-                question+="spicy, "
-            }
-            if (input.cheeseContent>0){
-                if (input.cheeseContent==2)question+= "not "
-                question+="cheesy, "
-            }
-            if (input.glutenFree)question+="gluten free, "
-            if (input.lactoseFree)question+="lactose free, "
-            input.descriptiveTags.forEach { s -> question += s + ", " }
+            input.descriptiveTags.forEach { s -> question += "$s, " }
         }
 
 
@@ -73,14 +73,28 @@ class InputViewModel: ViewModel() {
     }
 
     //https://platform.openai.com/docs/api-reference/making-requests
-    fun getResponse(question: String, callback: (GptResponse) -> Unit){
+    fun getResponse(question: String, context:Context, callback: (GptResponse) -> Unit){
         val apiKey="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"
         val url="https://api.openai.com/v1/chat/completions"
-        /*You are a recipe generating bot that recieves a natural language prompt and returns a recipe suited to an intermediate home cook.
+
+        var imperial=false
+        var fahrenheit = false
+        val allergens = mutableListOf<String>()
+        val loadedData = runBlocking { context.dataStore.data.first() }
+        loadedData[savedPreferences]?.let{
+            val retrievedData = Json.decodeFromString<Settings>(it)
+            imperial=retrievedData.imperial
+            fahrenheit=retrievedData.fahrenheit
+            retrievedData.allergens.forEach(){ allergen->
+                if(!allergens.contains(allergen))allergens.add(allergen)
+            }
+
+        }
+        /*You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to an intermediate home cook.
         The prompt will end with "[fin]", indicating the intended end of the prompt. you are to output a recipe in the format:
         [title]title of recipe;;;
-        [desc]breif description of recipe;;;
-        [ingr]list of ingredients in metric units;;;
+        [desc]brief description of recipe;;;
+        [ingredients]list of ingredients in metric units;;;
         [method]recipe method;;;
         [notes] optionally include any appropriate notes;;;*/
 
