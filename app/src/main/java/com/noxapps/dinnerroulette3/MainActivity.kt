@@ -39,6 +39,10 @@ import kotlinx.coroutines.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import io.realm.kotlin.Realm
+import io.realm.kotlin.RealmConfiguration
+import io.realm.kotlin.ext.query
+import io.realm.kotlin.query.RealmResults
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
@@ -49,6 +53,7 @@ val savedPreferences = stringPreferencesKey("savedPreferences")
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             DinnerRoulette3Theme {
                 // A surface container using the 'background' color from the theme
@@ -122,7 +127,7 @@ fun MainScaffold(){
         }
     )
 }
-val testRecipe=QandA(
+var holder = SavedRecipe(QandA(
     Query("yes", "chicken", "bread", "indian", mutableListOf("none"), mutableListOf<String>("none"), mutableListOf("none")),
     GptResponse("tester", "test response", 0,"test", listOf(GptChoices(0,
         GptMessage("role", "[title]Pork and Potato Stew;;;\n" +
@@ -149,77 +154,8 @@ val testRecipe=QandA(
                 "6. Serve the stew hot, garnished with fresh herbs if desired.\n" +
                 ";;;\n" +
                 "[notes]This stew can be made a day ahead of time and reheated for an easy weeknight meal. Feel free to add any additional vegetables you have on hand, such as carrots or celery. Enjoy![fin]"),"finish"
-    )),GptUsage(1, 1, 2) ), "Pork and Potato Stew - beginner")
-val testRecipe2=QandA(
-    Query("yes", "chicken", "bread", "indian", mutableListOf("none"), mutableListOf<String>("none"), mutableListOf("none")),
-    GptResponse("tester", "test response", 0,"test", listOf(GptChoices(0,
-        GptMessage("role", "[title]Pork and Potato Skillet;;\n" +
-                "[desc]This Pork and Potato skillet recipe is a savory, one-pan meal that is perfect for a quick and easy dinner. The potatoes are cooked until crispy and the pork is juicy and flavorful.;;\n" +
-                "[ingr]\n" +
-                "- 500g pork tenderloin, sliced into 1/2 inch pieces\n" +
-                "- 1/2 tsp salt\n" +
-                "- 1/4 tsp black pepper\n" +
-                "- 2 tbsp olive oil\n" +
-                "- 1 onion, chopped\n" +
-                "- 3 cloves garlic, minced\n" +
-                "- 1 red bell pepper, sliced\n" +
-                "- 1 green bell pepper, sliced\n" +
-                "- 500g potatoes, peeled and sliced into 1/4 inch pieces\n" +
-                "- 1 tsp dried thyme\n" +
-                "- 1 cup chicken broth\n" +
-                "- 2 tbsp chopped parsley\n" +
-                "- 2 tbsp chopped scallions\n" +
-                "- Salt and pepper to taste\n" +
-                ";;;\n" +
-                "[method]\n" +
-                "1. Season the pork with 1/2 tsp salt and 1/4 tsp black pepper.\n" +
-                "2. Heat 1 tbsp of olive oil in a large skillet over medium-high heat. Add the pork and cook for 2-3 minutes on each side, until browned. Remove the pork from the skillet and set aside.\n" +
-                "3. Add the remaining 1 tbsp of olive oil to the skillet. Add the onion and garlic and cook for 2-3 minutes, until softened.\n" +
-                "4. Add the sliced peppers and cook for 2-3 minutes, until softened.\n" +
-                "5. Add the sliced potatoes and thyme to the skillet and stir to combine.\n" +
-                "6. Pour the chicken broth over the potato mixture and bring to a boil. Reduce the heat to medium-low and simmer for 15-20 minutes, until the potatoes are tender and the liquid has reduced by half.\n" +
-                "7. Add the pork back to the skillet and cook for an additional 5-10 minutes, until the pork is cooked through and the liquid has thickened.\n" +
-                "8. Garnish with chopped parsley and scallions and season with salt and pepper to taste.\n" +
-                "9. Serve hot and enjoy your Pork and Potato Skillet!\n" +
-                ";;;\n" +
-                "[notes]If you don't have chicken broth, you can use vegetable broth or water instead. You can also add other vegetables like carrots, zucchini or mushrooms to the skillet."),"finish"
-    )),GptUsage(1, 1, 2) ), "Pork and Potato Skillet - intermediate")
-val testRecipe3=QandA(
-    Query("yes", "chicken", "bread", "indian", mutableListOf<String>("none"), mutableListOf("none"), mutableListOf("none")),
-    GptResponse("tester", "test response", 0,"test", listOf(GptChoices(0,
-        GptMessage("role", "[title]Pork and Potato Stew;;;\n" +
-                "[desc]A hearty and comforting stew made with tender pork and creamy potatoes.;;;\n" +
-                "[ingr]\n" +
-                "- 1 kg pork shoulder, cut into cubes\n" +
-                "- 1 kg potatoes, peeled and cut into chunks\n" +
-                "- 2 onions, chopped\n" +
-                "- 4 cloves of garlic, minced\n" +
-                "- 2 bell peppers, seeded and chopped\n" +
-                "- 2 cans of chopped tomatoes\n" +
-                "- 2 cups of chicken stock\n" +
-                "- 2 tbsp of tomato paste\n" +
-                "- 2 tbsp of olive oil\n" +
-                "- 1 tsp of smoked paprika\n" +
-                "- 1 tsp of dried thyme\n" +
-                "- Salt and pepper to taste\n" +
-                ";;;\n" +
-                "[method]\n" +
-                "1. Heat the olive oil in a large pot or Dutch oven over medium heat. Add the pork and cook until browned on all sides, about 5 minutes.\n" +
-                "\n" +
-                "2. Remove the pork from the pot and set it aside. Add the onions and garlic to the pot and cook until softened, about 5 minutes.\n" +
-                "\n" +
-                "3. Add the bell peppers, smoked paprika, and thyme to the pot and cook for another 5 minutes.\n" +
-                "\n" +
-                "4. Add the pork back to the pot, along with the chopped tomatoes, tomato paste, and chicken stock. Season with salt and pepper to taste.\n" +
-                "\n" +
-                "5. Bring the stew to a boil, then reduce the heat to low and let it simmer for 1 hour.\n" +
-                "\n" +
-                "6. Add the potatoes to the pot and continue to simmer for another 30 minutes, or until the potatoes are tender and the pork is cooked through.\n" +
-                "\n" +
-                "7. Serve the stew hot, garnished with fresh parsley or cilantro, if desired.\n" +
-                ";;;\n" +
-                "[notes] This stew can be made ahead of time and reheated for an easy weeknight dinner. It also freezes well, so consider making a double batch and freezing the leftovers for later. Enjoy!;;;"),"finish"
-    )),GptUsage(1, 1, 2) ), "Pork and Potato Stew - expert")
+    )),GptUsage(1, 1, 2) ), ParsedResponse("1","2", "3", "4", "5")))
+
 
 
 
@@ -228,7 +164,10 @@ fun Drawer(drawerState: DrawerState, scope:CoroutineScope){
 // icons to mimic drawer destinations
     val navController = rememberNavController()
     var contentLocation by remember{ mutableStateOf("NewInput")}
-    val items = remember{ mutableStateListOf(testRecipe, testRecipe2, testRecipe3)}
+    //val items = remember{ mutableStateListOf(testRecipe, testRecipe2, testRecipe3)}
+    val config = RealmConfiguration.create(schema = setOf(SavedRecipe::class))
+    val realm: Realm = Realm.open(config)
+    val items: RealmResults<SavedRecipe> = realm.query<SavedRecipe>().find()
 
 
     val selectedItem = remember { mutableStateOf(items[0]) }
@@ -295,7 +234,7 @@ fun Drawer(drawerState: DrawerState, scope:CoroutineScope){
             }
         },
         content = {
-            NavMain(navController, items)
+            NavMain(navController, items.toList(), realm)
 
 
         }
@@ -304,12 +243,13 @@ fun Drawer(drawerState: DrawerState, scope:CoroutineScope){
 
 
 @Composable
-fun DrawerRecipeItem(input:QandA, index:Int, contentLocation:String, navController: NavHostController, scope:CoroutineScope, drawerState:DrawerState){
+fun DrawerRecipeItem(input:SavedRecipe, index:Int, contentLocation:String, navController: NavHostController, scope:CoroutineScope, drawerState:DrawerState){
     NavigationDrawerItem(
         icon = { Icon(Icons.Default.Article, contentDescription = null) },
-        label = { Text(text = input.name) },
+        label = { Text(text = input.title) },
         selected = false,
         onClick = {
+            holder = input
             navController.navigate(Paths.Recipe.Path+"/$index")
             scope.launch { drawerState.close()}
             //contentLocation="Recipe"
@@ -569,19 +509,24 @@ fun Settings(){
 }
 
 @Composable
-fun Recipe(data:String, items:MutableList<QandA>, navController: NavHostController){
-    val retrievedData = items[data.toInt()]
+fun Recipe(holder:SavedRecipe, navController: NavHostController){
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        Text(text = "Recipe Page")
-        Text(text = "Recipe:${retrievedData.name}")
-        Text(text=retrievedData.answer.choices[0].message.content)
+        Text(text = holder.title)
+        Text(text = "Description")
+        Text(text=holder.description)
+        Text(text = "Ingredients")
+        Text(text=holder.ingredients)
+        Text(text = "Method")
+        Text(text=holder.method)
+        Text(text = "Notes")
+        Text(text=holder.notes)
+
     }
 }
 
 @Composable
 fun NewInput(
-    viewModel: InputViewModel = InputViewModel(), items: MutableList<QandA>, navController: NavHostController
-) {
+    viewModel: InputViewModel = InputViewModel(), items: List<SavedRecipe>, navController: NavHostController, realm:Realm) {
     var dd1Expanded by remember { mutableStateOf(false) }
     var dd2Expanded by remember { mutableStateOf(false) }
     var dd3Expanded by remember { mutableStateOf(false) }
@@ -850,9 +795,14 @@ fun NewInput(
                             processing=true
 
                             viewModel.getResponse(question2, context) { it ->
-                                items.add(QandA(query, it, "test recieved recipe"))
+                                val recieved = SavedRecipe(QandA(query, it, viewModel.parseResponse(it)))
+                                realm.writeBlocking {
+                                    copyToRealm(recieved)
+                                }
+                                holder = recieved
+                                //items.add(QandA(query, it, viewModel.parseResponse(it)))
 
-                                MainScope().launch { navController.navigate(Paths.Recipe.Path + "/${items.size - 1}") }
+                                MainScope().launch { navController.navigate(Paths.Recipe.Path) }
 
 
                             }
@@ -1356,18 +1306,13 @@ fun DefaultPreview() {
 }
 
 @Composable
-fun NavMain(navController: NavHostController, items:MutableList<QandA>) {
+fun NavMain(navController: NavHostController, items:List<SavedRecipe>, realm: Realm) {
     NavHost(navController = navController, startDestination = Paths.NewInput.Path) {
         composable(Paths.NewInput.Path) {
-            NewInput(navController = navController, items = items)
+            NewInput(navController = navController, items = items, realm = realm)
         }
         composable(Paths.Settings.Path) { Settings() }
-        composable(Paths.Recipe.Path+"/{id}") {
-            val data = it.arguments?.getString("id")
-            if (data != null) {
-                Recipe(data, items, navController)
-            }
-        }
+        composable(Paths.Recipe.Path) { Recipe(holder, navController) }
         /*...*/
     }
 }

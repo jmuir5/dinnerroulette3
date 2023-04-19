@@ -158,7 +158,12 @@ class InputViewModel: ViewModel() {
 
     fun parseResponse(gptResponse: GptResponse):ParsedResponse{
         val initialText = gptResponse.choices[0].message.content
-        val title = initialText.split("[title]", ";;;")
+        val title = initialText.split("[title]", ";;;")[1]
+        val description = initialText.split("[desc]", ";;;")[1]
+        val ingredients = initialText.split("[ingredients]", ";;;")[1]
+        val method = initialText.split("[method]", ";;;")[1]
+        val notes = initialText.split("[notes]", ";;;")[1]
+        return ParsedResponse(title, description, ingredients, method, notes)
     }
 
 }
