@@ -2,7 +2,6 @@ package com.noxapps.dinnerroulette3
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -27,6 +26,7 @@ class InputViewModel: ViewModel() {
         var question = "give me a recipe for a "
         var meatFlag = 0
         var carbFlag = 0
+        if (input.cuisine!="(Optional)")question+="${input.cuisine} "
         when(input.meatContent){
             "Vegetarian" -> question+="Vegetarian "
             "Vegan" -> question+="Vegan "
@@ -66,10 +66,49 @@ class InputViewModel: ViewModel() {
             question += "fits the following descriptors: "
             input.descriptiveTags.forEach { s -> question += "$s, " }
         }
-
+        question+="[fin]"
 
 
         return question
+    }
+
+    fun generateSystem(context:Context):String{
+        var imperial=false
+        var fahrenheit = false
+        val allergens = mutableListOf<String>()
+        var skill = 0
+        val loadedData = runBlocking { context.dataStore.data.first() }
+        loadedData[savedPreferences]?.let{
+            val retrievedData = Json.decodeFromString<Settings>(it)
+            imperial=retrievedData.imperial
+            fahrenheit=retrievedData.fahrenheit
+            skill = retrievedData.skill
+            retrievedData.allergens.forEach(){ allergen->
+                if(!allergens.contains(allergen))allergens.add(allergen)
+            }
+        }
+        var skillText="a beginner"
+        when(skill){
+            1-> skillText="an intermediate"
+            2-> skillText="an expert"
+        }
+
+        var allergenText = "."
+        if(allergens.size>0){
+            allergenText=" who is algergic to or intolerant of the following: "
+            allergens.forEach { allergenText+="$it, " }
+            allergenText+="."
+        }
+        var unit1Text = "metric"
+        if (imperial)unit1Text="imperial"
+
+        var unit2Text = "celsius"
+        if (fahrenheit)unit2Text = "fahrenheit"
+
+        val prompt="You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText The prompt will end with [fin], indicating the intended end of the prompt. you are to output a recipe in the format:[title]title of recipe;;;[desc]brief description of recipe;;;[ingredients]list of ingredients in $unit1Text units;;;[method]recipe method with oven temperature displayed in $unit2Text;;;[notes] optionally include any appropriate notes;;;end"
+
+        return prompt
+
     }
 
     //https://platform.openai.com/docs/api-reference/making-requests
@@ -77,33 +116,16 @@ class InputViewModel: ViewModel() {
         val apiKey="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"
         val url="https://api.openai.com/v1/chat/completions"
 
-        var imperial=false
-        var fahrenheit = false
-        val allergens = mutableListOf<String>()
-        val loadedData = runBlocking { context.dataStore.data.first() }
-        loadedData[savedPreferences]?.let{
-            val retrievedData = Json.decodeFromString<Settings>(it)
-            imperial=retrievedData.imperial
-            fahrenheit=retrievedData.fahrenheit
-            retrievedData.allergens.forEach(){ allergen->
-                if(!allergens.contains(allergen))allergens.add(allergen)
-            }
-
-        }
-        /*You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to an intermediate home cook.
-        The prompt will end with "[fin]", indicating the intended end of the prompt. you are to output a recipe in the format:
-        [title]title of recipe;;;
-        [desc]brief description of recipe;;;
-        [ingredients]list of ingredients in metric units;;;
-        [method]recipe method;;;
-        [notes] optionally include any appropriate notes;;;*/
+        val prompt = generateSystem(context)
+        Log.e("system", prompt)
 
         val requestBody="""
             {
             "model": "gpt-3.5-turbo",
-            "messages": [{"role": "user", "content":"$question"}]
+            "messages": [{"role": "system", "content": "$prompt"},{"role": "user", "content":"$question"}]
             }
         """.trimIndent()
+        Log.e("request body", requestBody)
 
         val request = Request.Builder()
             .url(url)
@@ -132,6 +154,11 @@ class InputViewModel: ViewModel() {
                 callback(output!!)
             }
         })
+    }
+
+    fun parseResponse(gptResponse: GptResponse):ParsedResponse{
+        val initialText = gptResponse.choices[0].message.content
+        val title = initialText.split("[title]", ";;;")
     }
 
 }

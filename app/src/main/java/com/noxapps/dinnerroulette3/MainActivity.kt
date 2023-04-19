@@ -123,7 +123,7 @@ fun MainScaffold(){
     )
 }
 val testRecipe=QandA(
-    Query("yes", "chicken", "bread", mutableListOf("none"), mutableListOf<String>("none"), mutableListOf("none")),
+    Query("yes", "chicken", "bread", "indian", mutableListOf("none"), mutableListOf<String>("none"), mutableListOf("none")),
     GptResponse("tester", "test response", 0,"test", listOf(GptChoices(0,
         GptMessage("role", "[title]Pork and Potato Stew;;;\n" +
                 "[desc]This hearty stew is perfect for a cozy night in. Tender pork and potatoes are simmered in a savory tomato-based sauce until everything is melt-in-your-mouth delicious.;;;\n" +
@@ -151,7 +151,7 @@ val testRecipe=QandA(
                 "[notes]This stew can be made a day ahead of time and reheated for an easy weeknight meal. Feel free to add any additional vegetables you have on hand, such as carrots or celery. Enjoy![fin]"),"finish"
     )),GptUsage(1, 1, 2) ), "Pork and Potato Stew - beginner")
 val testRecipe2=QandA(
-    Query("yes", "chicken", "bread",  mutableListOf("none"), mutableListOf<String>("none"), mutableListOf("none")),
+    Query("yes", "chicken", "bread", "indian", mutableListOf("none"), mutableListOf<String>("none"), mutableListOf("none")),
     GptResponse("tester", "test response", 0,"test", listOf(GptChoices(0,
         GptMessage("role", "[title]Pork and Potato Skillet;;\n" +
                 "[desc]This Pork and Potato skillet recipe is a savory, one-pan meal that is perfect for a quick and easy dinner. The potatoes are cooked until crispy and the pork is juicy and flavorful.;;\n" +
@@ -185,7 +185,7 @@ val testRecipe2=QandA(
                 "[notes]If you don't have chicken broth, you can use vegetable broth or water instead. You can also add other vegetables like carrots, zucchini or mushrooms to the skillet."),"finish"
     )),GptUsage(1, 1, 2) ), "Pork and Potato Skillet - intermediate")
 val testRecipe3=QandA(
-    Query("yes", "chicken", "bread",  mutableListOf<String>("none"), mutableListOf("none"), mutableListOf("none")),
+    Query("yes", "chicken", "bread", "indian", mutableListOf<String>("none"), mutableListOf("none"), mutableListOf("none")),
     GptResponse("tester", "test response", 0,"test", listOf(GptChoices(0,
         GptMessage("role", "[title]Pork and Potato Stew;;;\n" +
                 "[desc]A hearty and comforting stew made with tender pork and creamy potatoes.;;;\n" +
@@ -339,6 +339,10 @@ fun Settings(){
 
     val allergens = remember { mutableStateListOf<String>() }
 
+    var dd1Expanded by remember { mutableStateOf(false) }
+    val skillLevel = listOf("Beginner", "Intermediate", "Expert")
+    var skillLevelIndex by remember { mutableStateOf(0) }
+
     val loadedData = runBlocking { context.dataStore.data.first() }
     loadedData[savedPreferences]?.let { Log.d("saved preferences2", it) }
 
@@ -346,6 +350,7 @@ fun Settings(){
         val retrievedData = Json.decodeFromString<Settings>(it)
         imperial=retrievedData.imperial
         fahrenheit=retrievedData.fahrenheit
+        skillLevelIndex = retrievedData.skill
         retrievedData.allergens.forEach(){ allergen->
             if(!allergens.contains(allergen))allergens.add(allergen)
         }
@@ -392,6 +397,46 @@ fun Settings(){
             }
 
         }
+
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .padding(8.dp)
+        ) {
+            Text(text = "Skill Level:", modifier = Modifier
+                .clickable(onClick = {
+                    dd1Expanded = true
+                })
+            )
+            Text(
+                text = skillLevel[skillLevelIndex],
+                textAlign = TextAlign.End, modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = {
+                        dd1Expanded = true
+                    })
+            )
+
+            DropdownMenu(
+                expanded = dd1Expanded,
+                onDismissRequest = { dd1Expanded = false },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                skillLevel.forEachIndexed() { index, s ->
+                    DropdownMenuItem(onClick = {
+                        skillLevelIndex = index
+
+                        dd1Expanded = false
+                    }, text = { Text(text = s, textAlign = TextAlign.End) },
+                        modifier = Modifier
+                            .padding(8.dp)
+                    )
+                }
+            }
+
+
+
+        }
         Row(
             modifier = Modifier
                 .padding(4.dp)
@@ -399,7 +444,7 @@ fun Settings(){
             horizontalArrangement = Arrangement.Center
         ) {
             Button(onClick = {
-                val toSave = Settings(imperial, fahrenheit, allergens.toList())
+                val toSave = Settings(imperial, fahrenheit, allergens.toList(), skillLevelIndex)
                 scope.launch {
                     context.dataStore.edit { settings ->
                         settings[savedPreferences] = Json.encodeToString(toSave)
@@ -519,6 +564,8 @@ fun Settings(){
 
         }
     }
+
+    //save confirmation
 }
 
 @Composable
@@ -793,6 +840,7 @@ fun NewInput(
                                 meatContentItems[meatContentIndex],
                                 primaryMeatItems[primaryMeatIndex],
                                 primaryCarbItems[primaryCarbIndex],
+                                cuisineText,
                                 ingredients,
                                 exclIngredients,
                                 tags
@@ -800,14 +848,14 @@ fun NewInput(
                             var question2 = viewModel.generateQuestion(query)
                             Log.d("constructed question", question2)
                             processing=true
-                            /*
+
                             viewModel.getResponse(question2, context) { it ->
                                 items.add(QandA(query, it, "test recieved recipe"))
 
                                 MainScope().launch { navController.navigate(Paths.Recipe.Path + "/${items.size - 1}") }
 
 
-                            }*/
+                            }
 
 
                         }) {
