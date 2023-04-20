@@ -31,18 +31,20 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import com.noxapps.dinnerroulette3.ui.theme.*
 import kotlinx.coroutines.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import io.realm.kotlin.Realm
-import io.realm.kotlin.RealmConfiguration
-import io.realm.kotlin.ext.query
-import io.realm.kotlin.query.RealmResults
+import io.realm.Realm
+import io.realm.RealmConfiguration
+import io.realm.RealmResults
+import io.realm.kotlin.where
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
@@ -50,9 +52,16 @@ import kotlinx.serialization.json.Json
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "saveData")
 val savedPreferences = stringPreferencesKey("savedPreferences")
+val usedTokens = intPreferencesKey("usedTokens")
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        //Realm.Init(Context)
+        /*lifecycleScope.launch {
+            context.dataStore.data.first()
+            // You should also handle IOExceptions here.
+        }*/
 
         setContent {
             DinnerRoulette3Theme {
@@ -94,14 +103,6 @@ fun MainScaffold(){
                     titleContentColor = Black)
             )
         },
-        floatingActionButtonPosition = FabPosition.End,
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { /* fab click handler */ }
-            ) {
-                Text("Inc")
-            }
-        },
         content = { padding ->
 
             Box(
@@ -128,49 +129,37 @@ fun MainScaffold(){
     )
 }
 var holder = SavedRecipe(QandA(
-    Query("yes", "chicken", "bread", "indian", mutableListOf("none"), mutableListOf<String>("none"), mutableListOf("none")),
-    GptResponse("tester", "test response", 0,"test", listOf(GptChoices(0,
-        GptMessage("role", "[title]Pork and Potato Stew;;;\n" +
-                "[desc]This hearty stew is perfect for a cozy night in. Tender pork and potatoes are simmered in a savory tomato-based sauce until everything is melt-in-your-mouth delicious.;;;\n" +
-                "[ingr]\n" +
-                "- 500g pork shoulder, cut into cubes\n" +
-                "- 1 large onion, chopped\n" +
-                "- 3 cloves garlic, minced\n" +
-                "- 3 large potatoes, peeled and cut into cubes\n" +
-                "- 1 can diced tomatoes (400g)\n" +
-                "- 1 cup chicken stock (250ml)\n" +
-                "- 1 tbsp tomato paste\n" +
-                "- 1 tsp paprika\n" +
-                "- 1 tsp dried thyme\n" +
-                "- Salt and pepper, to taste\n" +
-                "- 2 tbsp vegetable oil\n" +
-                ";;;\n" +
-                "[method]\n" +
-                "1. Heat the oil in a large pot over medium-high heat. Add the pork and cook until browned on all sides, about 5 minutes.\n" +
-                "2. Add the onion and garlic to the pot and cook until softened, about 3 minutes.\n" +
-                "3. Stir in the diced tomatoes, chicken stock, tomato paste, paprika, thyme, salt, and pepper. Bring the mixture to a boil.\n" +
-                "4. Reduce the heat to low, cover the pot, and simmer the stew for 1 hour.\n" +
-                "5. Add the potatoes to the pot and continue to simmer the stew for an additional 30 minutes, or until the potatoes are tender and the pork is cooked through.\n" +
-                "6. Serve the stew hot, garnished with fresh herbs if desired.\n" +
-                ";;;\n" +
-                "[notes]This stew can be made a day ahead of time and reheated for an easy weeknight meal. Feel free to add any additional vegetables you have on hand, such as carrots or celery. Enjoy![fin]"),"finish"
-    )),GptUsage(1, 1, 2) ), ParsedResponse("1","2", "3", "4", "5")))
-
+    Query("Optional", "Any", "Any", "(Optional)", mutableListOf<String>(), mutableListOf<String>(), mutableListOf<String>()),
+    GptResponse("default", "default response", 0,"default", listOf(
+        GptChoices(0,
+            GptMessage("0", "0"),"finish")
+    ),
+        GptUsage(1, 1, 2) ),
+    ParsedResponse("1","2", "3", "4", "5")))
 
 
 
 @Composable
 fun Drawer(drawerState: DrawerState, scope:CoroutineScope){
 // icons to mimic drawer destinations
+    Realm.init(LocalContext.current)
+    lateinit var realm2: Realm
     val navController = rememberNavController()
-    var contentLocation by remember{ mutableStateOf("NewInput")}
     //val items = remember{ mutableStateListOf(testRecipe, testRecipe2, testRecipe3)}
-    val config = RealmConfiguration.create(schema = setOf(SavedRecipe::class))
-    val realm: Realm = Realm.open(config)
-    val items: RealmResults<SavedRecipe> = realm.query<SavedRecipe>().find()
+    val config = RealmConfiguration.Builder().name("default1")
+        .schemaVersion(0)
+        .deleteRealmIfMigrationNeeded()
+        .allowWritesOnUiThread(true)
+        .build()
+    Realm.setDefaultConfiguration(config)
+    runBlocking { realm2 = Realm.getInstance(config)}
 
 
-    val selectedItem = remember { mutableStateOf(items[0]) }
+    //val realm: Realm = Realm.open(config)
+    val items: RealmResults<SavedRecipe> = realm2.where<SavedRecipe>().findAll()
+
+
+    //val selectedItem = remember { mutableStateOf(items[0]) }
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -184,19 +173,9 @@ fun Drawer(drawerState: DrawerState, scope:CoroutineScope){
                     label = { Text("New Recipie") },
                     selected = false,
                     onClick = {
-                        if (contentLocation.toString()=="NewInput") scope.launch { drawerState.close()}
-                        else {
-                            navController.navigate(Paths.NewInput.Path)
-                            /*{
-                                navOptions {
-                                    popUpTo(Paths.Settings.Path) {
-                                        inclusive = true
-                                    }
-                                }
-                            }*/
-                            contentLocation="NewInput"
-                            scope.launch { drawerState.close()}
-                        }
+                        navController.navigate(Paths.NewInput.Path)
+                        scope.launch { drawerState.close()}
+
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
@@ -205,26 +184,16 @@ fun Drawer(drawerState: DrawerState, scope:CoroutineScope){
                     label = { Text("Settings") },
                     selected = false,
                     onClick = {
-                        if (contentLocation=="Settings") scope.launch { drawerState.close()}
-                        else {
-                            navController.navigate(Paths.Settings.Path)
-                                /*{
-                                navOptions {
-                                    popUpTo(Paths.Settings.Path) {
-                                        inclusive = true
-                                    }
-                                }
-                            }*/
-                            contentLocation="Settings"
-                            scope.launch { drawerState.close()}
-                        }
+                        navController.navigate(Paths.Settings.Path)
+                        scope.launch { drawerState.close()}
+
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
                 Spacer(Modifier.height(12.dp))
 
                 items.forEachIndexed() { index, item ->
-                    DrawerRecipeItem(input = item, index = index, contentLocation= contentLocation, navController = navController, scope = scope, drawerState = drawerState)
+                    DrawerRecipeItem(input = item, index = index,  navController = navController, scope = scope, drawerState = drawerState)
                 }
 
                 Spacer(Modifier.height(12.dp))
@@ -234,7 +203,7 @@ fun Drawer(drawerState: DrawerState, scope:CoroutineScope){
             }
         },
         content = {
-            NavMain(navController, items.toList(), realm)
+            NavMain(navController, items.toList(), realm2)
 
 
         }
@@ -243,14 +212,14 @@ fun Drawer(drawerState: DrawerState, scope:CoroutineScope){
 
 
 @Composable
-fun DrawerRecipeItem(input:SavedRecipe, index:Int, contentLocation:String, navController: NavHostController, scope:CoroutineScope, drawerState:DrawerState){
+fun DrawerRecipeItem(input:SavedRecipe, index:Int, navController: NavHostController, scope:CoroutineScope, drawerState:DrawerState){
     NavigationDrawerItem(
         icon = { Icon(Icons.Default.Article, contentDescription = null) },
-        label = { Text(text = input.title) },
+        label = { Text(text = input.title!!) },
         selected = false,
         onClick = {
             holder = input
-            navController.navigate(Paths.Recipe.Path+"/$index")
+            navController.navigate(Paths.Recipe.Path)
             scope.launch { drawerState.close()}
             //contentLocation="Recipe"
 
@@ -283,6 +252,8 @@ fun Settings(){
     val skillLevel = listOf("Beginner", "Intermediate", "Expert")
     var skillLevelIndex by remember { mutableStateOf(0) }
 
+    var saveMessage by remember{ mutableStateOf(false)}
+
     val loadedData = runBlocking { context.dataStore.data.first() }
     loadedData[savedPreferences]?.let { Log.d("saved preferences2", it) }
 
@@ -297,9 +268,6 @@ fun Settings(){
 
     }
 
-
-
-    Text(text = "Settings Page")
     Column() {
         Row(
             modifier = Modifier
@@ -384,6 +352,7 @@ fun Settings(){
             horizontalArrangement = Arrangement.Center
         ) {
             Button(onClick = {
+                saveMessage=true
                 val toSave = Settings(imperial, fahrenheit, allergens.toList(), skillLevelIndex)
                 scope.launch {
                     context.dataStore.edit { settings ->
@@ -395,7 +364,66 @@ fun Settings(){
             }
         }
     }
+    if (saveMessage) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .fillMaxHeight()
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null
+                ) {
+                    /* doSomething() */
+                }
+                .wrapContentSize(Alignment.TopStart)
+                .background(com.noxapps.dinnerroulette3.ui.theme.ObfsuGrey)
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Center)
+                //.background(com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange)
+                //.clip(RoundedCornerShape(10.dp))
+                //.border(BorderStroke(1.dp,com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .height(IntrinsicSize.Min)
+                        .wrapContentSize(Alignment.Center)
+                        .background(com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange)
+                        .clip(RoundedCornerShape(10.dp))
+                        .border(
+                            BorderStroke(
+                                1.dp,
+                                com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
+                            )
+                        )
+                ) {
+                    Column() {
+                        Text("your settings have been saved")
+                        Row(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(onClick = {
+                                saveMessage = false
+                                text = ""
+                            }) {
+                                Text(text = "Retrun")
+                            }
+                        }
 
+                    }
+                }
+            }
+
+        }
+    }
 
     if (allergensOpen) {
         Box(
@@ -511,15 +539,15 @@ fun Settings(){
 @Composable
 fun Recipe(holder:SavedRecipe, navController: NavHostController){
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        Text(text = holder.title)
+        Text(text = holder.title!!)
         Text(text = "Description")
-        Text(text=holder.description)
+        Text(text=holder.description!!)
         Text(text = "Ingredients")
-        Text(text=holder.ingredients)
+        Text(text=holder.ingredients!!)
         Text(text = "Method")
-        Text(text=holder.method)
+        Text(text=holder.method!!)
         Text(text = "Notes")
-        Text(text=holder.notes)
+        Text(text=holder.notes!!)
 
     }
 }
@@ -575,11 +603,14 @@ fun NewInput(
     val interactionSource = remember { MutableInteractionSource() }
     val context = LocalContext.current
     val store = UserStore(context)
-    val tokenText = store.getAccessToken.collectAsState(initial = "").value
-    /*items.add(QandA(
-        Query("yes", "chicken", "bread", 1, 2,false, false, mutableListOf<String>("none"), mutableListOf("none")),
-        Json.decodeFromString<GptResponse>(tokenText), "last recieved recipe"))*/
-    Log.e("text init", tokenText.toString())
+    val loadedData = runBlocking { context.dataStore.data.first() }
+
+
+    var stopper by remember{mutableStateOf(false)}
+    var disclamer by remember{mutableStateOf(true)}
+    loadedData[usedTokens]?.let { Log.d("tokens used", it.toString()) }
+    loadedData[usedTokens]?.let { if (it>5000)stopper=true }
+
 
 
 
@@ -796,13 +827,24 @@ fun NewInput(
 
                             viewModel.getResponse(question2, context) { it ->
                                 val recieved = SavedRecipe(QandA(query, it, viewModel.parseResponse(it)))
-                                realm.writeBlocking {
-                                    copyToRealm(recieved)
-                                }
+                                /*realm.executeTransactionAsync { realm ->
+                                    realm.insert(recieved)
+                                }*/
                                 holder = recieved
                                 //items.add(QandA(query, it, viewModel.parseResponse(it)))
+                                runBlocking{
+                                        context.dataStore.edit { settings ->
+                                        val currentCounterValue = settings[usedTokens] ?: 0
+                                        settings[usedTokens] = currentCounterValue + it.usage.total_tokens
+                                    }
+                                }
 
-                                MainScope().launch { navController.navigate(Paths.Recipe.Path) }
+                                MainScope().launch {
+                                    realm.executeTransactionAsync { realm ->
+                                        realm.insert(recieved)
+                                    }
+                                    navController.navigate(Paths.Recipe.Path)
+                                }
 
 
                             }
@@ -1290,6 +1332,137 @@ fun NewInput(
                     }
                 }
             }
+        }
+    }
+
+    if (stopper) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .fillMaxHeight()
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null
+                ) {
+                    /* doSomething() */
+                }
+                .wrapContentSize(Alignment.TopStart)
+                .background(com.noxapps.dinnerroulette3.ui.theme.ObfsuGrey)
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Center)
+                //.background(com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange)
+                //.clip(RoundedCornerShape(10.dp))
+                //.border(BorderStroke(1.dp,com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        //.width(IntrinsicSize.Min)
+                        .height(IntrinsicSize.Min)
+                        .wrapContentSize(Alignment.Center)
+                        .background(com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange)
+                        .clip(RoundedCornerShape(10.dp))
+                        .border(
+                            BorderStroke(
+                                1.dp,
+                                com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
+                            )
+                        )
+                ) {
+                    Column() {
+                        Row(modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center){
+                            Text("max tokens used")
+                        }
+                        Row(modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center) {
+                            Text("this is an early beta build with limited recipe genration. please " +
+                                    "contact chris to generate more recipes")
+                        }
+
+
+                    }
+                }
+            }
+        }
+    }
+
+    if (disclamer) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .fillMaxHeight()
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null
+                ) {
+                    /* doSomething() */
+                }
+                .wrapContentSize(Alignment.TopStart)
+                .background(com.noxapps.dinnerroulette3.ui.theme.ObfsuGrey)
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Center)
+                //.background(com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange)
+                //.clip(RoundedCornerShape(10.dp))
+                //.border(BorderStroke(1.dp,com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .height(IntrinsicSize.Min)
+                        .wrapContentSize(Alignment.Center)
+                        .background(com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange)
+                        .clip(RoundedCornerShape(10.dp))
+                        .border(
+                            BorderStroke(
+                                1.dp,
+                                com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
+                            )
+                        )
+                ) {
+                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                        Text("DISCLAMER:")
+                        Text("This is an early beta build of this application. There will be bugs" +
+                                "and stuff that's not very easy to use. Please don't hesitate to contact " +
+                                "me to give me feedback. \nThis version is limited to roughly 10 recipe " +
+                                "generations. You can continue to view recipes after that runs out but " +
+                                "old recipes may not be carried over to new versions of the app. \n" +
+                                "All recipes are generated by chat gpt, so please use descretion when" +
+                                " actually cooking them, especially if you have intolerances or alergies." +
+                                "The settings page has a place for you to add intollerences and alergies, " +
+                                "please test this if applicable." )
+                        Row(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(onClick = {
+                                disclamer = false
+                                text = ""
+                            }) {
+                                Text(text = "I Understand")
+                            }
+                        }
+
+                    }
+                }
+            }
+
         }
     }
 }

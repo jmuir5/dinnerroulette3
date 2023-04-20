@@ -105,7 +105,7 @@ class InputViewModel: ViewModel() {
         var unit2Text = "celsius"
         if (fahrenheit)unit2Text = "fahrenheit"
 
-        val prompt="You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText The prompt will end with [fin], indicating the intended end of the prompt. you are to output a recipe in the format:[title]title of recipe;;;[desc]brief description of recipe;;;[ingredients]list of ingredients in $unit1Text units;;;[method]recipe method with oven temperature displayed in $unit2Text;;;[notes] optionally include any appropriate notes;;;end"
+        val prompt="You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText The prompt will end with [fin], indicating the intended end of the prompt. you are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes"
 
         return prompt
 
@@ -158,11 +158,11 @@ class InputViewModel: ViewModel() {
 
     fun parseResponse(gptResponse: GptResponse):ParsedResponse{
         val initialText = gptResponse.choices[0].message.content
-        val title = initialText.split("[title]", ";;;")[1]
-        val description = initialText.split("[desc]", ";;;")[1]
-        val ingredients = initialText.split("[ingredients]", ";;;")[1]
-        val method = initialText.split("[method]", ";;;")[1]
-        val notes = initialText.split("[notes]", ";;;")[1]
+        val title = initialText.split("[title]", "[desc]")[1]
+        val description = initialText.split("[desc]", "[ingredients]")[1]
+        val ingredients = initialText.split("[ingredients]", "[method]")[1]
+        val method = initialText.split("[method]", "[notes]")[1]
+        val notes = initialText.split("[notes]")[1]
         return ParsedResponse(title, description, ingredients, method, notes)
     }
 
