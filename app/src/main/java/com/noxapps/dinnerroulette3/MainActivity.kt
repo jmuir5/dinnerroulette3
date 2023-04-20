@@ -240,8 +240,8 @@ fun Settings(){
     val scope = rememberCoroutineScope()
     val interactionSource = remember { MutableInteractionSource() }
 
-    var imperial by remember { mutableStateOf(false) }
-    var fahrenheit by remember { mutableStateOf(false) }
+    var imperial = remember { mutableStateOf(false) }
+    var fahrenheit = remember { mutableStateOf(false) }
 
     var text by remember { mutableStateOf("") }
     var allergensOpen by remember { mutableStateOf(false) }
@@ -259,8 +259,8 @@ fun Settings(){
 
     loadedData[savedPreferences]?.let{
         val retrievedData = Json.decodeFromString<Settings>(it)
-        imperial=retrievedData.imperial
-        fahrenheit=retrievedData.fahrenheit
+        imperial.value=retrievedData.imperial
+        fahrenheit.value=retrievedData.fahrenheit
         skillLevelIndex = retrievedData.skill
         retrievedData.allergens.forEach(){ allergen->
             if(!allergens.contains(allergen))allergens.add(allergen)
@@ -277,7 +277,7 @@ fun Settings(){
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "Use Imperial Units")
-            Switch(checked = imperial, onCheckedChange = { imperial = it })
+            Switch(checked = imperial.value, onCheckedChange = { imperial.value = it })
 
         }
         Row(
@@ -288,7 +288,7 @@ fun Settings(){
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "Use Fahrenheit")
-            Switch(checked = fahrenheit, onCheckedChange = { fahrenheit = it })
+            Switch(checked = fahrenheit.value, onCheckedChange = { fahrenheit.value = it })
         }
         Row(
             modifier = Modifier
@@ -353,7 +353,7 @@ fun Settings(){
         ) {
             Button(onClick = {
                 saveMessage=true
-                val toSave = Settings(imperial, fahrenheit, allergens.toList(), skillLevelIndex)
+                val toSave = Settings(imperial.value, fahrenheit.value, allergens.toList(), skillLevelIndex)
                 scope.launch {
                     context.dataStore.edit { settings ->
                         settings[savedPreferences] = Json.encodeToString(toSave)
