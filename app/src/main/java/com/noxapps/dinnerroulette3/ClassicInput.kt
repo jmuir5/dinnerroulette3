@@ -348,6 +348,7 @@ fun NewInput(
                                     val received =
                                         SavedRecipe(QandA(query, it, viewModel.parseResponse(it)))
 
+                                    Log.e("id before", received.id.toString())
                                     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
                                     recipeBox.put(received)
 
@@ -360,7 +361,7 @@ fun NewInput(
                                     }
 
                                     MainScope().launch {
-
+                                        Log.e("id after", received.id.toString())
                                         navController.navigate(Paths.Recipe.Path+"/"+received.id)
                                     }
 

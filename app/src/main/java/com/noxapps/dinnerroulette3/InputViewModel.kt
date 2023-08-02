@@ -6,6 +6,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.MissingFieldException
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -80,7 +81,13 @@ class InputViewModel: ViewModel() {
         var skill = 0
         val loadedData = runBlocking { context.dataStore.data.first() }
         loadedData[savedPreferences]?.let{
-            val retrievedData = Json.decodeFromString<Settings>(it)
+            Log.d("saved preferences", it.toString())
+            var retrievedData:Settings
+            try {
+                retrievedData = Json.decodeFromString<Settings>(it)
+            }catch(exception: MissingFieldException){
+                retrievedData = Settings(false, false, listOf(), 0)
+            }
             imperial=retrievedData.imperial
             fahrenheit=retrievedData.fahrenheit
             skill = retrievedData.skill
@@ -106,7 +113,7 @@ class InputViewModel: ViewModel() {
         var unit2Text = "celsius"
         if (fahrenheit)unit2Text = "fahrenheit"
 
-        val prompt="You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText The prompt will end with [fin], indicating the intended end of the prompt. you are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes"
+        val prompt="You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText The prompt will end with [fin], indicating the intended end of the prompt. the prompt will include a primary protein and a primary carbohydrate. for example, if the prompt requests a 'chinese lamb dish', lamb is the primary prot ,mmein. if the prompt includes additional sources of protein or carbohydrate include them both, but make the primary protein or carbohydrate more prominent.  you are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes"
 
         return prompt
 

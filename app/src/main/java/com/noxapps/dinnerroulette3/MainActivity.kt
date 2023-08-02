@@ -36,11 +36,13 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import com.noxapps.dinnerroulette3.ui.theme.*
 import kotlinx.coroutines.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import io.objectbox.BoxStore
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
@@ -234,7 +236,9 @@ fun NavMain(navController: NavHostController){//, realm: Realm) {
             NewInput(navController = navController)//, realm = realm)
         }
         composable(Paths.Settings.Path) { Settings() }
-        composable(Paths.Recipe.Path+"/{recipeId}") {
+        composable(Paths.Recipe.Path+"/{recipeId}",
+            arguments = listOf(
+                navArgument("recipeId") { type = NavType.LongType })) {
             val recipeId = it.arguments?.getLong("recipeId")
             if (recipeId != null) {
                 Recipe(recipeId, navController)

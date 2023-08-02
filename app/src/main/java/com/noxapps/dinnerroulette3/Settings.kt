@@ -19,16 +19,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -58,6 +65,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Settings(){
     val context = LocalContext.current
@@ -69,7 +77,7 @@ fun Settings(){
     var fahrenheit = remember { mutableStateOf(false) }
 
     var text by remember { mutableStateOf("") }
-    var allergensOpen by remember { mutableStateOf(false) }
+    var allergensOpen = remember { mutableStateOf(false) }
 
     val allergens = remember { mutableStateListOf<String>() }
 
@@ -77,20 +85,25 @@ fun Settings(){
     val skillLevel = listOf("Beginner", "Intermediate", "Expert")
     var skillLevelIndex by remember { mutableStateOf(0) }
 
-    var saveMessage by remember{ mutableStateOf(false) }
+    var saveMessage = remember{ mutableStateOf(false) }
 
-    val loadedData = runBlocking { context.dataStore.data.first() }
-    loadedData[savedPreferences]?.let { Log.d("saved preferences2", it) }
+    var loadedFlag by remember { mutableStateOf(false)}
 
-    loadedData[savedPreferences]?.let{
-        val retrievedData = Json.decodeFromString<Settings>(it)
-        imperial.value=retrievedData.imperial
-        fahrenheit.value=retrievedData.fahrenheit
-        skillLevelIndex = retrievedData.skill
-        retrievedData.allergens.forEach(){ allergen->
-            if(!allergens.contains(allergen))allergens.add(allergen)
+    if(!loadedFlag) {
+        val loadedData = runBlocking { context.dataStore.data.first() }
+        loadedData[savedPreferences]?.let { Log.d("saved preferences2", it) }
+
+        loadedData[savedPreferences]?.let {
+            val retrievedData = Json.decodeFromString<Settings>(it)
+            imperial.value = retrievedData.imperial
+            fahrenheit.value = retrievedData.fahrenheit
+            skillLevelIndex = retrievedData.skill
+            retrievedData.allergens.forEach() { allergen ->
+                if (!allergens.contains(allergen)) allergens.add(allergen)
+            }
+
         }
-
+        loadedFlag=true
     }
 
     Column() {
@@ -122,9 +135,9 @@ fun Settings(){
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Alergens / Intolerances")
+            Text(text = "Alergens And Intolerances")
             Button(onClick = {
-                allergensOpen = true
+                allergensOpen.value = true
             }) {
                 Text(text = "Edit")
             }
@@ -158,7 +171,8 @@ fun Settings(){
                 skillLevel.forEachIndexed() { index, s ->
                     DropdownMenuItem(onClick = {
                         skillLevelIndex = index
-
+                        Log.e("index value1", index.toString())
+                        Log.e("index value2", skillLevelIndex.toString())
                         dd1Expanded = false
                     }, text = { Text(text = s, textAlign = TextAlign.End) },
                         modifier = Modifier
@@ -177,7 +191,7 @@ fun Settings(){
             horizontalArrangement = Arrangement.Center
         ) {
             Button(onClick = {
-                saveMessage=true
+                saveMessage.value=true
                 val toSave = Settings(imperial.value, fahrenheit.value, allergens.toList(), skillLevelIndex)
                 scope.launch {
                     context.dataStore.edit { settings ->
@@ -189,173 +203,61 @@ fun Settings(){
             }
         }
     }
-    if (saveMessage) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .fillMaxHeight()
-                .fillMaxWidth()
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null
-                ) {
-                    /* doSomething() */
-                }
-                .wrapContentSize(Alignment.TopStart)
-                .background(ObfsuGrey)
+    if (saveMessage.value) {
+        AlertDialog(
+            onDismissRequest = {
+                saveMessage.value= false
+            }
         ) {
-            Box(
+            Surface(
                 modifier = Modifier
-                    .padding(10.dp)
-                    .fillMaxSize()
+                    .wrapContentWidth()
+                    .wrapContentHeight()
                     .wrapContentSize(Alignment.Center)
-                //.background(com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange)
-                //.clip(RoundedCornerShape(10.dp))
-                //.border(BorderStroke(1.dp,com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange))
+                    //, RoundedCornerShape(15.dp))
+                    //.clip(RoundedCornerShape(15.dp))
+                    .border(
+                        width = 1.dp,
+                        color = PrimaryOrange,
+                        shape = RoundedCornerShape(15.dp)
+                    ),
+                shape = MaterialTheme.shapes.large,
+                tonalElevation = AlertDialogDefaults.TonalElevation
             ) {
-                Box(
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .height(IntrinsicSize.Min)
-                        .wrapContentSize(Alignment.Center)
+                Column(
+                    modifier= Modifier
                         .background(SurfaceOrange)
-                        .clip(RoundedCornerShape(10.dp))
-                        .border(
-                            BorderStroke(
-                                1.dp,
-                                PrimaryOrange
-                            )
-                        )
-                ) {
-                    Column() {
-                        Text("your settings have been saved")
-                        Row(
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Button(onClick = {
-                                saveMessage = false
-                                text = ""
-                            }) {
-                                Text(text = "Retrun")
-                            }
-                        }
+                        .padding(10.dp)
 
+                    ,
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text("Your settings have been saved")
+                    }
+                    Row(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Button(onClick = {
+                            saveMessage.value = false
+                        }) {
+                            Text(text = "OK")
+                        }
                     }
                 }
             }
-
         }
     }
 
-    if (allergensOpen) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .fillMaxHeight()
-                .fillMaxWidth()
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null
-                ) {
-                    /* doSomething() */
-                }
-                .wrapContentSize(Alignment.TopStart)
-                .background(ObfsuGrey)
-        ) {
-            Box(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .fillMaxSize()
-                    .wrapContentSize(Alignment.Center)
-                //.background(com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange)
-                //.clip(RoundedCornerShape(10.dp))
-                //.border(BorderStroke(1.dp,com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .width(IntrinsicSize.Min)
-                        .height(IntrinsicSize.Min)
-                        .wrapContentSize(Alignment.Center)
-                        .background(SurfaceOrange)
-                        .clip(RoundedCornerShape(10.dp))
-                        .border(
-                            BorderStroke(
-                                1.dp,
-                                PrimaryOrange
-                            )
-                        )
-                ) {
-                    Column() {
-                        Text("Descriptive Tags:")
-                        Row(modifier = Modifier
-                            .padding(start = 5.dp, end=5.dp)) {
-                            Text(text = "")
-                            allergens.forEachIndexed() { index, s ->
-                                Row() {
-                                    Box(modifier = Modifier
-                                        .background(ObfsuGrey)
-                                        .padding(3.dp)
-                                        .clickable(
-                                            interactionSource = interactionSource,
-                                            indication = null
-                                        ) {
-                                            allergens.remove(s)
-                                        }) {
-                                        Row() {
-                                            Text(s)
-                                            Icon(
-                                                Icons.Filled.Close,
-                                                contentDescription = "Delete",
-                                                modifier = Modifier.size(22.dp)
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.size(1.dp))
-                                }
-                            }
-                        }
-
-                        Row() {
-                            val maxChar = 17
-                            TextField(
-                                value = text,
-                                onValueChange = {
-                                    if (it.length <= maxChar) text = it
-                                },
-                                label = { Text("Add Tags") },
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                                keyboardActions = KeyboardActions(
-                                    onDone = {
-                                        allergens.add(text)
-                                        text = ""
-                                    }
-                                )
-                            )
-                        }
-                        Row(
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Button(onClick = {
-                                allergensOpen = false
-                                text = ""
-                            }) {
-                                Text(text = "Retrun")
-                            }
-                        }
-
-                    }
-                }
-            }
-
-        }
+    if (allergensOpen.value) {
+        MultiDialog(allergensOpen, "Allergens And Intolerances", allergens)
     }
 
     //save confirmation
