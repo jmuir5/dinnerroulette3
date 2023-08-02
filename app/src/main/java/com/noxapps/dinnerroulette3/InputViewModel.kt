@@ -2,6 +2,7 @@ package com.noxapps.dinnerroulette3
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -21,7 +22,7 @@ class InputViewModel: ViewModel() {
         .readTimeout(300, TimeUnit.SECONDS)
         .build()
 
-
+    val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
     fun generateQuestion(input:Query):String{
         var question = "give me a recipe for a "
         var meatFlag = 0
@@ -113,7 +114,8 @@ class InputViewModel: ViewModel() {
 
     //https://platform.openai.com/docs/api-reference/making-requests
     fun getResponse(question: String, context:Context, callback: (GptResponse) -> Unit){
-        val apiKey="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"
+        val apiKey= context.getString(R.string.api_Key)
+        Log.e("key", apiKey)
         val url="https://api.openai.com/v1/chat/completions"
 
         val prompt = generateSystem(context)

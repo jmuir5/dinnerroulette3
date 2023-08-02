@@ -2,11 +2,10 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.7.20'
-    //id 'io.realm.kotlin'
+    id 'kotlin-android'
     id 'kotlin-kapt'
-    id 'realm-android'
+    id 'io.objectbox'
 }
-apply plugin: "realm-android"
 android {
     namespace 'com.noxapps.dinnerroulette3'
     compileSdk 33
@@ -70,7 +69,6 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences-rxjava3:1.0.0")
     implementation("androidx.compose.material:material-icons-extended")
     implementation "androidx.navigation:navigation-compose:2.5.3"
-    //implementation 'io.realm.kotlin:library-base:1.7.0'
     constraints {
         implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0") {
             because("kotlin-stdlib-jdk7 is now a part of kotlin-stdlib")

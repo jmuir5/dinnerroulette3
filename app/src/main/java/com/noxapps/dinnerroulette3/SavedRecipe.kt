@@ -1,29 +1,27 @@
 package com.noxapps.dinnerroulette3
 
-import org.bson.types.ObjectId
-import io.realm.RealmObject
-import io.realm.RealmList
-import io.realm.annotations.PrimaryKey
+import io.objectbox.annotation.Entity
+import io.objectbox.annotation.Id
 
 
-
-open class SavedRecipe(
+@Entity
+public class SavedRecipe(
+    @Id
+    var id:Long =0,
     var meatContent:String? = "",
     var primaryMeat:String? = "",
     var primaryCarb:String? = "",
     var cuisine:String? = "",
-    var additionalIngredients: RealmList<String> = RealmList(""),
-    var excludedIngredients:RealmList<String> = RealmList(""),
-    var descriptiveTags:RealmList<String> = RealmList(""),
+    var additionalIngredients: MutableList<String> = mutableListOf(),
+    var excludedIngredients: MutableList<String> = mutableListOf(),
+    var descriptiveTags: MutableList<String> = mutableListOf(),
 
     var title:String? = "",
     var description:String? = "",
     var ingredients:String? = "",
     var method:String? = "",
     var notes:String? = ""
-    ) : RealmObject() {
-    @PrimaryKey
-    var _id: ObjectId = ObjectId()
+    )  {
 
     constructor(recipe:QandA) : this() {
         meatContent = recipe.question.meatContent
