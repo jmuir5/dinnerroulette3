@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -70,7 +71,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange//MaterialTheme.colorScheme.background
                 ) {
-                    MainScaffold()
+                    DrawerAndScaffold()
                 }
             }
         }
@@ -80,70 +81,13 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun MainScaffold(){
+fun DrawerAndScaffold(){
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Dinner Roulette") },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            if (drawerState.isClosed) scope.launch { drawerState.open()}
-                            else scope.launch { drawerState.close()}
-                        /* "Open nav drawer" */ }
-                    ) {
-                        Icon(Icons.Filled.Menu, contentDescription = "Localized description")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PrimaryOrange,
-                    titleContentColor = Black)
-            )
-        },
-        content = { padding ->
-
-            Box(
-                Modifier.padding(padding),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(SurfaceOrange),  // BG image behind AppBar
-                ) {
-                    Drawer(drawerState, scope)
-                //OptionsInput()
-                    /*Image(
-                        modifier = Modifier.fillMaxSize(),
-                        painter = painterResource(R.drawable.bg),
-                        contentDescription = null,
-                        contentScale = ContentScale.FillBounds
-                    )*/
-                }
-
-            }
-        }
-    )
-}
-/*var holder = SavedRecipe(QandA(
-    Query("Optional", "Any", "Any", "(Optional)", mutableListOf<String>(), mutableListOf<String>(), mutableListOf<String>()),
-    GptResponse("default", "default response", 0,"default", listOf(
-        GptChoices(0,
-            GptMessage("0", "0"),"finish")
-    ),
-        GptUsage(1, 1, 2) ),
-    ParsedResponse("1","2", "3", "4", "5")))
-*/
-
-@Composable
-fun Drawer(drawerState: DrawerState, scope:CoroutineScope){
-// icons to mimic drawer destinations
     val navController = rememberNavController()
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
-    val items: List<SavedRecipe> = recipeBox.all
+    val items = recipeBox.all
+    var topAppBarText = remember{ mutableStateOf("Dinner Roulette")}
 
 
     //val selectedItem = remember { mutableStateOf(items[0]) }
@@ -153,14 +97,17 @@ fun Drawer(drawerState: DrawerState, scope:CoroutineScope){
             ModalDrawerSheet(
                 drawerContainerColor = SurfaceOrange,
                 drawerContentColor = SurfaceOrange
-                ) {
+            ) {
                 Spacer(Modifier.height(12.dp))
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Add, contentDescription = null) },
                     label = { Text("New Recipie") },
                     selected = false,
                     onClick = {
-                        navController.navigate(Paths.NewInput.Path)
+
+                        navController.navigate(Paths.NewInput.Path){
+                            popUpTo("Home")
+                        }
                         scope.launch { drawerState.close()}
 
                     },
@@ -171,7 +118,9 @@ fun Drawer(drawerState: DrawerState, scope:CoroutineScope){
                     label = { Text("Settings") },
                     selected = false,
                     onClick = {
-                        navController.navigate(Paths.Settings.Path)
+                        navController.navigate(Paths.Settings.Path) {
+                            popUpTo("Home")
+                        }
                         scope.launch { drawerState.close()}
 
                     },
@@ -179,8 +128,14 @@ fun Drawer(drawerState: DrawerState, scope:CoroutineScope){
                 )
                 Spacer(Modifier.height(12.dp))
 
-                items.forEachIndexed() { index, item ->
-                    DrawerRecipeItem(input = item, index = index,  navController = navController, scope = scope, drawerState = drawerState)
+                LazyColumn(
+                    modifier=Modifier.padding(horizontal=8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    items(items.size){item->
+                        Spacer(Modifier.height(1.dp))
+                        DrawerRecipeItem(input = items[item],  navController = navController, scope = scope, drawerState = drawerState)
+                    }
                 }
 
                 Spacer(Modifier.height(12.dp))
@@ -188,24 +143,60 @@ fun Drawer(drawerState: DrawerState, scope:CoroutineScope){
 
 
             }
-        },
-        content = {
-            NavMain(navController)
-
-
         }
-    )
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(topAppBarText.value) },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                if (drawerState.isClosed) scope.launch { drawerState.open() }
+                                else scope.launch { drawerState.close() }
+                            }
+                        ) {
+                            Icon(Icons.Filled.Menu, contentDescription = "Localized description")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = PrimaryOrange,
+                        titleContentColor = Black
+                    )
+                )
+            },
+            content = { padding ->
+
+                Box(
+                    Modifier.padding(padding),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(SurfaceOrange),  // BG image behind AppBar
+                    ) {
+                        NavMain(navController, topAppBarText)
+                    }
+
+                }
+            }
+        )
+
+    }
 }
 
 
 @Composable
-fun DrawerRecipeItem(input:SavedRecipe, index:Int, navController: NavHostController, scope:CoroutineScope, drawerState:DrawerState){
+fun DrawerRecipeItem(input:SavedRecipe, navController: NavHostController, scope:CoroutineScope, drawerState:DrawerState){
     NavigationDrawerItem(
         icon = { Icon(Icons.Default.Article, contentDescription = null) },
         label = { Text(text = input.title!!) },
         selected = false,
         onClick = {
-            navController.navigate(Paths.Recipe.Path+"/"+input.id)
+            navController.navigate(Paths.Recipe.Path+"/"+input.id){
+                popUpTo("Home")
+            }
             scope.launch { drawerState.close()}
             //contentLocation="Recipe"
 
@@ -225,23 +216,25 @@ fun DrawerRecipeItem(input:SavedRecipe, index:Int, navController: NavHostControl
 @Composable
 fun DefaultPreview() {
     DinnerRoulette3Theme {
-        MainScaffold()
+        DrawerAndScaffold()
     }
 }
 
 @Composable
-fun NavMain(navController: NavHostController){//, realm: Realm) {
-    NavHost(navController = navController, startDestination = Paths.NewInput.Path) {
-        composable(Paths.NewInput.Path) {
-            NewInput(navController = navController)//, realm = realm)
-        }
-        composable(Paths.Settings.Path) { Settings() }
+fun NavMain(navController: NavHostController, TABT:MutableState<String>){//, realm: Realm) {
+    NavHost(navController = navController, startDestination = Paths.Home.Path) {
+        composable(Paths.Home.Path) { HomePage(navController = navController, TABT = TABT) }
+        composable(Paths.NewInput.Path) { NewInput(navController = navController, TABT = TABT) }
+        composable(Paths.NatLanInput.Path) { NatLanInput(navController = navController, TABT = TABT) }
+        composable(Paths.SpecificRecipeInput.Path) { SpecificRecipeInput(navController = navController, TABT = TABT) }
+        composable(Paths.Settings.Path) { Settings(TABT = TABT) }
+        composable(Paths.Search.Path) { SearchPage(TABT = TABT) }
         composable(Paths.Recipe.Path+"/{recipeId}",
             arguments = listOf(
                 navArgument("recipeId") { type = NavType.LongType })) {
             val recipeId = it.arguments?.getLong("recipeId")
             if (recipeId != null) {
-                Recipe(recipeId, navController)
+                Recipe(recipeId, TABT = TABT)
             }
             else{
                 //todo: error code

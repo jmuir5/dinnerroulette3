@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:2831632003414104063",
-      "lastPropertyId": "13:5329405731796560243",
+      "lastPropertyId": "14:3469728470095896959",
       "name": "SavedRecipe",
       "properties": [
         {
@@ -73,6 +73,11 @@
           "id": "13:5329405731796560243",
           "name": "notes",
           "type": 9
+        },
+        {
+          "id": "14:3469728470095896959",
+          "name": "favourite",
+          "type": 1
         }
       ],
       "relations": []

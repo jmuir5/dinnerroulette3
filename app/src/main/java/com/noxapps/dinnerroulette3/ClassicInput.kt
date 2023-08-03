@@ -64,8 +64,10 @@ import kotlinx.coroutines.runBlocking
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewInput(
-    viewModel: InputViewModel = InputViewModel(), navController: NavHostController
+    viewModel: InputViewModel = InputViewModel(), navController: NavHostController,
+    TABT: MutableState<String>
 ) {
+    TABT.value="Create Recipe"
     var dd1Expanded by remember { mutableStateOf(false) }
     var dd2Expanded by remember { mutableStateOf(false) }
     var dd3Expanded by remember { mutableStateOf(false) }
@@ -730,7 +732,7 @@ fun SingleDialog(
 
                 ,
             ) {
-                Text("Title")
+                Text(title)
                 Row() {
                     val maxChar = 17
                     TextField(

@@ -40,6 +40,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -67,7 +68,11 @@ import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Settings(){
+fun Settings(
+    TABT: MutableState<String>
+
+) {
+    TABT.value = "Settings"
     val context = LocalContext.current
     val store = UserStore(context)
     val scope = rememberCoroutineScope()

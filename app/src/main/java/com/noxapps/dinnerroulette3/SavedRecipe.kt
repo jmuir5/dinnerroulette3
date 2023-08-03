@@ -8,6 +8,7 @@ import io.objectbox.annotation.Id
 public class SavedRecipe(
     @Id
     var id:Long =0,
+    var favourite:Boolean = false,
     var meatContent:String? = "",
     var primaryMeat:String? = "",
     var primaryCarb:String? = "",
