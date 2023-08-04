@@ -55,9 +55,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.edit
-import com.noxapps.dinnerroulette3.ui.theme.ObfsuGrey
-import com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
-import com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange
+//import com.noxapps.dinnerroulette3.ui.theme.ObfsuGrey
+//import com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
+//import com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -218,20 +218,20 @@ fun Settings(
                 modifier = Modifier
                     .wrapContentWidth()
                     .wrapContentHeight()
-                    .wrapContentSize(Alignment.Center)
+                    .wrapContentSize(Alignment.Center),
                     //, RoundedCornerShape(15.dp))
                     //.clip(RoundedCornerShape(15.dp))
-                    .border(
-                        width = 1.dp,
-                        color = PrimaryOrange,
-                        shape = RoundedCornerShape(15.dp)
-                    ),
+                    //.border(
+                       // width = 1.dp,
+                      //  color = PrimaryOrange,
+                     //   shape = RoundedCornerShape(15.dp)
+                    //),
                 shape = MaterialTheme.shapes.large,
                 tonalElevation = AlertDialogDefaults.TonalElevation
             ) {
                 Column(
                     modifier= Modifier
-                        .background(SurfaceOrange)
+                        //.background(SurfaceOrange)
                         .padding(10.dp)
 
                     ,

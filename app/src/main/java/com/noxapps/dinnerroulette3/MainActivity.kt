@@ -76,11 +76,11 @@ class MainActivity : ComponentActivity() {
         }*/
 
         setContent {
-            DinnerRoulette3Theme {
+            AppTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange//MaterialTheme.colorScheme.background
+                    //color = com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange//MaterialTheme.colorScheme.background
                 ) {
                     DrawerAndScaffold()
                 }
@@ -106,8 +106,8 @@ fun DrawerAndScaffold(){
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                drawerContainerColor = SurfaceOrange,
-                drawerContentColor = SurfaceOrange
+                //drawerContainerColor = SurfaceOrange,
+                //drawerContentColor = SurfaceOrange
             ) {
                 Spacer(Modifier.height(12.dp))
                 NavigationDrawerItem(
@@ -170,10 +170,10 @@ fun DrawerAndScaffold(){
                             Icon(Icons.Filled.Menu, contentDescription = "Localized description")
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = PrimaryOrange,
-                        titleContentColor = Black
-                    )
+                    //colors = TopAppBarDefaults.topAppBarColors(
+                        //containerColor = PrimaryOrange,
+                        //titleContentColor = Black
+                    //)
                 )
             },
             content = { padding ->
@@ -185,7 +185,7 @@ fun DrawerAndScaffold(){
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(SurfaceOrange),  // BG image behind AppBar
+                            //.background(SurfaceOrange),  // BG image behind AppBar
                     ) {
                         NavMain(navController, topAppBarText)
                     }
@@ -226,7 +226,7 @@ fun DrawerRecipeItem(input:SavedRecipe, navController: NavHostController, scope:
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    DinnerRoulette3Theme {
+    AppTheme {
         DrawerAndScaffold()
     }
 }

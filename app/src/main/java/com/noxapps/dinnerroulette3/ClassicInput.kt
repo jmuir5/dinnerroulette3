@@ -51,9 +51,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavHostController
-import com.noxapps.dinnerroulette3.ui.theme.ObfsuGrey
-import com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
-import com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange
+import com.noxapps.dinnerroulette3.ui.theme.md_theme_light_secondaryContainer
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -116,18 +114,25 @@ fun NewInput(
     val interactionSource = remember { MutableInteractionSource() }
     val context = LocalContext.current
     val store = UserStore(context)
-    val loadedData = runBlocking { context.dataStore.data.first() }
+
 
 
     var stopper by remember { mutableStateOf(false) }
     var stopperFlag by remember{ mutableStateOf(false)}
     var disclamer by remember { mutableStateOf(true) }
-    loadedData[usedTokens]?.let { Log.d("tokens used", it.toString()) }
-    loadedData[usedTokens]?.let {
-        if (it > 5000) {
-            stopper = true
-            stopperFlag = true
+
+    var loadedFlag by remember { mutableStateOf(false)}
+
+    if(!loadedFlag) {
+        val loadedData = runBlocking { context.dataStore.data.first() }
+        loadedData[usedTokens]?.let { Log.d("tokens used", it.toString()) }
+        loadedData[usedTokens]?.let {
+            if (it > 5000) {
+                stopper = true
+                stopperFlag = true
+            }
         }
+        loadedFlag=true
     }
 
     Box(
@@ -390,20 +395,21 @@ fun NewInput(
                 modifier = Modifier
                     .wrapContentWidth()
                     .wrapContentHeight()
-                    .wrapContentSize(Alignment.Center)
+                    .wrapContentSize(Alignment.Center),
                     //, RoundedCornerShape(15.dp))
                     //.clip(RoundedCornerShape(15.dp))
-                    .border(
-                        width = 1.dp,
-                        color = PrimaryOrange,
-                        shape = RoundedCornerShape(15.dp)
-                    ),
+                    //.border(
+                      //  width = 1.dp,
+                        //color = PrimaryOrange,
+                        //shape = RoundedCornerShape(15.dp)
+                    //),
+
                 shape = MaterialTheme.shapes.large,
                 tonalElevation = AlertDialogDefaults.TonalElevation
             ) {
                 Column(
                     modifier= Modifier
-                        .background(SurfaceOrange)
+                        //.background(SurfaceOrange)
                         .padding(10.dp)
 
                     ,
@@ -456,21 +462,21 @@ fun NewInput(
                 modifier = Modifier
                     .wrapContentWidth()
                     .wrapContentHeight()
-                    .wrapContentSize(Alignment.Center)
+                    .wrapContentSize(Alignment.Center),
                     //, RoundedCornerShape(15.dp))
                     //.clip(RoundedCornerShape(15.dp))
-                    .border(
-                        width = 1.dp,
-                        color = PrimaryOrange,
-                        shape = RoundedCornerShape(15.dp)
-                    ),
+                    //.border(
+                    //    width = 1.dp,
+                    //    //color = PrimaryOrange,
+                    //    shape = RoundedCornerShape(15.dp)
+                    //),
                 shape = MaterialTheme.shapes.large,
                 tonalElevation = AlertDialogDefaults.TonalElevation
             ) {
                 Column(
                     modifier = Modifier
                         .verticalScroll(rememberScrollState())
-                        .background(SurfaceOrange)
+                        //.background(SurfaceOrange)
                         .padding(10.dp),
                 ) {
                     Row(
@@ -537,23 +543,21 @@ fun MultiDialog(
             modifier = Modifier
                 .wrapContentWidth()
                 .wrapContentHeight()
-                .wrapContentSize(Alignment.Center)
+                .wrapContentSize(Alignment.Center),
                 //, RoundedCornerShape(15.dp))
                 //.clip(RoundedCornerShape(15.dp))
-                .border(
+                /*.border(
                     width = 1.dp,
                     color = PrimaryOrange,
                     shape = RoundedCornerShape(15.dp)
-                ),
+                ),*/
             shape = MaterialTheme.shapes.large,
             tonalElevation = AlertDialogDefaults.TonalElevation
         ) {
             Column(
                 modifier= Modifier
-                    .background(SurfaceOrange)
+                    //.background(SurfaceOrange)
                     .padding(10.dp)
-
-                    ,
             ) {
                 Text(title)
                 Row() {
@@ -561,7 +565,7 @@ fun MultiDialog(
                     array.forEachIndexed() { index, s ->
                         Row() {
                             Box(modifier = Modifier
-                                .background(ObfsuGrey)
+                                .background(md_theme_light_secondaryContainer)
                                 .padding(3.dp)
                                 .clickable(
                                     interactionSource = interactionSource,
@@ -637,23 +641,21 @@ fun SingleDialog(
             modifier = Modifier
                 .wrapContentWidth()
                 .wrapContentHeight()
-                .wrapContentSize(Alignment.Center)
+                .wrapContentSize(Alignment.Center),
                 //, RoundedCornerShape(15.dp))
                 //.clip(RoundedCornerShape(15.dp))
-                .border(
+                /*.border(
                     width = 1.dp,
                     color = PrimaryOrange,
                     shape = RoundedCornerShape(15.dp)
-                ),
+                ),*/
             shape = MaterialTheme.shapes.large,
             tonalElevation = AlertDialogDefaults.TonalElevation
         ) {
             Column(
                 modifier= Modifier
-                    .background(SurfaceOrange)
+                    //.background(SurfaceOrange)
                     .padding(10.dp)
-
-                ,
             ) {
                 Text(title)
                 Row() {
@@ -709,23 +711,21 @@ fun ProcessingDialog(){
             modifier = Modifier
                 .wrapContentWidth()
                 .wrapContentHeight()
-                .wrapContentSize(Alignment.Center)
+                .wrapContentSize(Alignment.Center),
                 //, RoundedCornerShape(15.dp))
                 //.clip(RoundedCornerShape(15.dp))
-                .border(
+                /*.border(
                     width = 1.dp,
                     color = PrimaryOrange,
                     shape = RoundedCornerShape(15.dp)
-                ),
+                ),*/
             shape = MaterialTheme.shapes.large,
             tonalElevation = AlertDialogDefaults.TonalElevation
         ) {
             Column(
                 modifier= Modifier
-                    .background(SurfaceOrange)
+                    //.background(SurfaceOrange)
                     .padding(10.dp)
-
-                ,
             ) {
                 Row(
                     modifier = Modifier

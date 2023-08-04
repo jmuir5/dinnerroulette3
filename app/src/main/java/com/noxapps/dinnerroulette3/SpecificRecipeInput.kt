@@ -27,13 +27,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavHostController
-import com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-
 
 @Composable
 fun SpecificRecipeInput(
@@ -59,8 +53,8 @@ fun SpecificRecipeInput(
             onValueChange = { if(promptText.length<=30)promptText = it },
             label = {},
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = SurfaceOrange,
-                unfocusedBorderColor = SurfaceOrange
+                //focusedBorderColor = SurfaceOrange,
+                //unfocusedBorderColor = SurfaceOrange
             ),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(

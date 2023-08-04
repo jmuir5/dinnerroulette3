@@ -32,8 +32,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
-import com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange
+//import com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
+//import com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange
 
 
 @SuppressLint("UnusedTransitionTargetStateParameter")
@@ -56,7 +56,7 @@ fun Recipe(
         Column(modifier = Modifier
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
-            .background(SurfaceOrange)
+            //.background(SurfaceOrange)
         ) {
             Text(text = "Description")
             Text(text = thisRecipe.description!!)
@@ -94,7 +94,7 @@ fun FavouriteButton(id:Long){
                 recipeBox.put(thisRecipe)
             },
             modifier = Modifier
-                .background(PrimaryOrange)
+                //.background(PrimaryOrange)
                 .padding(10.dp)
         ) {
             val transition = updateTransition(checkedState.value)

@@ -17,13 +17,15 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
+import com.noxapps.dinnerroulette3.ui.theme.md_theme_light_primary
+
+//import com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
 
 @Composable
 fun Indicator(
     size: Dp = 32.dp, // indicator size
     sweepAngle: Float = 90f, // angle (lenght) of indicator arc
-    color: Color = PrimaryOrange, // color of indicator arc line
+    color: Color = md_theme_light_primary, // color of indicator arc line
     strokeWidth: Dp = Dp(5F) //width of cicle and ar lines
 ) {
     ////// animation //////

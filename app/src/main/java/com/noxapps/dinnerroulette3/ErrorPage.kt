@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange
+//import com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange
 
 @Composable
 fun ErrorPage(
