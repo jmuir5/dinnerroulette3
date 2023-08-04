@@ -111,7 +111,7 @@ fun NewInput(
     var addIngredientsOpen = remember { mutableStateOf(false) }
     var removeIngredientsOpen = remember { mutableStateOf(false) }
     var tagsOpen = remember { mutableStateOf(false) }
-    var processing by remember { mutableStateOf(false) }
+    var processing = remember { mutableStateOf(false) }
 
     val interactionSource = remember { MutableInteractionSource() }
     val context = LocalContext.current
@@ -342,33 +342,7 @@ fun NewInput(
                                     exclIngredients,
                                     tags
                                 )
-                                var question2 = viewModel.generateQuestion(query)
-                                Log.d("constructed question", question2)
-                                processing = true
-
-                                viewModel.getResponse(question2, context) { it ->
-                                    val received =
-                                        SavedRecipe(QandA(query, it, viewModel.parseResponse(it)))
-
-                                    Log.e("id before", received.id.toString())
-                                    val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
-                                    recipeBox.put(received)
-
-                                    runBlocking {
-                                        context.dataStore.edit { settings ->
-                                            val currentCounterValue = settings[usedTokens] ?: 0
-                                            settings[usedTokens] =
-                                                currentCounterValue + it.usage.total_tokens
-                                        }
-                                    }
-
-                                    MainScope().launch {
-                                        Log.e("id after", received.id.toString())
-                                        navController.navigate(Paths.Recipe.Path+"/"+received.id)
-                                    }
-
-
-                                }
+                                viewModel.executeClassic(query, processing, context, navController)
 
 
                             }) {
@@ -402,59 +376,8 @@ fun NewInput(
         MultiDialog(tagsOpen, "Descriptive Tags", tags)
     }
 
-    if (processing) {
-        AlertDialog(
-            onDismissRequest = {
-
-            }
-        ) {
-            Surface(
-                modifier = Modifier
-                    .wrapContentWidth()
-                    .wrapContentHeight()
-                    .wrapContentSize(Alignment.Center)
-                    //, RoundedCornerShape(15.dp))
-                    //.clip(RoundedCornerShape(15.dp))
-                    .border(
-                        width = 1.dp,
-                        color = PrimaryOrange,
-                        shape = RoundedCornerShape(15.dp)
-                    ),
-                shape = MaterialTheme.shapes.large,
-                tonalElevation = AlertDialogDefaults.TonalElevation
-            ) {
-                Column(
-                    modifier= Modifier
-                        .background(SurfaceOrange)
-                        .padding(10.dp)
-
-                    ,
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text("Please Wait")
-                    }
-                    Row(modifier = Modifier
-                        .padding(4.dp)
-                        .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center) {
-                        Indicator()
-                    }
-                    Row(
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text("Currently generating your custom recipe")
-                    }
-                }
-            }
-        }
+    if (processing.value) {
+        ProcessingDialog()
     }
 
     if (stopper) {
@@ -770,6 +693,63 @@ fun SingleDialog(
 
             }
 
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProcessingDialog(){
+    AlertDialog(
+        onDismissRequest = {
+
+        }
+    ) {
+        Surface(
+            modifier = Modifier
+                .wrapContentWidth()
+                .wrapContentHeight()
+                .wrapContentSize(Alignment.Center)
+                //, RoundedCornerShape(15.dp))
+                //.clip(RoundedCornerShape(15.dp))
+                .border(
+                    width = 1.dp,
+                    color = PrimaryOrange,
+                    shape = RoundedCornerShape(15.dp)
+                ),
+            shape = MaterialTheme.shapes.large,
+            tonalElevation = AlertDialogDefaults.TonalElevation
+        ) {
+            Column(
+                modifier= Modifier
+                    .background(SurfaceOrange)
+                    .padding(10.dp)
+
+                ,
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("Please Wait")
+                }
+                Row(modifier = Modifier
+                    .padding(4.dp)
+                    .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center) {
+                    Indicator()
+                }
+                Row(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("Currently generating your custom recipe")
+                }
+            }
         }
     }
 }

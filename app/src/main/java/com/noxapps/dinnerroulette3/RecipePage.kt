@@ -46,65 +46,11 @@ fun Recipe(
 
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
     val thisRecipe = recipeBox[recipeId]
-    val checkedState = remember { mutableStateOf(thisRecipe.favourite) }
+
     TABT.value = thisRecipe.title!!
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(
-                modifier = Modifier.background(PrimaryOrange),
-                onClick = {
-                checkedState.value =!checkedState.value
-                thisRecipe.favourite =!thisRecipe.favourite
-                recipeBox.put(thisRecipe)
-            }
-
-            ) {
-                IconToggleButton(
-                    checked = checkedState.value,
-                    onCheckedChange = {
-                        checkedState.value =!checkedState.value
-                        thisRecipe.favourite =!thisRecipe.favourite
-                        recipeBox.put(thisRecipe)
-                    },
-                    modifier = Modifier.padding(10.dp).background(PrimaryOrange)
-                ) {
-                    val transition = updateTransition(checkedState.value)
-                    val tint by transition.animateColor(label = "iconColor") { isChecked ->
-                        if (isChecked) Color.Red else Color.Black
-                    }
-                    val size by transition.animateDp(
-                        transitionSpec = {
-                            // on below line we are specifying transition
-                            if (false isTransitioningTo true) {
-                                // on below line we are specifying key frames
-                                keyframes {
-                                    // on below line we are specifying animation duration
-                                    durationMillis = 250
-                                    // on below line we are specifying animations.
-                                    30.dp at 0 with LinearOutSlowInEasing // for 0-15 ms
-                                    35.dp at 15 with FastOutLinearInEasing // for 15-75 ms
-                                    40.dp at 75 // ms
-                                    35.dp at 150 // ms
-                                }
-                            } else {
-                                spring(stiffness = Spring.StiffnessVeryLow)
-                            }
-                        },
-                        label = "Size"
-                    ) { 30.dp }
-                    Icon(
-                        // on below line we are specifying icon for our image vector.
-                        imageVector = if (checkedState.value) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        contentDescription = "Icon",
-                        // on below line we are specifying
-                        // tint for our icon.
-                        tint = tint,
-                        // on below line we are specifying
-                        // size for our icon.
-                        modifier = Modifier.size(size)
-                    )
-                }
-            }
+            FavouriteButton(recipeId)
         }
     ) { contentPadding ->
         Column(modifier = Modifier
@@ -121,6 +67,71 @@ fun Recipe(
             Text(text = "Notes")
             Text(text = thisRecipe.notes!!)
 
+        }
+    }
+}
+
+@SuppressLint("UnusedTransitionTargetStateParameter")
+@Composable
+fun FavouriteButton(id:Long){
+    val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
+    val thisRecipe = recipeBox[id]
+    val checkedState = remember { mutableStateOf(thisRecipe.favourite) }
+    FloatingActionButton(
+
+        onClick = {
+            checkedState.value =!checkedState.value
+            thisRecipe.favourite =!thisRecipe.favourite
+            recipeBox.put(thisRecipe)
+        }
+
+    ) {
+        IconToggleButton(
+            checked = checkedState.value,
+            onCheckedChange = {
+                checkedState.value =!checkedState.value
+                thisRecipe.favourite =!thisRecipe.favourite
+                recipeBox.put(thisRecipe)
+            },
+            modifier = Modifier
+                .background(PrimaryOrange)
+                .padding(10.dp)
+        ) {
+            val transition = updateTransition(checkedState.value)
+            val tint by transition.animateColor(label = "iconColor") { isChecked ->
+                if (isChecked) Color.Red else Color.Black
+            }
+            val size by transition.animateDp(
+                transitionSpec = {
+                    // on below line we are specifying transition
+                    if (false isTransitioningTo true) {
+                        // on below line we are specifying key frames
+                        keyframes {
+                            // on below line we are specifying animation duration
+                            durationMillis = 250
+                            // on below line we are specifying animations.
+                            30.dp at 0 with LinearOutSlowInEasing // for 0-15 ms
+                            35.dp at 15 with FastOutLinearInEasing // for 15-75 ms
+                            40.dp at 75 // ms
+                            35.dp at 150 // ms
+                        }
+                    } else {
+                        spring(stiffness = Spring.StiffnessVeryLow)
+                    }
+                },
+                label = "Size"
+            ) { 30.dp }
+            Icon(
+                // on below line we are specifying icon for our image vector.
+                imageVector = if (checkedState.value) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                contentDescription = "Icon",
+                // on below line we are specifying
+                // tint for our icon.
+                tint = tint,
+                // on below line we are specifying
+                // size for our icon.
+                modifier = Modifier.size(size)
+            )
         }
     }
 }

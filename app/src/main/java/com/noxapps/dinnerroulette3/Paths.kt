@@ -8,5 +8,6 @@ sealed class Paths(val Path:String) {
     object Search:Paths("Search")
     object Settings:Paths("Settings")
     object Recipe:Paths("Recipe")
+    object Error:Paths("Error")
 
 }

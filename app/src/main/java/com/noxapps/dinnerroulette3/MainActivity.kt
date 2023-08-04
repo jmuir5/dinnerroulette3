@@ -44,6 +44,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import io.objectbox.Box
 import io.objectbox.BoxStore
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
@@ -63,6 +64,16 @@ class MainActivity : ComponentActivity() {
             // You should also handle IOExceptions here.
         }*/
         ObjectBox.init(this)
+        /*val recipeBox: Box<SavedRecipe> = ObjectBox.store.boxFor(SavedRecipe::class.java)
+        val allRecipes = recipeBox.all
+        allRecipes.forEach(){
+            it.title = it.title?.trim()
+            it.description = it.description?.trim()
+            it.ingredients = it.ingredients?.trim()
+            it.method = it.method?.trim()
+            it.notes = it.notes?.trim()
+            recipeBox.put(it)
+        }*/
 
         setContent {
             DinnerRoulette3Theme {
@@ -239,6 +250,18 @@ fun NavMain(navController: NavHostController, TABT:MutableState<String>){//, rea
             else{
                 //todo: error code
             }
+        }
+        composable(Paths.Error.Path+"/{ErrorBody}",
+            arguments = listOf(
+                navArgument("ErrorBody") { type = NavType.StringType})) {
+            val ErrorBody = it.arguments?.getString("ErrorBody")
+            if (ErrorBody != null) {
+                ErrorPage(ErrorBody, TABT = TABT)
+            }else{
+                ErrorPage("An Unspecified Error Has Occurred", TABT = TABT)
+            }
+
+
         }
         /*...*/
     }
