@@ -105,10 +105,7 @@ fun DrawerAndScaffold(){
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet(
-                //drawerContainerColor = SurfaceOrange,
-                //drawerContentColor = SurfaceOrange
-            ) {
+            ModalDrawerSheet {
                 Spacer(Modifier.height(12.dp))
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Add, contentDescription = null) },
@@ -170,10 +167,10 @@ fun DrawerAndScaffold(){
                             Icon(Icons.Filled.Menu, contentDescription = "Localized description")
                         }
                     },
-                    //colors = TopAppBarDefaults.topAppBarColors(
-                        //containerColor = PrimaryOrange,
-                        //titleContentColor = Black
-                    //)
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 )
             },
             content = { padding ->

@@ -10,17 +10,25 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,8 +36,10 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 //import com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
@@ -46,9 +56,11 @@ fun Recipe(
 
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
     val thisRecipe = recipeBox[recipeId]
+    val parsedIngredients = thisRecipe.ingredients?.split("\n")
 
     TABT.value = thisRecipe.title!!
     Scaffold(
+        modifier = Modifier.padding(8.dp),
         floatingActionButton = {
             FavouriteButton(recipeId)
         }
@@ -58,14 +70,58 @@ fun Recipe(
             .verticalScroll(rememberScrollState())
             //.background(SurfaceOrange)
         ) {
-            Text(text = "Description")
-            Text(text = thisRecipe.description!!)
-            Text(text = "Ingredients")
-            Text(text = thisRecipe.ingredients!!)
-            Text(text = "Method")
-            Text(text = thisRecipe.method!!)
-            Text(text = "Notes")
-            Text(text = thisRecipe.notes!!)
+            Text(
+                text = thisRecipe.description!!,
+                style = MaterialTheme.typography.titleLarge
+            )
+            Spacer(modifier = Modifier.size(10.dp))
+            Text(
+                text = "Ingredients",
+                style = MaterialTheme.typography.headlineLarge
+            )
+            parsedIngredients?.forEach(){
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val checkedState = remember {mutableStateOf(false)}
+                    Checkbox(
+                        checked = checkedState.value,
+                        onCheckedChange = {checkedState.value = it},
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .weight(1f)
+                    )
+                    Text(
+                        text = it,
+                        modifier = Modifier.weight(9f).clickable { checkedState.value = !checkedState.value },
+                        style = if(checkedState.value) {
+                            MaterialTheme.typography.bodyMedium.copy(
+                                textDecoration = TextDecoration.LineThrough
+                            )
+                        }
+                        else MaterialTheme.typography.bodyMedium
+                    )
+
+                }
+            }
+            Spacer(modifier = Modifier.size(10.dp))
+            Text(
+                text = "Method",
+                style = MaterialTheme.typography.headlineLarge
+            )
+            Text(
+                text = thisRecipe.method!!,
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Spacer(modifier = Modifier.size(10.dp))
+            Text(
+                text = "Notes",
+                style = MaterialTheme.typography.headlineLarge
+            )
+            Text(
+                text = thisRecipe.notes!!,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.size(100.dp))
 
         }
     }

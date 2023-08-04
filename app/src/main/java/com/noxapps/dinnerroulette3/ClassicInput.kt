@@ -395,14 +395,12 @@ fun NewInput(
                 modifier = Modifier
                     .wrapContentWidth()
                     .wrapContentHeight()
-                    .wrapContentSize(Alignment.Center),
-                    //, RoundedCornerShape(15.dp))
-                    //.clip(RoundedCornerShape(15.dp))
-                    //.border(
-                      //  width = 1.dp,
-                        //color = PrimaryOrange,
-                        //shape = RoundedCornerShape(15.dp)
-                    //),
+                    .wrapContentSize(Alignment.Center)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(15.dp)
+                    ),
 
                 shape = MaterialTheme.shapes.large,
                 tonalElevation = AlertDialogDefaults.TonalElevation
@@ -462,14 +460,12 @@ fun NewInput(
                 modifier = Modifier
                     .wrapContentWidth()
                     .wrapContentHeight()
-                    .wrapContentSize(Alignment.Center),
-                    //, RoundedCornerShape(15.dp))
-                    //.clip(RoundedCornerShape(15.dp))
-                    //.border(
-                    //    width = 1.dp,
-                    //    //color = PrimaryOrange,
-                    //    shape = RoundedCornerShape(15.dp)
-                    //),
+                    .wrapContentSize(Alignment.Center)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(15.dp)
+                    ),
                 shape = MaterialTheme.shapes.large,
                 tonalElevation = AlertDialogDefaults.TonalElevation
             ) {
@@ -543,14 +539,12 @@ fun MultiDialog(
             modifier = Modifier
                 .wrapContentWidth()
                 .wrapContentHeight()
-                .wrapContentSize(Alignment.Center),
-                //, RoundedCornerShape(15.dp))
-                //.clip(RoundedCornerShape(15.dp))
-                /*.border(
+                .wrapContentSize(Alignment.Center)
+                .border(
                     width = 1.dp,
-                    color = PrimaryOrange,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(15.dp)
-                ),*/
+                ),
             shape = MaterialTheme.shapes.large,
             tonalElevation = AlertDialogDefaults.TonalElevation
         ) {
@@ -641,14 +635,12 @@ fun SingleDialog(
             modifier = Modifier
                 .wrapContentWidth()
                 .wrapContentHeight()
-                .wrapContentSize(Alignment.Center),
-                //, RoundedCornerShape(15.dp))
-                //.clip(RoundedCornerShape(15.dp))
-                /*.border(
+                .wrapContentSize(Alignment.Center)
+                .border(
                     width = 1.dp,
-                    color = PrimaryOrange,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(15.dp)
-                ),*/
+                ),
             shape = MaterialTheme.shapes.large,
             tonalElevation = AlertDialogDefaults.TonalElevation
         ) {
@@ -711,14 +703,12 @@ fun ProcessingDialog(){
             modifier = Modifier
                 .wrapContentWidth()
                 .wrapContentHeight()
-                .wrapContentSize(Alignment.Center),
-                //, RoundedCornerShape(15.dp))
-                //.clip(RoundedCornerShape(15.dp))
-                /*.border(
+                .wrapContentSize(Alignment.Center)
+                .border(
                     width = 1.dp,
-                    color = PrimaryOrange,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(15.dp)
-                ),*/
+                ),
             shape = MaterialTheme.shapes.large,
             tonalElevation = AlertDialogDefaults.TonalElevation
         ) {
