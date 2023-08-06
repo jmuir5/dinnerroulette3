@@ -10,21 +10,14 @@ import io.objectbox.Box
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-import java.io.IOException
+import kotlin.math.abs
 import kotlin.random.Random
+import kotlin.random.nextUInt
 
 class HomeViewModel: ViewModel() {
 
     val recipeBox: Box<SavedRecipe> = ObjectBox.store.boxFor(SavedRecipe::class.java)
-    fun randomFave():List<Long>{
+    fun faveFive():List<Long>{
         val query = recipeBox.query(SavedRecipe_.favourite.equal(true)).build()
         val orderedFaves = query.findIds()
         val randomFaves = mutableListOf<Long>()
@@ -66,7 +59,7 @@ class HomeViewModel: ViewModel() {
 
 
     fun executeRandom(flag: MutableState<Boolean>, context: Context, navController: NavHostController){
-        var request = "Give me a random recipe give it an appropriate name"
+        var request = getRandomPrompt(abs(Random.nextInt()))
         flag.value = true
 
         getResponse(request, context, 1) {
@@ -97,5 +90,66 @@ class HomeViewModel: ViewModel() {
         }
     }
 
+    fun getRandomPrompt(seed:Int):String{
+        val cuisines=listOf("Chinese","Chinese","Chinese","Chinese","Chinese","Chinese","Chinese",
+            "Chinese","Chinese","Chinese","Indian","Indian","Indian","Indian","Indian","Indian",
+            "Indian","Indian","Indian","Indian","Japanese","Japanese","Japanese","Japanese",
+            "Japanese","Japanese","Japanese","Japanese", "Thai","Thai","Thai","Thai","Thai","Thai",
+            "Thai","Thai","Korean","Korean","Korean","Korean","Korean","Korean","Vietnamese",
+            "Vietnamese","Vietnamese","Vietnamese","Filipino","Malaysian","Indonesian","Pakistani","Iranian","Afghan","SriLankan","Bangladeshi",
+            "Nepalese","Bhutanese","Mongolian","Tibetan","Cambodian","Italian","French","Italian",
+            "French","Italian","French","Italian","French","Italian","French","Italian","French",
+            "Italian","French","Italian","French","Italian","French","Italian","French","Spanish",
+            "Spanish","Spanish","Spanish","Spanish","Spanish","Spanish","Spanish","Greek","Greek",
+            "Greek","Greek","Greek","Greek","Turkish","British","German","British","German",
+            "British","German","British","German","British","German","British","German","Russian",
+            "Russian","Russian","Russian","Finnish","Swedish","Norwegian","Polish","Hungarian",
+            "Lebanese","Lebanese","Lebanese","Lebanese","Lebanese","Lebanese","Lebanese","Lebanese",
+            "Israeli","Egyptian","Israeli","Egyptian","Israeli","Egyptian","Israeli","Egyptian",
+            "Moroccan","Moroccan","Moroccan","Moroccan","Mexican","Mexican","Mexican","Mexican",
+            "Mexican","Mexican","Mexican","Mexican","Mexican","Mexican","Italian-American",
+            "Italian-American","Italian-American","Italian-American","Brazilian","Peruvian",
+            "Argentinian","Colombian","Chilean","Brazilian","Peruvian", "Argentinian","Colombian",
+            "Chilean","Brazilian","Peruvian","Argentinian","Colombian","Chilean","Ethiopian",
+            "South African","Caribbean","Australian","Caribbean","Australian","Caribbean",
+            "Australian","Caribbean","Australian","Caribbean","Australian","Caribbean","Australian",
+            "Caribbean","Australian","Caribbean","Australian","Cuban","Russian","Finnish",
+            "Norwegian","Hungarian","Tibetan","Afghan","Bhutanese","Kuwaiti","SaudiArabian",
+            "Emirati","Omani","Qatari","Bahraini","Jordanian","Iraqi","Palestinian","Yemeni")
+        val protein = listOf("Chicken","Beef","Chicken","Beef","Chicken","Beef","Chicken","Beef",
+            "Chicken","Beef","Chicken","Beef","Chicken","Beef","Chicken","Beef","Chicken","Beef",
+            "Chicken","Beef","Pork","Pork","Pork","Pork","Pork","Pork","Pork","Pork","Lamb","Lamb",
+            "Lamb","Lamb","Lamb","Lamb","Seafood","Seafood","Seafood","Seafood","Shellfish",
+            "Shellfish","Salmon","Salmon","White Fish","White Fish","Eggs","Eggs","Legumes",
+            "Legumes")
+        val descriptors = listOf("Warm","Homestyle","Hearty","Nurturing","Comfort food","Homey",
+            "Inviting","Wholesome","Rustic","Satisfying","Zesty","Hot","Piquant","Fiery","Spicy",
+            "Bold","Tongue-tingling","Peppery","Flaming","Searing","Rich","Decadent","Luxurious",
+            "Indulgent","Opulent","Gourmet","Lavish","Sumptuous","Velvety","Extravagant","Luscious",
+            "Eclectic","Daring","Exotic","Adventurous","Thrilling","Unconventional","Unexpected",
+            "Novel","Innovative","Bold")
 
+        var vegFlag = false
+        var question = "give me a recipe for a "
+
+        question+=cuisines[seed%cuisines.size]+" "
+
+        if(Random.nextInt(50)==0) {
+            question+="Vegan "
+            vegFlag=true
+        }
+        else if(Random.nextInt(10)==0){
+            question+="Vegetarian "
+            vegFlag=true
+        }
+
+        if(!vegFlag){
+            question += protein[seed%protein.size]+" "
+        }
+        question += "dish with an appropriate carbohydrate component that could be described as "
+        question += descriptors[seed%descriptors.size]+".[fin]"
+        return question
+    }
 }
+
+

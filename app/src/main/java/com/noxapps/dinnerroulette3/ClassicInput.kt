@@ -128,8 +128,8 @@ fun NewInput(
         loadedData[usedTokens]?.let { Log.d("tokens used", it.toString()) }
         loadedData[usedTokens]?.let {
             if (it > 5000) {
-                stopper = true
-                stopperFlag = true
+                //stopper = true
+                //stopperFlag = true
             }
         }
         loadedFlag=true

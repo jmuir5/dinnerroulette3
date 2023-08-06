@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -106,10 +107,29 @@ fun DrawerAndScaffold(){
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
+                BackHandler(
+                    enabled = drawerState.isOpen,
+                ) {
+                    scope.launch { drawerState.close() }
+                }
                 Spacer(Modifier.height(12.dp))
                 NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
+                    label = { Text("Home") },
+                    selected = false,
+                    onClick = {
+                        navController.navigate(Paths.Home.Path){
+                            popUpTo("Home" ){
+                                inclusive = true
+                            }
+                        }
+                        scope.launch { drawerState.close()}
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+                NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    label = { Text("New Recipie") },
+                    label = { Text("New Recipie - Classic") },
                     selected = false,
                     onClick = {
 
@@ -121,6 +141,53 @@ fun DrawerAndScaffold(){
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    label = { Text("New Recipie - Request") },
+                    selected = false,
+                    onClick = {
+
+                        navController.navigate(Paths.SpecificRecipeInput.Path){
+                            popUpTo("Home")
+                        }
+                        scope.launch { drawerState.close()}
+
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+                Divider(
+                    color = MaterialTheme.colorScheme.tertiary,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(8.dp)
+                )
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    label = { Text("Search") },
+                    selected = false,
+                    onClick = {
+
+                        navController.navigate(Paths.Search.Path){
+                            popUpTo("Home")
+                        }
+                        scope.launch { drawerState.close()}
+
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+
+                LazyColumn(
+                    modifier=Modifier.padding(horizontal=8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    items(items.size){item->
+                        Spacer(Modifier.height(1.dp))
+                        DrawerRecipeItem(input = items[item],  navController = navController, scope = scope, drawerState = drawerState)
+                    }
+                }
+                Divider(
+                    color = MaterialTheme.colorScheme.tertiary,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(8.dp))
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Settings, contentDescription = null) },
                     label = { Text("Settings") },
@@ -134,19 +201,6 @@ fun DrawerAndScaffold(){
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
-                Spacer(Modifier.height(12.dp))
-
-                LazyColumn(
-                    modifier=Modifier.padding(horizontal=8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ){
-                    items(items.size){item->
-                        Spacer(Modifier.height(1.dp))
-                        DrawerRecipeItem(input = items[item],  navController = navController, scope = scope, drawerState = drawerState)
-                    }
-                }
-
-                Spacer(Modifier.height(12.dp))
 
 
 
