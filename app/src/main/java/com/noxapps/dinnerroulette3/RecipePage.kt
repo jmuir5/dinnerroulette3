@@ -1,6 +1,8 @@
 package com.noxapps.dinnerroulette3
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.FastOutLinearInEasing
@@ -10,6 +12,7 @@ import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -44,10 +47,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import java.io.File
 
 //import com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
 //import com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange
@@ -85,11 +93,19 @@ fun Recipe(
                     }
                 }
                 if (thisRecipe.image?.isNotEmpty() == true) {
-                    AsyncImage(
-                        model = thisRecipe.image,
+                    val currentFile = File(LocalContext.current.filesDir, thisRecipe.image)
+                    val filePath = currentFile.path
+                    val bitmap = BitmapFactory.decodeFile(filePath)
+                    Image(
+                        painter = BitmapPainter(image = bitmap.asImageBitmap()),
                         contentDescription = thisRecipe.title,
                         modifier = Modifier.fillMaxWidth()
                     )
+                    /*AsyncImage(
+                        model = thisRecipe.image,
+                        contentDescription = thisRecipe.title,
+                        modifier = Modifier.fillMaxWidth()
+                    )*/
                 } else {
                 }
                 Text(
@@ -224,4 +240,9 @@ fun FavouriteButton(id:Long){
             )
         }
     }
+}
+
+@Composable
+fun imageFromFile(filename:String, context:Context){
+
 }

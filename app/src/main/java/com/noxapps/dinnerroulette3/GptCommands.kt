@@ -1,8 +1,14 @@
 package com.noxapps.dinnerroulette3
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.decodeFromString
@@ -14,7 +20,10 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import java.io.File
 import java.io.IOException
+import java.net.URL
+import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 
@@ -176,11 +185,31 @@ fun generatePrompt(context:Context, flag:Int):String{
     if (fahrenheit)unit2Text = "fahrenheit"
 
     val prompt=when(flag){
-        1-> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText. The prompt will end with [fin], indicating the intended end of the prompt. you are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
+        1-> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText. The prompt will end with [fin], indicating the intended end of the prompt. include a recommendation for an appropriate carbohydrate component or accompaniment you are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
         else-> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText. The prompt will end with [fin], indicating the intended end of the prompt. the prompt will include a primary protein and a primary carbohydrate. for example, if the prompt requests a 'chinese lamb dish', lamb is the primary protein. if the prompt includes additional sources of protein or carbohydrate include them both, but make the primary protein or carbohydrate more prominent. be sure to give the recipe an appropriate name. You are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes"
 
     }
 
     return prompt
+
+}
+
+fun saveImage(context: Context, savedRecipe: SavedRecipe){
+    val name = savedRecipe.title?.replace(" ", "_")+LocalDateTime.now().toString()
+    val scope = CoroutineScope(Dispatchers.Default)
+    val currentFile = File(context.filesDir, name)
+    val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
+
+
+    val url = URL(savedRecipe.image)//url
+    val image = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+    currentFile.outputStream().use {
+        image.compress(Bitmap.CompressFormat.PNG, 100, it)
+
+    savedRecipe.image=name
+    MainScope().launch { recipeBox.put(savedRecipe) }
+
+
+    }
 
 }

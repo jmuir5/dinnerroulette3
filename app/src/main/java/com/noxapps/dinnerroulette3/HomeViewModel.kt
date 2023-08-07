@@ -74,6 +74,7 @@ class HomeViewModel: ViewModel() {
                 Log.e("id before", received.id.toString())
                 val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
                 recipeBox.put(received)
+                saveImage(context, received)
 
                 runBlocking {
                     context.dataStore.edit { settings ->
