@@ -64,28 +64,30 @@ class HomeViewModel: ViewModel() {
 
         getResponse(request, context, 1) {
             var received = SavedRecipe()
-            try {
-                received = SavedRecipe(QandA(Query(), it, parseResponse(it)))
-            } catch (e:IndexOutOfBoundsException){
-                navController.navigate(Paths.Error.Path+"/"+it.choices[0].message.content)
-            }
-            Log.e("id before", received.id.toString())
-            val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
-            recipeBox.put(received)
+            var imgPrompt = parseResponse(it,1).image
+            getImage(imgPrompt ,context,0){ it2->
+                try {
+                    received = SavedRecipe(QandA(Query(), it, parseResponse(it)), it2.data[0].url)
+                } catch (e:IndexOutOfBoundsException){
+                    navController.navigate(Paths.Error.Path+"/"+it.choices[0].message.content)
+                }
+                Log.e("id before", received.id.toString())
+                val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
+                recipeBox.put(received)
 
-            runBlocking {
-                context.dataStore.edit { settings ->
-                    val currentCounterValue = settings[usedTokens] ?: 0
-                    settings[usedTokens] =
-                        currentCounterValue + it.usage.total_tokens
+                runBlocking {
+                    context.dataStore.edit { settings ->
+                        val currentCounterValue = settings[usedTokens] ?: 0
+                        settings[usedTokens] =
+                            currentCounterValue + it.usage.total_tokens
+                    }
+                }
+
+                MainScope().launch {
+                    Log.e("id after", received.id.toString())
+                    navController.navigate(Paths.Recipe.Path+"/"+received.id)
                 }
             }
-
-            MainScope().launch {
-                Log.e("id after", received.id.toString())
-                navController.navigate(Paths.Recipe.Path+"/"+received.id)
-            }
-
 
         }
     }
@@ -146,7 +148,7 @@ class HomeViewModel: ViewModel() {
         if(!vegFlag){
             question += protein[seed%protein.size]+" "
         }
-        question += "dish with an appropriate carbohydrate component that could be described as "
+        question += "dish that could be described as "
         question += descriptors[seed%descriptors.size]+".[fin]"
         return question
     }

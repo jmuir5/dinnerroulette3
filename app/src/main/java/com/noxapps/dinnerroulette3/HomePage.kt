@@ -49,11 +49,11 @@ fun HomePage(
 
 
     Column(
-
+        modifier = Modifier.padding(horizontal = 24.dp)
         ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 8.dp)
+            horizontalAlignment = Alignment.CenterHorizontally
+
         ) {
             HeadCard(state = genState, title = "Generate New Recipes")
             if (genState.value) {

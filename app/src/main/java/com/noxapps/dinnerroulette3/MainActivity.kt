@@ -20,12 +20,16 @@ import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Switch
+import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
+import androidx.compose.material3.TopAppBarDefaults.exitUntilCollapsedScrollBehavior
+import androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,6 +49,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import coil.compose.AsyncImage
 import io.objectbox.Box
 import io.objectbox.BoxStore
 import kotlinx.coroutines.flow.first
@@ -207,10 +212,28 @@ fun DrawerAndScaffold(){
             }
         }
     ) {
+        val scrollBehaviour = exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
         Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
             topBar = {
                 TopAppBar(
-                    title = { Text(topAppBarText.value) },
+                    title = {
+                        if(topAppBarText.value.toLongOrNull()==null)Text(topAppBarText.value)
+                        else{
+                            val recipe = recipeBox[topAppBarText.value.toLong()]
+                            //Text(text = recipe.title!!)
+                            Box(modifier = Modifier){
+                                if(recipe.image?.isNotEmpty() == true){
+                                    AsyncImage(
+                                        model = recipe.image,
+                                        contentDescription = recipe.title,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    scrollBehavior = scrollBehaviour,
                     navigationIcon = {
                         IconButton(
                             onClick = {
@@ -230,17 +253,12 @@ fun DrawerAndScaffold(){
             content = { padding ->
 
                 Box(
-                    Modifier.padding(padding),
+                    Modifier
+                        .padding(padding)
+                        .fillMaxSize(),
                     contentAlignment = Alignment.TopCenter
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            //.background(SurfaceOrange),  // BG image behind AppBar
-                    ) {
-                        NavMain(navController, topAppBarText)
-                    }
-
+                    NavMain(navController, topAppBarText)
                 }
             }
         )
@@ -260,9 +278,6 @@ fun DrawerRecipeItem(input:SavedRecipe, navController: NavHostController, scope:
                 popUpTo("Home")
             }
             scope.launch { drawerState.close()}
-            //contentLocation="Recipe"
-
-            //open recipe
         },
         modifier  = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
     )

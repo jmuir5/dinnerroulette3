@@ -68,14 +68,73 @@ fun getResponse(question: String, context: Context, flag:Int, callback: (GptResp
         }
     })
 }
-fun parseResponse(gptResponse: GptResponse):ParsedResponse{
+
+fun getImage(prompt: String, context: Context, flag:Int, callback: (GptImageResponse) -> Unit){
+    val client = OkHttpClient.Builder()
+        .connectTimeout(300, TimeUnit.SECONDS)
+        .writeTimeout(300, TimeUnit.SECONDS)
+        .readTimeout(300, TimeUnit.SECONDS)
+        .build()
+
+    val apiKey= context.getString(R.string.api_Key)
+    Log.e("key", apiKey)
+    val url="https://api.openai.com/v1/images/generations"
+
+    //val prompt = generatePrompt(context, flag)
+    Log.e("system", prompt)
+
+    val requestBody="""
+            {
+            "prompt": "$prompt",
+            "n": 1,
+            "size": "1024x1024"
+            }
+        """.trimIndent()
+    Log.e("request body", requestBody)
+
+    val request = Request.Builder()
+        .url(url)
+        .addHeader("Content-Type", "application/json")
+        .addHeader("Authorization", "Bearer $apiKey")
+        .post(requestBody.toRequestBody("application/json".toMediaTypeOrNull()))
+        .build()
+
+    client.newCall(request).enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            Log.e("error","API failed",e)
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            val body=response.body?.string()
+            if (body != null) {
+                Log.v("data",body)
+            }
+            else{
+                Log.v("data","empty")
+            }
+            val output = body?.let { Json.decodeFromString<GptImageResponse>(it) }
+            //val jsonObject= JSONObject(body)
+            //val jsonArray: JSONArray =jsonObject.getJSONArray("choices")
+            //val textResult=jsonArray.getJSONObject(0).getString("message")
+            callback(output!!)
+        }
+    })
+}
+fun parseResponse(gptResponse: GptResponse, flag:Int = 0):ParsedResponse{
     val initialText = gptResponse.choices[0].message.content
     val title = initialText.split("[title]", "[desc]")[1]
     val description = initialText.split("[desc]", "[ingredients]")[1]
     val ingredients = initialText.split("[ingredients]", "[method]")[1]
     val method = initialText.split("[method]", "[notes]")[1]
-    val notes = initialText.split("[notes]")[1]
-    return ParsedResponse(title.trim(), description.trim(), ingredients.trim(), method.trim(), notes.trim())
+    if(flag==1){
+        val notes = initialText.split("[notes]", "[image]")[1]
+        val image = initialText.split("[image]")[1]
+        return ParsedResponse(title.trim(), description.trim(), ingredients.trim(), method.trim(), notes.trim(), image.trim())
+    }
+    else{
+        val notes = initialText.split("[notes]", "[image]")[1]
+        return ParsedResponse(title.trim(), description.trim(), ingredients.trim(), method.trim(), notes.trim(), "")
+    }
 }
 
 fun generatePrompt(context:Context, flag:Int):String{
@@ -117,7 +176,7 @@ fun generatePrompt(context:Context, flag:Int):String{
     if (fahrenheit)unit2Text = "fahrenheit"
 
     val prompt=when(flag){
-        1-> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText. The prompt will end with [fin], indicating the intended end of the prompt. you are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes"
+        1-> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText. The prompt will end with [fin], indicating the intended end of the prompt. you are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
         else-> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText. The prompt will end with [fin], indicating the intended end of the prompt. the prompt will include a primary protein and a primary carbohydrate. for example, if the prompt requests a 'chinese lamb dish', lamb is the primary protein. if the prompt includes additional sources of protein or carbohydrate include them both, but make the primary protein or carbohydrate more prominent. be sure to give the recipe an appropriate name. You are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes"
 
     }

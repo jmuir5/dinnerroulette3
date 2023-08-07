@@ -26,7 +26,8 @@ class ParsedResponse(
     val description:String,
     val ingredients:String,
     val method:String,
-    val notes:String
+    val notes:String,
+    val image:String
 )
 
 

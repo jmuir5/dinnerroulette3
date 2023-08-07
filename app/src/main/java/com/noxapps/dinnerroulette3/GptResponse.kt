@@ -32,3 +32,13 @@ class GptUsage(
     val total_tokens:Int
 )
 
+@Serializable
+class GptImageResponse(
+    val created:Int,
+    val data:List<ImageLink>
+)
+
+@Serializable
+class ImageLink(
+    val url:String
+)

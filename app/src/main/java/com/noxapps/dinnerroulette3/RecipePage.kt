@@ -1,6 +1,7 @@
 package com.noxapps.dinnerroulette3
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -11,14 +12,18 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -42,6 +47,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
+
 //import com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
 //import com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange
 
@@ -57,72 +64,99 @@ fun Recipe(
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
     val thisRecipe = recipeBox[recipeId]
     val parsedIngredients = thisRecipe.ingredients?.split("\n")
+    Log.e("image", thisRecipe.image.toString())
 
-    TABT.value = thisRecipe.title!!
+    TABT.value = thisRecipe.id!!.toString()
     Scaffold(
-        modifier = Modifier.padding(8.dp),
+        modifier = Modifier.padding(24.dp, 0.dp),
         floatingActionButton = {
             FavouriteButton(recipeId)
         }
     ) { contentPadding ->
-        Column(modifier = Modifier
-            .padding(contentPadding)
-            .verticalScroll(rememberScrollState())
-            //.background(SurfaceOrange)
-        ) {
-            Text(
-                text = thisRecipe.description!!,
-                style = MaterialTheme.typography.titleLarge
-            )
-            Spacer(modifier = Modifier.size(10.dp))
-            Text(
-                text = "Ingredients",
-                style = MaterialTheme.typography.headlineLarge
-            )
-            parsedIngredients?.forEach(){
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    val checkedState = remember {mutableStateOf(false)}
-                    Checkbox(
-                        checked = checkedState.value,
-                        onCheckedChange = {checkedState.value = it},
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .weight(1f)
-                    )
-                    Text(
-                        text = it,
-                        modifier = Modifier.weight(9f).clickable { checkedState.value = !checkedState.value },
-                        style = if(checkedState.value) {
-                            MaterialTheme.typography.bodyMedium.copy(
-                                textDecoration = TextDecoration.LineThrough
-                            )
-                        }
-                        else MaterialTheme.typography.bodyMedium
-                    )
-
+        Column (
+            modifier = Modifier.verticalScroll(rememberScrollState()))
+        {
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()) {
+                Box(modifier = Modifier.fillMaxWidth().height(200.dp)){
+                    Box(modifier = Modifier.align(Alignment.Center)){
+                        Indicator()
+                    }
                 }
+                if (thisRecipe.image?.isNotEmpty() == true) {
+                    AsyncImage(
+                        model = thisRecipe.image,
+                        contentDescription = thisRecipe.title,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                }
+                Text(
+                    text = thisRecipe.title!!,
+                    modifier = Modifier.align(Alignment.BottomStart)
+                )
             }
-            Spacer(modifier = Modifier.size(10.dp))
-            Text(
-                text = "Method",
-                style = MaterialTheme.typography.headlineLarge
-            )
-            Text(
-                text = thisRecipe.method!!,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            Column(
+                modifier = Modifier
+                    .padding(contentPadding)
+                //.background(SurfaceOrange)
+            ) {
+                Text(
+                    text = thisRecipe.description!!,
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Spacer(modifier = Modifier.size(10.dp))
+                Text(
+                    text = "Ingredients",
+                    style = MaterialTheme.typography.headlineLarge
+                )
+                parsedIngredients?.forEach() {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        val checkedState = remember { mutableStateOf(false) }
+                        Checkbox(
+                            checked = checkedState.value,
+                            onCheckedChange = { checkedState.value = it },
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .weight(1f)
+                        )
+                        Text(
+                            text = it,
+                            modifier = Modifier
+                                .weight(9f)
+                                .clickable { checkedState.value = !checkedState.value },
+                            style = if (checkedState.value) {
+                                MaterialTheme.typography.bodyMedium.copy(
+                                    textDecoration = TextDecoration.LineThrough
+                                )
+                            } else MaterialTheme.typography.bodyMedium
+                        )
 
-            Spacer(modifier = Modifier.size(10.dp))
-            Text(
-                text = "Notes",
-                style = MaterialTheme.typography.headlineLarge
-            )
-            Text(
-                text = thisRecipe.notes!!,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Spacer(modifier = Modifier.size(100.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.size(10.dp))
+                Text(
+                    text = "Method",
+                    style = MaterialTheme.typography.headlineLarge
+                )
+                Text(
+                    text = thisRecipe.method!!,
+                    style = MaterialTheme.typography.bodyMedium
+                )
 
+                Spacer(modifier = Modifier.size(10.dp))
+                Text(
+                    text = "Notes",
+                    style = MaterialTheme.typography.headlineLarge
+                )
+                Text(
+                    text = thisRecipe.notes!!,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.size(100.dp))
+
+            }
         }
     }
 }
