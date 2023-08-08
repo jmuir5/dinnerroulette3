@@ -67,6 +67,7 @@ public class SavedRecipe(
         ingredients = recipe.parsed.ingredients
         method = recipe.parsed.method
         notes = recipe.parsed.notes
+        imageDescription = recipe.parsed.image
 
     }
 
