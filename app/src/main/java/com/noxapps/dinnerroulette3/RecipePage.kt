@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -15,92 +16,261 @@ import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.TopAppBarState
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollDispatcher
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import kotlinx.coroutines.launch
 import java.io.File
-
-//import com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
-//import com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange
+import kotlin.math.roundToInt
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedTransitionTargetStateParameter")
 @Composable
 fun Recipe(
     recipeId:Long,
-    TABT: MutableState<String>
+    navController: NavHostController
 
 ) {
-
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
     var thisRecipe = recipeBox[recipeId]
-    val parsedIngredients = thisRecipe.ingredients?.split("\n")
-    val context = LocalContext.current
-    val imageFlag = remember { mutableStateOf(thisRecipe.image?.isNotEmpty()) }
-    val imageFlag2 = remember {(mutableStateOf(imageFlag.value))}
 
-    Log.e("image", thisRecipe.image.toString())
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val screenHeight = configuration.screenHeightDp.dp
+    var consumed by remember { mutableStateOf(0f) }
+    var columnHeightDp by remember { mutableStateOf(0f) }
+    val imageHeight = with(LocalDensity.current) { screenWidth.roundToPx().toFloat() }
+    val screenHeightPx = with(LocalDensity.current) { screenHeight.roundToPx().toFloat() }
+    val downHeightPx = with(LocalDensity.current) { 110.dp.roundToPx().toFloat() }
+    val upHeightPx = with(LocalDensity.current) { 64.dp.roundToPx().toFloat() }
 
-    TABT.value = thisRecipe.id!!.toString()
+
+    val imageFlag = remember { mutableStateOf(thisRecipe.image!!.isNotEmpty()) }
+    val imageFlag2 = remember { (mutableStateOf(imageFlag.value)) }
+
+    val scrollBehaviour = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+        rememberTopAppBarState()
+    )
+    val topAppBarElementColor = if (scrollBehaviour.state.collapsedFraction < 0.70) {
+        Color.Transparent
+    } else {
+        MaterialTheme.colorScheme.onPrimary
+    }
+    val iconButtonBackgroundColor = if (scrollBehaviour.state.collapsedFraction < 0.70) {
+        Color.Gray
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
+    val iconColor = if (scrollBehaviour.state.collapsedFraction < 0.70) {
+        Color.Black
+    } else {
+        MaterialTheme.colorScheme.onPrimary
+    }
+    val customScroll = object : NestedScrollConnection {
+        override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+            if (!imageFlag.value && !imageFlag2.value) return Offset.Zero
+            Log.e("scroll y", available.y.toString())
+            Log.e("consumed y", consumed.toString())
+            Log.e("column y", columnHeightDp.toString())
+            consumed += available.y
+            if (consumed >= 0) consumed = 0f
+            if (consumed < -columnHeightDp + screenHeightPx) consumed =
+                -columnHeightDp + screenHeightPx + 2
+            val state = scrollBehaviour.state
+            if (consumed > -(imageHeight - (downHeightPx)) && available.y < 0) return Offset.Zero
+            else if (consumed < -(imageHeight - (upHeightPx)) && available.y > 0) return Offset.Zero
+
+            state.heightOffset = state.heightOffset + available.y
+            return Offset.Zero
+
+        }
+
+    }
     Scaffold(
-        //modifier = Modifier.padding(24.dp, 0.dp),
+        modifier = Modifier
+            .nestedScroll(customScroll),
+
         floatingActionButton = {
             FavouriteButton(recipeId)
+        },
+        topBar = {
+            if (imageFlag.value || imageFlag2.value) {
+                MediumTopAppBar(
+                    title = { Text(thisRecipe.title!!) },
+                    scrollBehavior = scrollBehaviour,
+                    colors = TopAppBarDefaults.mediumTopAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = topAppBarElementColor
+                    ),
+
+                    navigationIcon = {
+                        IconButton(
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = iconButtonBackgroundColor,
+                                contentColor = iconColor
+                            ),
+                            onClick = {
+                                navController.popBackStack()
+                            }
+                        ) {
+                            Icon(Icons.Filled.ArrowBack, contentDescription = "back")
+                        }
+                    },
+                )
+            } else {
+                TopAppBar(
+                    title = {
+                        Text(thisRecipe.title!!)
+                    },
+                    navigationIcon = {
+                        IconButton(
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            onClick = {
+                                navController.popBackStack()
+                            }
+                        ) {
+                            Icon(Icons.Filled.ArrowBack, contentDescription = "back")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                )
+            }
         }
     ) { contentPadding ->
-        Column (
-            modifier = Modifier.verticalScroll(rememberScrollState()))
+        var variableModifier = if (imageFlag.value || imageFlag2.value) {
+            Modifier
+                .padding(0.dp)
+                .verticalScroll(rememberScrollState())
+                .onGloballyPositioned { coordinates ->
+                    columnHeightDp = coordinates.size.height.toFloat()
+                }
+        } else {
+            Modifier
+                .padding(contentPadding)
+                .verticalScroll(rememberScrollState())
+                .onGloballyPositioned { coordinates ->
+                    columnHeightDp = coordinates.size.height.toFloat()
+                }
+        }
+
+        Column(
+            modifier = variableModifier
+
+
+        )
         {
+            /*
             Box(modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight()) {
-                val configuration = LocalConfiguration.current
-                val screenWidth = configuration.screenWidthDp.dp
+                .wrapContentHeight())
+            {
+
                 var sizeImage by remember { mutableStateOf(IntSize.Zero) }
                 if (imageFlag.value==true) {
 
@@ -118,7 +288,7 @@ fun Recipe(
                     }
                     if(imageFlag2.value== true) {
                         thisRecipe = recipeBox[thisRecipe.id]
-                        Log.e("imagename", thisRecipe.image.toString())
+                        //Log.e("imagename", thisRecipe.image.toString())
                         val currentFile = File(LocalContext.current.filesDir, thisRecipe.image)
                         val filePath = currentFile.path
                         val bitmap = BitmapFactory.decodeFile(filePath)
@@ -137,7 +307,9 @@ fun Recipe(
                         startY = (sizeImage.height.toFloat()*0.66).toFloat(),  // 1/3
                         endY = sizeImage.height.toFloat()
                     )
-                    Box(modifier = Modifier.matchParentSize().background(gradient))
+                    Box(modifier = Modifier
+                        .matchParentSize()
+                        .background(gradient))
                     Text(
                         text = thisRecipe.title!!,
                         modifier = Modifier
@@ -179,70 +351,10 @@ fun Recipe(
 
 
 
-            }
-            Column(
-                modifier = Modifier
-                    .padding(24.dp)
-                //.background(SurfaceOrange)
-            ) {
-                Text(
-                    text = thisRecipe.description!!,
-                    style = MaterialTheme.typography.titleLarge
-                )
-                Spacer(modifier = Modifier.size(10.dp))
-                Text(
-                    text = "Ingredients",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                parsedIngredients?.forEach() {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        val checkedState = remember { mutableStateOf(false) }
-                        Checkbox(
-                            checked = checkedState.value,
-                            onCheckedChange = { checkedState.value = it },
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .weight(1f)
-                        )
-                        Text(
-                            text = it,
-                            modifier = Modifier
-                                .weight(9f)
-                                .clickable { checkedState.value = !checkedState.value },
-                            style = if (checkedState.value) {
-                                MaterialTheme.typography.bodyMedium.copy(
-                                    textDecoration = TextDecoration.LineThrough
-                                )
-                            } else MaterialTheme.typography.bodyMedium
-                        )
+            }*/
+            TitleCardFull(thisRecipe = thisRecipe, imageFlag = imageFlag, imageFlag2 = imageFlag2)
+            RecipeBody(thisRecipe = thisRecipe)
 
-                    }
-                }
-                Spacer(modifier = Modifier.size(10.dp))
-                Text(
-                    text = "Method",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = thisRecipe.method!!,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Spacer(modifier = Modifier.size(10.dp))
-                Text(
-                    text = "Notes",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = thisRecipe.notes!!,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(modifier = Modifier.size(100.dp))
-
-            }
         }
     }
 }
@@ -312,7 +424,410 @@ fun FavouriteButton(id:Long){
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun imageFromFile(filename:String, context:Context){
+fun RecipeDrawerAndScaffold(tabt:String, navController:NavHostController, scrollBehavior: TopAppBarScrollBehavior, content:@Composable () -> Unit){
+    val scope = rememberCoroutineScope()
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
 
+    val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
+    val items = recipeBox.all
+    var topAppBarText = remember{ mutableStateOf(tabt)}
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                BackHandler(
+                    enabled = drawerState.isOpen,
+                ) {
+                    scope.launch { drawerState.close() }
+                }
+                Spacer(Modifier.height(12.dp))
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
+                    label = { Text("Home") },
+                    selected = false,
+                    onClick = {
+                        navController.navigate(Paths.Home.Path){
+                            popUpTo("Home" ){
+                                inclusive = true
+                            }
+                        }
+                        scope.launch { drawerState.close()}
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    label = { Text("New Recipie - Classic") },
+                    selected = false,
+                    onClick = {
+
+                        navController.navigate(Paths.NewInput.Path){
+                            popUpTo("Home")
+                        }
+                        scope.launch { drawerState.close()}
+
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    label = { Text("New Recipie - Request") },
+                    selected = false,
+                    onClick = {
+
+                        navController.navigate(Paths.SpecificRecipeInput.Path){
+                            popUpTo("Home")
+                        }
+                        scope.launch { drawerState.close()}
+
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+                Divider(
+                    color = MaterialTheme.colorScheme.tertiary,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(8.dp)
+                )
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    label = { Text("Search") },
+                    selected = false,
+                    onClick = {
+
+                        navController.navigate(Paths.Search.Path){
+                            popUpTo("Home")
+                        }
+                        scope.launch { drawerState.close()}
+
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+
+                LazyColumn(
+                    modifier=Modifier.padding(horizontal=8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    items(items.size){item->
+                        Spacer(Modifier.height(1.dp))
+                        DrawerRecipeItem(input = items[item],  navController = navController, scope = scope, drawerState = drawerState)
+                    }
+                }
+                Divider(
+                    color = MaterialTheme.colorScheme.tertiary,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(8.dp))
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+                    label = { Text("Settings") },
+                    selected = false,
+                    onClick = {
+                        navController.navigate(Paths.Settings.Path) {
+                            popUpTo("Home")
+                        }
+                        scope.launch { drawerState.close()}
+
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+
+
+
+            }
+        }
+    ) {
+
+        Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            topBar = {
+                /*TopAppBar(
+                    title = {
+                        Text(topAppBarText.value)
+                    },
+                    scrollBehavior = scrollBehaviour,
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                if (drawerState.isClosed) scope.launch { drawerState.open() }
+                                else scope.launch { drawerState.close() }
+                            }
+                        ) {
+                            Icon(Icons.Filled.ArrowBack, contentDescription = "back")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                )*/
+            },
+            content = { padding ->
+
+                Box(
+                    Modifier
+                        .padding(padding)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    content()
+                }
+            }
+        )
+
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ImageTopBar(
+    fileName:String, title:String, scrollBehavior: TopAppBarScrollBehavior
+){
+    Box(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        val currentFile = File(LocalContext.current.filesDir, fileName)
+        val filePath = currentFile.path
+        val bitmap = BitmapFactory.decodeFile(filePath)
+        val painter = BitmapPainter(image = bitmap.asImageBitmap())
+        val configuration = LocalConfiguration.current
+        val screenWidth = configuration.screenWidthDp.dp
+        var sizeImage by remember { mutableStateOf(IntSize.Zero) }
+
+
+        Image(
+            painter = BitmapPainter(image = bitmap.asImageBitmap()),
+            contentDescription = title,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(screenWidth)
+                .onGloballyPositioned {
+                    sizeImage = it.size
+                }
+            ,
+            contentScale = ContentScale.Fit
+        )
+        val gradient = Brush.verticalGradient(
+            colors = listOf(Color.Transparent, Color.Black),
+            startY = (sizeImage.height.toFloat()*0.66).toFloat(),  // 1/3
+            endY = sizeImage.height.toFloat()
+        )
+        Box(modifier = Modifier
+            .matchParentSize()
+            .background(gradient))
+        LargeTopAppBar(
+            title = {
+                Text(title,
+                    style = MaterialTheme.typography.headlineSmall)
+            },
+            colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent),
+            scrollBehavior = scrollBehavior,
+
+        )
+    }
+}
+
+@Composable
+fun RecipeBody(
+    thisRecipe: SavedRecipe
+) {
+    val parsedIngredients = thisRecipe.ingredients?.split("\n")
+    Column(
+        modifier = Modifier
+            .padding(24.dp)
+    ) {
+        Text(
+            text = thisRecipe.description!!,
+            style = MaterialTheme.typography.titleLarge
+        )
+        Spacer(modifier = Modifier.size(10.dp))
+        Text(
+            text = "Ingredients",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.primary
+        )
+        parsedIngredients?.forEach() {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val checkedState = remember { mutableStateOf(false) }
+                Checkbox(
+                    checked = checkedState.value,
+                    onCheckedChange = { checkedState.value = it },
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .weight(1f)
+                )
+                Text(
+                    text = it,
+                    modifier = Modifier
+                        .weight(9f)
+                        .clickable { checkedState.value = !checkedState.value },
+                    style = if (checkedState.value) {
+                        MaterialTheme.typography.bodyMedium.copy(
+                            textDecoration = TextDecoration.LineThrough
+                        )
+                    } else MaterialTheme.typography.bodyMedium
+                )
+
+            }
+        }
+        Spacer(modifier = Modifier.size(10.dp))
+        Text(
+            text = "Method",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = thisRecipe.method!!,
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        Spacer(modifier = Modifier.size(10.dp))
+        Text(
+            text = "Notes",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = thisRecipe.notes!!,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Spacer(modifier = Modifier.size(100.dp))
+
+    }
+}
+
+@Composable
+fun TitleCardImage(thisRecipe: SavedRecipe, imageHeight:Dp){
+    var sizeImage by remember { mutableStateOf(IntSize.Zero) }
+
+    val currentFile = File(LocalContext.current.filesDir, thisRecipe.image)
+    val filePath = currentFile.path
+    val bitmap = BitmapFactory.decodeFile(filePath)
+    val painter = BitmapPainter(image = bitmap.asImageBitmap())
+
+    val gradient = Brush.verticalGradient(
+        colors = listOf(Color.Transparent, Color.Black),
+        startY = (sizeImage.height.toFloat()*0.66).toFloat(),  // 1/3
+        endY = sizeImage.height.toFloat()
+    )
+
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .height(imageHeight)
+        .onGloballyPositioned {
+            sizeImage = it.size
+        })
+    {
+
+        Image(
+            painter = BitmapPainter(image = bitmap.asImageBitmap()),
+            contentDescription = thisRecipe.title,
+            modifier = Modifier
+                .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height)
+                .fillMaxWidth(),
+            contentScale = ContentScale.Fit
+        )
+
+
+        Box(modifier = Modifier
+            .matchParentSize()
+            .background(gradient))
+        Text(
+            text = thisRecipe.title!!,
+            modifier = Modifier
+                .padding(24.dp)
+                .align(Alignment.BottomStart),
+            style = MaterialTheme.typography.headlineLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+@Composable
+fun TitleCardLoading(thisRecipe: SavedRecipe, imageHeight:Dp) {
+    var sizeImage by remember { mutableStateOf(IntSize.Zero) }
+    val gradient = Brush.verticalGradient(
+        colors = listOf(Color.Transparent, Color.Black),
+        startY = (sizeImage.height.toFloat()*0.66).toFloat(),  // 1/3
+        endY = sizeImage.height.toFloat()
+    )
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .wrapContentHeight())
+    {
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .height(imageHeight)
+            .onGloballyPositioned {
+                sizeImage = it.size
+            }
+        )
+        {
+            Box(modifier = Modifier.align(Alignment.Center)){
+                Indicator()
+            }
+        }
+        Box(modifier = Modifier
+            .matchParentSize()
+            .background(gradient))
+        Text(
+            text = thisRecipe.title!!,
+            modifier = Modifier
+                .padding(24.dp)
+                .align(Alignment.BottomStart),
+            style = MaterialTheme.typography.headlineLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+@Composable
+fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>,imageFlag2:MutableState<Boolean>){
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val context = LocalContext.current
+
+
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .wrapContentHeight())
+    {
+        if (imageFlag.value) {
+            TitleCardLoading(thisRecipe, screenWidth)
+        }
+        if (imageFlag2.value){
+            TitleCardImage(thisRecipe, screenWidth)
+        }
+        if (!imageFlag.value && !imageFlag2.value) {
+            Column(
+                modifier = Modifier
+                .fillMaxSize()
+            ) {
+                Text(
+                    text = thisRecipe.title!!,
+                    modifier = Modifier
+                        .padding(24.dp),
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                thisRecipe.imageDescription?.let{
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            imageFlag.value = true
+                            getImage(it, context){
+                                saveImage(context, thisRecipe, it.data[0].url){it2->
+                                    imageFlag2.value = it2
+                                }
+
+
+                            }
+                        }) {
+                        Text(text = "generate picture")
+                    }
+                }
+            }
+        }
+    }
 }

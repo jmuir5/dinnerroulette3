@@ -88,7 +88,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     //color = com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange//MaterialTheme.colorScheme.background
                 ) {
-                    DrawerAndScaffold()
+                    val navController = rememberNavController()
+                    val tabtx = remember { mutableStateOf("dinner Roulette") }
+                    NavMain(navController, tabtx)
+
                 }
             }
         }
@@ -98,16 +101,14 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun DrawerAndScaffold(){
+fun DrawerAndScaffold(tabt:String, navController:NavHostController, content:@Composable () -> Unit){
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val navController = rememberNavController()
+
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
     val items = recipeBox.all
-    var topAppBarText = remember{ mutableStateOf("Dinner Roulette")}
+    var topAppBarText = remember{ mutableStateOf(tabt)}
 
-
-    //val selectedItem = remember { mutableStateOf(items[0]) }
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -218,20 +219,7 @@ fun DrawerAndScaffold(){
             topBar = {
                 TopAppBar(
                     title = {
-                        if(topAppBarText.value.toLongOrNull()==null)Text(topAppBarText.value)
-                        else{
-                            val recipe = recipeBox[topAppBarText.value.toLong()]
-                            //Text(text = recipe.title!!)
-                            Box(modifier = Modifier){
-                                if(recipe.image?.isNotEmpty() == true){
-                                    AsyncImage(
-                                        model = recipe.image,
-                                        contentDescription = recipe.title,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                }
-                            }
-                        }
+                        Text(topAppBarText.value)
                     },
                     scrollBehavior = scrollBehaviour,
                     navigationIcon = {
@@ -258,7 +246,7 @@ fun DrawerAndScaffold(){
                         .fillMaxSize(),
                     contentAlignment = Alignment.TopCenter
                 ) {
-                    NavMain(navController, topAppBarText)
+                    content()
                 }
             }
         )
@@ -293,17 +281,17 @@ fun DrawerRecipeItem(input:SavedRecipe, navController: NavHostController, scope:
 @Composable
 fun DefaultPreview() {
     AppTheme {
-        DrawerAndScaffold()
+        //DrawerAndScaffold()
     }
 }
 
 @Composable
 fun NavMain(navController: NavHostController, TABT:MutableState<String>){//, realm: Realm) {
     NavHost(navController = navController, startDestination = Paths.Home.Path) {
-        composable(Paths.Home.Path) { HomePage(navController = navController, TABT = TABT) }
-        composable(Paths.NewInput.Path) { NewInput(navController = navController, TABT = TABT) }
-        composable(Paths.NatLanInput.Path) { NatLanInput(navController = navController, TABT = TABT) }
-        composable(Paths.SpecificRecipeInput.Path) { SpecificRecipeInput(navController = navController, TABT = TABT) }
+        composable(Paths.Home.Path) { HomePage(navController = navController) }
+        composable(Paths.NewInput.Path) { NewInput(navController = navController) }
+        composable(Paths.NatLanInput.Path) { NatLanInput(navController = navController) }
+        composable(Paths.SpecificRecipeInput.Path) { SpecificRecipeInput(navController = navController) }
         composable(Paths.Settings.Path) { Settings(TABT = TABT) }
         composable(Paths.Search.Path) { SearchPage(TABT = TABT) }
         composable(Paths.Recipe.Path+"/{recipeId}",
@@ -311,7 +299,7 @@ fun NavMain(navController: NavHostController, TABT:MutableState<String>){//, rea
                 navArgument("recipeId") { type = NavType.LongType })) {
             val recipeId = it.arguments?.getLong("recipeId")
             if (recipeId != null) {
-                Recipe(recipeId, TABT = TABT)
+                Recipe(recipeId, navController)
             }
             else{
                 //todo: error code

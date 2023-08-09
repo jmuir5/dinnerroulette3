@@ -33,67 +33,73 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun SpecificRecipeInput(
-    viewModel: InputViewModel = InputViewModel(), navController: NavHostController,
-    TABT: MutableState<String>
-
+    viewModel: InputViewModel = InputViewModel(),
+    navController: NavHostController
 ) {
-    TABT.value = "Request Recipe"
-    val focusRequester = remember { FocusRequester() }
-    var promptText by  remember { mutableStateOf("") }
-    var processing = remember{mutableStateOf(false)}
-    val placeholder by remember {mutableStateOf(viewModel.randomDishName())}
-    val context = LocalContext.current
-    var errorState by remember {mutableStateOf(0)}
-    var border = when(errorState){
-        //1-> Color.Red
-        else -> MaterialTheme.colorScheme.background
-    }
-    Column(
-        Modifier
-            .padding(horizontal = 8.dp)
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Give me a recipe for:")
-        OutlinedTextField(
-            modifier = Modifier.focusRequester(focusRequester).fillMaxWidth(),
-            placeholder = {Text(placeholder)},
-            value = promptText,
-            onValueChange = { if(promptText.length<=30)promptText = it },
-            label = {if(errorState==1) Text("Please enter at least 3 characters", color = Color.Red)},
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = border,
-                unfocusedBorderColor = border
-            ),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    if(promptText.length<3)errorState=1
-                    else {
-                        errorState=0
-                        viewModel.executeRequest(promptText, processing, context, navController)
+    DrawerAndScaffold(tabt = "Request Recipe", navController = navController) {
+        val focusRequester = remember { FocusRequester() }
+        var promptText by remember { mutableStateOf("") }
+        var processing = remember { mutableStateOf(false) }
+        val placeholder by remember { mutableStateOf(viewModel.randomDishName()) }
+        val context = LocalContext.current
+        var errorState by remember { mutableStateOf(0) }
+        var border = when (errorState) {
+            //1-> Color.Red
+            else -> MaterialTheme.colorScheme.background
+        }
+        Column(
+            Modifier
+                .padding(horizontal = 8.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Give me a recipe for:")
+            OutlinedTextField(
+                modifier = Modifier
+                    .focusRequester(focusRequester)
+                    .fillMaxWidth(),
+                placeholder = { Text(placeholder) },
+                value = promptText,
+                onValueChange = { if (promptText.length <= 30) promptText = it },
+                label = {
+                    if (errorState == 1) Text(
+                        "Please enter at least 3 characters",
+                        color = Color.Red
+                    )
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = border,
+                    unfocusedBorderColor = border
+                ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        if (promptText.length < 3) errorState = 1
+                        else {
+                            errorState = 0
+                            viewModel.executeRequest(promptText, processing, context, navController)
+                        }
                     }
-                }
+                )
             )
-        )
 
-        Button(onClick = {
-            if(promptText.length<3)errorState=1
-            else {
-                errorState=0
-                viewModel.executeRequest(promptText, processing, context, navController)
+            Button(onClick = {
+                if (promptText.length < 3) errorState = 1
+                else {
+                    errorState = 0
+                    viewModel.executeRequest(promptText, processing, context, navController)
+                }
+            }) {
+                Text(text = "Generate Recipe")
             }
-        }) {
-            Text(text = "Generate Recipe")
+            LaunchedEffect(Unit) {
+                focusRequester.requestFocus()
+            }
         }
-        LaunchedEffect(Unit) {
-            focusRequester.requestFocus()
+        if (processing.value) {
+            ProcessingDialog()
         }
     }
-    if(processing.value){
-        ProcessingDialog()
-    }
-
 }
 
 

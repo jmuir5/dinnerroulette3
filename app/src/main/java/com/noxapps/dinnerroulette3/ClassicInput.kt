@@ -62,459 +62,463 @@ import kotlinx.coroutines.runBlocking
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewInput(
-    viewModel: InputViewModel = InputViewModel(), navController: NavHostController,
-    TABT: MutableState<String>
+    viewModel: InputViewModel = InputViewModel(),
+    navController: NavHostController
 ) {
-    TABT.value="Create Recipe"
-    var dd1Expanded by remember { mutableStateOf(false) }
-    var dd2Expanded by remember { mutableStateOf(false) }
-    var dd3Expanded by remember { mutableStateOf(false) }
+    DrawerAndScaffold(tabt = "Create Recipe", navController = navController) {
 
 
-    var meatExpanded by remember { mutableStateOf(false) }
-    var carbExpanded by remember { mutableStateOf(false) }
-    var additionalExpanded by remember { mutableStateOf(false) }
-
-    val meatContentItems = listOf("Select...", "Yes", "Optional", "Vegetarian", "Vegan")
-    val primaryMeatItems = listOf(
-        "Select...",
-        "Any",
-        "Beef",
-        "Chicken",
-        "Pork",
-        "Lamb",
-        "Shellfish",
-        "Salmon",
-        "White Fish"
-    )
-    val primaryCarbItems =
-        listOf("Select...", "Any", "Pasta", "Potato", "Rice", "Bread", "Other", "None")
+        var dd1Expanded by remember { mutableStateOf(false) }
+        var dd2Expanded by remember { mutableStateOf(false) }
+        var dd3Expanded by remember { mutableStateOf(false) }
 
 
-    var text by remember { mutableStateOf("") }
+        var meatExpanded by remember { mutableStateOf(false) }
+        var carbExpanded by remember { mutableStateOf(false) }
+        var additionalExpanded by remember { mutableStateOf(false) }
 
-    var cuisineText = remember { mutableStateOf("(Optional)") }
-
-    val ingredients = remember { mutableStateListOf<String>() }
-    val exclIngredients = remember { mutableStateListOf<String>() }
-    val tags = remember { mutableStateListOf<String>() }
-
-
-    var meatContentIndex by remember { mutableStateOf(0) }
-    var primaryMeatIndex by remember { mutableStateOf(0) }
-    var primaryCarbIndex by remember { mutableStateOf(0) }
-
-
-    var cuisine = remember { mutableStateOf(false) }
-    var addIngredientsOpen = remember { mutableStateOf(false) }
-    var removeIngredientsOpen = remember { mutableStateOf(false) }
-    var tagsOpen = remember { mutableStateOf(false) }
-    var processing = remember { mutableStateOf(false) }
-
-    val interactionSource = remember { MutableInteractionSource() }
-    val context = LocalContext.current
-    val store = UserStore(context)
+        val meatContentItems = listOf("Select...", "Yes", "Optional", "Vegetarian", "Vegan")
+        val primaryMeatItems = listOf(
+            "Select...",
+            "Any",
+            "Beef",
+            "Chicken",
+            "Pork",
+            "Lamb",
+            "Shellfish",
+            "Salmon",
+            "White Fish"
+        )
+        val primaryCarbItems =
+            listOf("Select...", "Any", "Pasta", "Potato", "Rice", "Bread", "Other", "None")
 
 
+        var text by remember { mutableStateOf("") }
 
-    var stopper by remember { mutableStateOf(false) }
-    var stopperFlag by remember{ mutableStateOf(false)}
-    var disclamer by remember { mutableStateOf(true) }
+        var cuisineText = remember { mutableStateOf("(Optional)") }
 
-    var loadedFlag by remember { mutableStateOf(false)}
+        val ingredients = remember { mutableStateListOf<String>() }
+        val exclIngredients = remember { mutableStateListOf<String>() }
+        val tags = remember { mutableStateListOf<String>() }
 
-    if(!loadedFlag) {
-        val loadedData = runBlocking { context.dataStore.data.first() }
-        loadedData[usedTokens]?.let { Log.d("tokens used", it.toString()) }
-        loadedData[usedTokens]?.let {
-            if (it > 5000) {
-                //stopper = true
-                //stopperFlag = true
+
+        var meatContentIndex by remember { mutableStateOf(0) }
+        var primaryMeatIndex by remember { mutableStateOf(0) }
+        var primaryCarbIndex by remember { mutableStateOf(0) }
+
+
+        var cuisine = remember { mutableStateOf(false) }
+        var addIngredientsOpen = remember { mutableStateOf(false) }
+        var removeIngredientsOpen = remember { mutableStateOf(false) }
+        var tagsOpen = remember { mutableStateOf(false) }
+        var processing = remember { mutableStateOf(false) }
+
+        val interactionSource = remember { MutableInteractionSource() }
+        val context = LocalContext.current
+        val store = UserStore(context)
+
+
+        var stopper by remember { mutableStateOf(false) }
+        var stopperFlag by remember { mutableStateOf(false) }
+        var disclamer by remember { mutableStateOf(true) }
+
+        var loadedFlag by remember { mutableStateOf(false) }
+
+        if (!loadedFlag) {
+            val loadedData = runBlocking { context.dataStore.data.first() }
+            loadedData[usedTokens]?.let { Log.d("tokens used", it.toString()) }
+            loadedData[usedTokens]?.let {
+                if (it > 5000) {
+                    //stopper = true
+                    //stopperFlag = true
+                }
             }
+            loadedFlag = true
         }
-        loadedFlag=true
-    }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.TopStart)
-    ) {
-        Column() {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .padding(8.dp)
-            ) {
-                Text(
-                    text = "Meat Content:", modifier = Modifier
-                        .clickable(onClick = {
-                            dd1Expanded = true
-                        })
-                )
-                Text(
-                    text = meatContentItems[meatContentIndex],
-                    textAlign = TextAlign.End, modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(onClick = {
-                            dd1Expanded = true
-                        })
-                )
-
-
-                DropdownMenu(
-                    expanded = dd1Expanded,
-                    onDismissRequest = { dd1Expanded = false },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    meatContentItems.forEachIndexed() { index, s ->
-                        if (index != 0) {
-                            DropdownMenuItem(onClick = {
-                                meatExpanded = index == 1 || index == 2
-                                if (!carbExpanded) carbExpanded = index == 3 || index == 4
-                                meatContentIndex = index
-
-                                dd1Expanded = false
-                            }, text = { Text(text = s, textAlign = TextAlign.End) },
-                                modifier = Modifier
-                                    .padding(8.dp)
-                            )
-                        }
-                    }
-                }
-
-            }
-            if (meatExpanded) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .wrapContentSize(Alignment.TopStart)
+        ) {
+            Column() {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
                         .padding(8.dp)
                 ) {
                     Text(
-                        text = "Primary Meat:", modifier = Modifier
+                        text = "Meat Content:", modifier = Modifier
                             .clickable(onClick = {
-                                dd2Expanded = true
+                                dd1Expanded = true
                             })
                     )
                     Text(
-                        text = primaryMeatItems[primaryMeatIndex],
+                        text = meatContentItems[meatContentIndex],
                         textAlign = TextAlign.End, modifier = Modifier
                             .fillMaxWidth()
                             .clickable(onClick = {
-                                dd2Expanded = true
+                                dd1Expanded = true
                             })
                     )
 
+
                     DropdownMenu(
-                        expanded = dd2Expanded,
-                        onDismissRequest = { dd2Expanded = false },
+                        expanded = dd1Expanded,
+                        onDismissRequest = { dd1Expanded = false },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        primaryMeatItems.forEachIndexed() { index, s ->
+                        meatContentItems.forEachIndexed() { index, s ->
                             if (index != 0) {
                                 DropdownMenuItem(onClick = {
-                                    carbExpanded = true
-                                    primaryMeatIndex = index
-                                    dd2Expanded = false
+                                    meatExpanded = index == 1 || index == 2
+                                    if (!carbExpanded) carbExpanded = index == 3 || index == 4
+                                    meatContentIndex = index
 
-                                }, text = { Text(text = s, textAlign = TextAlign.End) })
+                                    dd1Expanded = false
+                                }, text = { Text(text = s, textAlign = TextAlign.End) },
+                                    modifier = Modifier
+                                        .padding(8.dp)
+                                )
                             }
                         }
                     }
-                }
-            }
-            if (carbExpanded) {
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .padding(8.dp)
-                ) {
-                    Text(
-                        text = "Primary Carbohydrate:", modifier = Modifier
-                            .clickable(onClick = {
-                                dd3Expanded = true
-                            })
-                    )
-                    Text(
-                        text = primaryCarbItems[primaryCarbIndex],
-                        textAlign = TextAlign.End, modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(onClick = {
-                                dd3Expanded = true
-                            })
-                    )
 
-                    DropdownMenu(
-                        expanded = dd3Expanded,
-                        onDismissRequest = { dd3Expanded = false },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        primaryCarbItems.forEachIndexed() { index, s ->
-                            if (index != 0) {
-                                DropdownMenuItem(onClick = {
-                                    additionalExpanded = true
-                                    primaryCarbIndex = index
-                                    dd3Expanded = false
-                                }, text = { Text(text = s, textAlign = TextAlign.End) })
-                            }
-                        }
-                    }
                 }
-            }
-            if (additionalExpanded) {
-                Column() {
+                if (meatExpanded) {
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
                             .padding(8.dp)
                     ) {
                         Text(
-                            text = "Cuisine:", modifier = Modifier
+                            text = "Primary Meat:", modifier = Modifier
                                 .clickable(onClick = {
-                                    cuisine.value = true
+                                    dd2Expanded = true
                                 })
                         )
                         Text(
-                            text = cuisineText.value,
+                            text = primaryMeatItems[primaryMeatIndex],
                             textAlign = TextAlign.End, modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable(onClick = {
-                                    cuisine.value = true
+                                    dd2Expanded = true
                                 })
                         )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "Add Ingredients:")
-                        Button(onClick = {
-                            addIngredientsOpen.value = true
-                        }) {
-                            Text(text = "Edit")
-                        }
 
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "Excluded Ingredients:")
-                        Button(onClick = {
-                            removeIngredientsOpen.value = true
-                        }) {
-                            Text(text = "Edit")
-                        }
+                        DropdownMenu(
+                            expanded = dd2Expanded,
+                            onDismissRequest = { dd2Expanded = false },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            primaryMeatItems.forEachIndexed() { index, s ->
+                                if (index != 0) {
+                                    DropdownMenuItem(onClick = {
+                                        carbExpanded = true
+                                        primaryMeatIndex = index
+                                        dd2Expanded = false
 
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "Descriptive Tags:")
-                        Button(onClick = {
-                            tagsOpen.value = true
-                        }) {
-                            Text(text = "Edit")
-                        }
-
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if(!stopperFlag) {
-                            Button(onClick = {
-                                val query = Query(
-                                    meatContentItems[meatContentIndex],
-                                    primaryMeatItems[primaryMeatIndex],
-                                    primaryCarbItems[primaryCarbIndex],
-                                    cuisineText.value,
-                                    ingredients,
-                                    exclIngredients,
-                                    tags
-                                )
-                                viewModel.executeClassic(query, processing, context, navController)
-
-
-                            }) {
-                                Text(text = "Generate Recipe")
+                                    }, text = { Text(text = s, textAlign = TextAlign.End) })
+                                }
                             }
                         }
-                        else{
-                            Text(text = "All Beta Tokens Used")
-                        }
-
                     }
-
                 }
-            }
-        }
-    }
-
-    if (cuisine.value) {
-        SingleDialog(cuisine, "Include Ingredients", cuisineText)
-    }
-
-    if (addIngredientsOpen.value) {
-        MultiDialog(addIngredientsOpen, "Include Ingredients", ingredients)
-    }
-
-    if (removeIngredientsOpen.value) {
-        MultiDialog(removeIngredientsOpen, "Exclude Ingredients", exclIngredients)
-    }
-
-    if (tagsOpen.value) {
-        MultiDialog(tagsOpen, "Descriptive Tags", tags)
-    }
-
-    if (processing.value) {
-        ProcessingDialog()
-    }
-
-    if (stopper) {
-        AlertDialog(
-            onDismissRequest = {
-                stopper = false
-            }
-        ) {
-            Surface(
-                modifier = Modifier
-                    .wrapContentWidth()
-                    .wrapContentHeight()
-                    .wrapContentSize(Alignment.Center)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(15.dp)
-                    ),
-
-                shape = MaterialTheme.shapes.large,
-                tonalElevation = AlertDialogDefaults.TonalElevation
-            ) {
-                Column(
-                    modifier= Modifier
-                        //.background(SurfaceOrange)
-                        .padding(10.dp)
-
-                    ,
-                ) {
+                if (carbExpanded) {
                     Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
-                            .padding(4.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text("max tokens used")
-                    }
-                    Row(
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
+                            .padding(8.dp)
                     ) {
                         Text(
-                            "This is an early beta build with limited recipe genration. \n" +
-                                    "You will be unable to generate any more recipes.\n" +
-                                    "Please contact Chris to generate more recipes."
+                            text = "Primary Carbohydrate:", modifier = Modifier
+                                .clickable(onClick = {
+                                    dd3Expanded = true
+                                })
                         )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Button(onClick = {
-                            stopper = false
-                            text = ""
-                        }) {
-                            Text(text = "I Understand")
+                        Text(
+                            text = primaryCarbItems[primaryCarbIndex],
+                            textAlign = TextAlign.End, modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(onClick = {
+                                    dd3Expanded = true
+                                })
+                        )
+
+                        DropdownMenu(
+                            expanded = dd3Expanded,
+                            onDismissRequest = { dd3Expanded = false },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            primaryCarbItems.forEachIndexed() { index, s ->
+                                if (index != 0) {
+                                    DropdownMenuItem(onClick = {
+                                        additionalExpanded = true
+                                        primaryCarbIndex = index
+                                        dd3Expanded = false
+                                    }, text = { Text(text = s, textAlign = TextAlign.End) })
+                                }
+                            }
                         }
+                    }
+                }
+                if (additionalExpanded) {
+                    Column() {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .padding(8.dp)
+                        ) {
+                            Text(
+                                text = "Cuisine:", modifier = Modifier
+                                    .clickable(onClick = {
+                                        cuisine.value = true
+                                    })
+                            )
+                            Text(
+                                text = cuisineText.value,
+                                textAlign = TextAlign.End, modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(onClick = {
+                                        cuisine.value = true
+                                    })
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = "Add Ingredients:")
+                            Button(onClick = {
+                                addIngredientsOpen.value = true
+                            }) {
+                                Text(text = "Edit")
+                            }
+
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = "Excluded Ingredients:")
+                            Button(onClick = {
+                                removeIngredientsOpen.value = true
+                            }) {
+                                Text(text = "Edit")
+                            }
+
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = "Descriptive Tags:")
+                            Button(onClick = {
+                                tagsOpen.value = true
+                            }) {
+                                Text(text = "Edit")
+                            }
+
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (!stopperFlag) {
+                                Button(onClick = {
+                                    val query = Query(
+                                        meatContentItems[meatContentIndex],
+                                        primaryMeatItems[primaryMeatIndex],
+                                        primaryCarbItems[primaryCarbIndex],
+                                        cuisineText.value,
+                                        ingredients,
+                                        exclIngredients,
+                                        tags
+                                    )
+                                    viewModel.executeClassic(
+                                        query,
+                                        processing,
+                                        context,
+                                        navController
+                                    )
+
+
+                                }) {
+                                    Text(text = "Generate Recipe")
+                                }
+                            } else {
+                                Text(text = "All Beta Tokens Used")
+                            }
+
+                        }
+
                     }
                 }
             }
         }
-    }
 
-    if (disclamer) {
-        AlertDialog(
-            onDismissRequest = {
-                disclamer = false
-            }
-        ) {
-            Surface(
-                modifier = Modifier
-                    .wrapContentWidth()
-                    .wrapContentHeight()
-                    .wrapContentSize(Alignment.Center)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(15.dp)
-                    ),
-                shape = MaterialTheme.shapes.large,
-                tonalElevation = AlertDialogDefaults.TonalElevation
+        if (cuisine.value) {
+            SingleDialog(cuisine, "Include Ingredients", cuisineText)
+        }
+
+        if (addIngredientsOpen.value) {
+            MultiDialog(addIngredientsOpen, "Include Ingredients", ingredients)
+        }
+
+        if (removeIngredientsOpen.value) {
+            MultiDialog(removeIngredientsOpen, "Exclude Ingredients", exclIngredients)
+        }
+
+        if (tagsOpen.value) {
+            MultiDialog(tagsOpen, "Descriptive Tags", tags)
+        }
+
+        if (processing.value) {
+            ProcessingDialog()
+        }
+
+        if (stopper) {
+            AlertDialog(
+                onDismissRequest = {
+                    stopper = false
+                }
             ) {
-                Column(
+                Surface(
                     modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        //.background(SurfaceOrange)
-                        .padding(10.dp),
+                        .wrapContentWidth()
+                        .wrapContentHeight()
+                        .wrapContentSize(Alignment.Center)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(15.dp)
+                        ),
+
+                    shape = MaterialTheme.shapes.large,
+                    tonalElevation = AlertDialogDefaults.TonalElevation
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier
-                            .padding(4.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
+                            //.background(SurfaceOrange)
+                            .padding(10.dp),
                     ) {
-                        Text("DISCLAIMER:")
-                    }
-                    Row(
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            "This is an early beta build of this application. There will be bugs" +
-                                    "and stuff that's not very easy to use. Please don't hesitate to contact " +
-                                    "me to give me feedback. \nThis version is limited to roughly 10 recipe " +
-                                    "generations. You can continue to view recipes after that runs out but " +
-                                    "old recipes may not be carried over to new versions of the app. \n" +
-                                    "All recipes are generated by chat gpt, so please use descretion when" +
-                                    " actually cooking them, especially if you have intolerances or alergies." +
-                                    "The settings page has a place for you to add intollerences and alergies, " +
-                                    "please test this if applicable."
-                        )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Button(onClick = {
-                            disclamer = false
-                            text = ""
-                        }) {
-                            Text(text = "I Understand")
+                        Row(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text("max tokens used")
+                        }
+                        Row(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                "This is an early beta build with limited recipe genration. \n" +
+                                        "You will be unable to generate any more recipes.\n" +
+                                        "Please contact Chris to generate more recipes."
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(onClick = {
+                                stopper = false
+                                text = ""
+                            }) {
+                                Text(text = "I Understand")
+                            }
                         }
                     }
+                }
+            }
+        }
 
+        if (disclamer) {
+            AlertDialog(
+                onDismissRequest = {
+                    disclamer = false
+                }
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .wrapContentHeight()
+                        .wrapContentSize(Alignment.Center)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(15.dp)
+                        ),
+                    shape = MaterialTheme.shapes.large,
+                    tonalElevation = AlertDialogDefaults.TonalElevation
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .verticalScroll(rememberScrollState())
+                            //.background(SurfaceOrange)
+                            .padding(10.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text("DISCLAIMER:")
+                        }
+                        Row(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                "This is an early beta build of this application. There will be bugs" +
+                                        "and stuff that's not very easy to use. Please don't hesitate to contact " +
+                                        "me to give me feedback. \nThis version is limited to roughly 10 recipe " +
+                                        "generations. You can continue to view recipes after that runs out but " +
+                                        "old recipes may not be carried over to new versions of the app. \n" +
+                                        "All recipes are generated by chat gpt, so please use descretion when" +
+                                        " actually cooking them, especially if you have intolerances or alergies." +
+                                        "The settings page has a place for you to add intollerences and alergies, " +
+                                        "please test this if applicable."
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(onClick = {
+                                disclamer = false
+                                text = ""
+                            }) {
+                                Text(text = "I Understand")
+                            }
+                        }
+
+                    }
                 }
             }
         }

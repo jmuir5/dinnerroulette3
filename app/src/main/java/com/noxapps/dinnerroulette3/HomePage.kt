@@ -30,148 +30,148 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun HomePage(
-    viewModel: HomeViewModel = HomeViewModel(), navController: NavHostController,
-    TABT: MutableState<String>
-
+    viewModel: HomeViewModel = HomeViewModel(),
+    navController: NavHostController,
 ) {
-    TABT.value = "Dinner Roulette"
-    var faveList = remember {viewModel.faveFive()}
-    var recentList = remember{viewModel.lastFive()}
-    val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
-    val processing = remember{mutableStateOf(false)}
-    val context = LocalContext.current
+    DrawerAndScaffold("Dinner Roulette",navController) {
+        var faveList = remember { viewModel.faveFive() }
+        var recentList = remember { viewModel.lastFive() }
+        val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
+        val processing = remember { mutableStateOf(false) }
+        val context = LocalContext.current
 
-    val genState = remember{mutableStateOf(true)}
-    val savedState = remember{mutableStateOf(false)}
-    val faveState = remember{mutableStateOf(false)}
-    val recentState = remember{mutableStateOf(false)}
+        val genState = remember { mutableStateOf(true) }
+        val savedState = remember { mutableStateOf(false) }
+        val faveState = remember { mutableStateOf(false) }
+        val recentState = remember { mutableStateOf(false) }
 
 
 
-    Column(
-        modifier = Modifier.padding(horizontal = 24.dp)
-        ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-
+            modifier = Modifier.padding(horizontal = 24.dp)
         ) {
-            HeadCard(state = genState, title = "Generate New Recipes")
-            if (genState.value) {
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        viewModel.executeRandom(processing, context, navController)
-                    }) {
-                    Text(text = "Random New Recipe")
-                }
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        navController.navigate(Paths.SpecificRecipeInput.Path)
-                    }) {
-                    Text(text = "Specific Request")
-                }
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        navController.navigate(Paths.NewInput.Path)
-                    }) {
-                    Text(text = "Classic Input")
-                }
-                Spacer(modifier = Modifier.size(1.dp))
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        navController.navigate(Paths.NatLanInput.Path)
-                    }) {
-                    Text(text = "New Input - nyi")
-                }
-                Spacer(modifier = Modifier.size(1.dp))
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
 
-                Spacer(modifier = Modifier.size(1.dp))
+            ) {
+                HeadCard(state = genState, title = "Generate New Recipes")
+                if (genState.value) {
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            viewModel.executeRandom(processing, context, navController)
+                        }) {
+                        Text(text = "Random New Recipe")
+                    }
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            navController.navigate(Paths.SpecificRecipeInput.Path)
+                        }) {
+                        Text(text = "Specific Request")
+                    }
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            navController.navigate(Paths.NewInput.Path)
+                        }) {
+                        Text(text = "Classic Input")
+                    }
+                    Spacer(modifier = Modifier.size(1.dp))
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            navController.navigate(Paths.NatLanInput.Path)
+                        }) {
+                        Text(text = "New Input - nyi")
+                    }
+                    Spacer(modifier = Modifier.size(1.dp))
 
-            }
-            //Spacer(modifier = Modifier.size(10.dp))
-            Divider(color = MaterialTheme.colorScheme.tertiary, thickness = 1.dp)
-            HeadCard(state = savedState, title = "Saved Recipes")
-            if (savedState.value) {
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        navController.navigate(Paths.Search.Path)
-                    }) {
-                    Text(text = "Search Recipes - nyi")
+                    Spacer(modifier = Modifier.size(1.dp))
+
                 }
-                Spacer(modifier = Modifier.size(1.dp))
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        navController.navigate(Paths.Recipe.Path + "/" + viewModel.randomFavourite())
-                    }) {
-                    Text(text = "Random Favourite Recipe")
-                }
-                Spacer(modifier = Modifier.size(1.dp))
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        navController.navigate(Paths.Recipe.Path + "/" + viewModel.randomSaved())
-                    }) {
-                    Text(text = "Random Saved Recipe")
-                }
-                Spacer(modifier = Modifier.size(8.dp))
+                //Spacer(modifier = Modifier.size(10.dp))
                 Divider(color = MaterialTheme.colorScheme.tertiary, thickness = 1.dp)
-                LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
-                    items(1) { item ->
-                        subHeadCard(state = faveState, title = "Favourites")
+                HeadCard(state = savedState, title = "Saved Recipes")
+                if (savedState.value) {
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            navController.navigate(Paths.Search.Path)
+                        }) {
+                        Text(text = "Search Recipes - nyi")
                     }
-                    if(faveState.value) {
-                        if (faveList.isEmpty()) {
-                            items(1) { item ->
-                                Text("No favourite recipes. Make some recipes you love!")
-                            }
-                        } else {
-                            items(faveList.size) {
-                                Spacer(modifier = Modifier.size(1.dp))
-                                Button(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    onClick = {
-                                        navController.navigate(Paths.Recipe.Path + "/" + faveList[it])
-                                    }) {
-                                    recipeBox[faveList[it]].title?.let { it1 -> Text(text = it1) }
+                    Spacer(modifier = Modifier.size(1.dp))
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            navController.navigate(Paths.Recipe.Path + "/" + viewModel.randomFavourite())
+                        }) {
+                        Text(text = "Random Favourite Recipe")
+                    }
+                    Spacer(modifier = Modifier.size(1.dp))
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            navController.navigate(Paths.Recipe.Path + "/" + viewModel.randomSaved())
+                        }) {
+                        Text(text = "Random Saved Recipe")
+                    }
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Divider(color = MaterialTheme.colorScheme.tertiary, thickness = 1.dp)
+                    LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
+                        items(1) { item ->
+                            subHeadCard(state = faveState, title = "Favourites")
+                        }
+                        if (faveState.value) {
+                            if (faveList.isEmpty()) {
+                                items(1) { item ->
+                                    Text("No favourite recipes. Make some recipes you love!")
                                 }
-                                Spacer(modifier = Modifier.size(8.dp))
+                            } else {
+                                items(faveList.size) {
+                                    Spacer(modifier = Modifier.size(1.dp))
+                                    Button(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        onClick = {
+                                            navController.navigate(Paths.Recipe.Path + "/" + faveList[it])
+                                        }) {
+                                        recipeBox[faveList[it]].title?.let { it1 -> Text(text = it1) }
+                                    }
+                                    Spacer(modifier = Modifier.size(8.dp))
+                                }
                             }
                         }
-                    }
-                    items(1) { item ->
-                        Divider(color = MaterialTheme.colorScheme.tertiary, thickness = 1.dp)
-                        subHeadCard(state = recentState, title = "Recently Generated")
-                    }
-                    if(recentState.value) {
-                        if (recentList.isEmpty()) {
-                            items(1) { item ->
-                                Text("No recent recipes. Make something new!")
-                            }
-                        } else {
-                            items(recentList.size) {
-                                Spacer(modifier = Modifier.size(1.dp))
-                                Button(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    onClick = {
-                                        navController.navigate(Paths.Recipe.Path + "/" + recentList[it])
-                                    }) {
-                                    recipeBox[recentList[it]].title?.let { it1 -> Text(text = it1) }
+                        items(1) { item ->
+                            Divider(color = MaterialTheme.colorScheme.tertiary, thickness = 1.dp)
+                            subHeadCard(state = recentState, title = "Recently Generated")
+                        }
+                        if (recentState.value) {
+                            if (recentList.isEmpty()) {
+                                items(1) { item ->
+                                    Text("No recent recipes. Make something new!")
+                                }
+                            } else {
+                                items(recentList.size) {
+                                    Spacer(modifier = Modifier.size(1.dp))
+                                    Button(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        onClick = {
+                                            navController.navigate(Paths.Recipe.Path + "/" + recentList[it])
+                                        }) {
+                                        recipeBox[recentList[it]].title?.let { it1 -> Text(text = it1) }
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
 
-    }
-    if (processing.value) {
-        ProcessingDialog()
+        }
+        if (processing.value) {
+            ProcessingDialog()
+        }
     }
 
 }
