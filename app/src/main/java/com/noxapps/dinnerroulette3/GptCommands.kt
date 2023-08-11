@@ -96,7 +96,7 @@ fun getImage(prompt: String, context: Context, callback: (GptImageResponse) -> U
             {
             "prompt": "$prompt",
             "n": 1,
-            "size": "1024x1024"
+            "size": "256x256"
             }
         """.trimIndent()
     Log.e("request body", requestBody)

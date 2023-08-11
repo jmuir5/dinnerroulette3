@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
@@ -215,15 +216,23 @@ fun DrawerAndScaffold(tabt:String, navController:NavHostController, content:@Com
     ) {
         val scrollBehaviour = exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
         Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
+            //modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
             topBar = {
                 TopAppBar(
                     title = {
-                        Text(topAppBarText.value)
+                        Text(
+                            text = topAppBarText.value,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     },
                     scrollBehavior = scrollBehaviour,
                     navigationIcon = {
                         IconButton(
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
                             onClick = {
                                 if (drawerState.isClosed) scope.launch { drawerState.open() }
                                 else scope.launch { drawerState.close() }
@@ -293,7 +302,7 @@ fun NavMain(navController: NavHostController, TABT:MutableState<String>){//, rea
         composable(Paths.NatLanInput.Path) { NatLanInput(navController = navController) }
         composable(Paths.SpecificRecipeInput.Path) { SpecificRecipeInput(navController = navController) }
         composable(Paths.Settings.Path) { Settings(TABT = TABT) }
-        composable(Paths.Search.Path) { SearchPage(TABT = TABT) }
+        composable(Paths.Search.Path) { SearchPage(navController = navController) }
         composable(Paths.Recipe.Path+"/{recipeId}",
             arguments = listOf(
                 navArgument("recipeId") { type = NavType.LongType })) {

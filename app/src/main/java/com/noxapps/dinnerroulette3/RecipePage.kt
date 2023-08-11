@@ -85,6 +85,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -111,6 +112,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -133,6 +135,10 @@ fun Recipe(
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
     var thisRecipe = recipeBox[recipeId]
 
+    val scrollBehaviour = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+        rememberTopAppBarState()
+    )
+
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
@@ -142,47 +148,42 @@ fun Recipe(
     val screenHeightPx = with(LocalDensity.current) { screenHeight.roundToPx().toFloat() }
     val downHeightPx = with(LocalDensity.current) { 110.dp.roundToPx().toFloat() }
     val upHeightPx = with(LocalDensity.current) { 64.dp.roundToPx().toFloat() }
+    val state = scrollBehaviour.state
 
 
     val imageFlag = remember { mutableStateOf(thisRecipe.image!!.isNotEmpty()) }
-    val imageFlag2 = remember { (mutableStateOf(imageFlag.value)) }
+    val imageFlag2 = remember { mutableStateOf(imageFlag.value) }
 
-    val scrollBehaviour = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        rememberTopAppBarState()
-    )
-    val topAppBarElementColor = if (scrollBehaviour.state.collapsedFraction < 0.70) {
-        Color.Transparent
+    val collapsedFraction by remember{ derivedStateOf { scrollBehaviour.state.collapsedFraction < 0.70 }}
+
+
+    val topAppBarElementColor = remember {mutableStateOf(Color.Transparent)}
+    val iconButtonBackgroundColor = remember {mutableStateOf(Color.Gray)}
+    val iconColor = remember {mutableStateOf(Color.Black)}
+    if (collapsedFraction) {
+        topAppBarElementColor.value= Color.Transparent
+        iconButtonBackgroundColor.value = Color.Gray
+        iconColor.value = Color.Black
     } else {
-        MaterialTheme.colorScheme.onPrimary
+        topAppBarElementColor.value=MaterialTheme.colorScheme.onPrimary
+        iconButtonBackgroundColor.value =MaterialTheme.colorScheme.primary
+        iconColor.value =MaterialTheme.colorScheme.onPrimary
     }
-    val iconButtonBackgroundColor = if (scrollBehaviour.state.collapsedFraction < 0.70) {
-        Color.Gray
-    } else {
-        MaterialTheme.colorScheme.primary
-    }
-    val iconColor = if (scrollBehaviour.state.collapsedFraction < 0.70) {
-        Color.Black
-    } else {
-        MaterialTheme.colorScheme.onPrimary
-    }
+
+
     val customScroll = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
             if (!imageFlag.value && !imageFlag2.value) return Offset.Zero
-            Log.e("scroll y", available.y.toString())
-            Log.e("consumed y", consumed.toString())
-            Log.e("column y", columnHeightDp.toString())
             consumed += available.y
             if (consumed >= 0) consumed = 0f
             if (consumed < -columnHeightDp + screenHeightPx) consumed =
                 -columnHeightDp + screenHeightPx + 2
-            val state = scrollBehaviour.state
             if (consumed > -(imageHeight - (downHeightPx)) && available.y < 0) return Offset.Zero
             else if (consumed < -(imageHeight - (upHeightPx)) && available.y > 0) return Offset.Zero
-
             state.heightOffset = state.heightOffset + available.y
             return Offset.Zero
-
         }
+
 
     }
     Scaffold(
@@ -195,19 +196,25 @@ fun Recipe(
         topBar = {
             if (imageFlag.value || imageFlag2.value) {
                 MediumTopAppBar(
-                    title = { Text(thisRecipe.title!!) },
+                    title = {
+                        Text(
+                            text = thisRecipe.title!!,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
                     scrollBehavior = scrollBehaviour,
                     colors = TopAppBarDefaults.mediumTopAppBarColors(
                         containerColor = Color.Transparent,
                         scrolledContainerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = topAppBarElementColor
+                        titleContentColor = topAppBarElementColor.value
                     ),
 
                     navigationIcon = {
                         IconButton(
                             colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = iconButtonBackgroundColor,
-                                contentColor = iconColor
+                                containerColor = iconButtonBackgroundColor.value,
+                                contentColor = iconColor.value
                             ),
                             onClick = {
                                 navController.popBackStack()
@@ -220,7 +227,10 @@ fun Recipe(
             } else {
                 TopAppBar(
                     title = {
-                        Text(thisRecipe.title!!)
+                        Text(text = thisRecipe.title!!,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     },
                     navigationIcon = {
                         IconButton(
@@ -261,97 +271,8 @@ fun Recipe(
 
         Column(
             modifier = variableModifier
-
-
         )
         {
-            /*
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight())
-            {
-
-                var sizeImage by remember { mutableStateOf(IntSize.Zero) }
-                if (imageFlag.value==true) {
-
-                    Box(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(screenWidth)
-                        .onGloballyPositioned {
-                            sizeImage = it.size
-                        }
-                    )
-                    {
-                        Box(modifier = Modifier.align(Alignment.Center)){
-                            Indicator()
-                        }
-                    }
-                    if(imageFlag2.value== true) {
-                        thisRecipe = recipeBox[thisRecipe.id]
-                        //Log.e("imagename", thisRecipe.image.toString())
-                        val currentFile = File(LocalContext.current.filesDir, thisRecipe.image)
-                        val filePath = currentFile.path
-                        val bitmap = BitmapFactory.decodeFile(filePath)
-                        val painter = BitmapPainter(image = bitmap.asImageBitmap())
-                        Image(
-                            painter = BitmapPainter(image = bitmap.asImageBitmap()),
-                            contentDescription = thisRecipe.title,
-                            modifier = Modifier
-                                .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height)
-                                .fillMaxWidth(),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
-                    val gradient = Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color.Black),
-                        startY = (sizeImage.height.toFloat()*0.66).toFloat(),  // 1/3
-                        endY = sizeImage.height.toFloat()
-                    )
-                    Box(modifier = Modifier
-                        .matchParentSize()
-                        .background(gradient))
-                    Text(
-                        text = thisRecipe.title!!,
-                        modifier = Modifier
-                            .padding(24.dp)
-                            .align(Alignment.BottomStart),
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                else {
-                    Column() {
-                        Text(
-                            text = thisRecipe.title!!,
-                            modifier = Modifier
-                                .padding(24.dp),
-                            style = MaterialTheme.typography.headlineLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        thisRecipe.imageDescription?.let{
-                            Button(
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = {
-                                    imageFlag.value = true
-                                    getImage(it, context){
-                                        saveImage(context, thisRecipe, it.data[0].url){it2->
-                                            imageFlag2.value = it2
-                                        }
-
-
-                                    }
-                                }) {
-                                Text(text = "generate picture")
-                            }
-                        }
-                    }
-
-                }
-
-
-
-
-            }*/
             TitleCardFull(thisRecipe = thisRecipe, imageFlag = imageFlag, imageFlag2 = imageFlag2)
             RecipeBody(thisRecipe = thisRecipe)
 
@@ -421,210 +342,6 @@ fun FavouriteButton(id:Long){
                 modifier = Modifier.size(size)
             )
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RecipeDrawerAndScaffold(tabt:String, navController:NavHostController, scrollBehavior: TopAppBarScrollBehavior, content:@Composable () -> Unit){
-    val scope = rememberCoroutineScope()
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
-
-    val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
-    val items = recipeBox.all
-    var topAppBarText = remember{ mutableStateOf(tabt)}
-
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
-                BackHandler(
-                    enabled = drawerState.isOpen,
-                ) {
-                    scope.launch { drawerState.close() }
-                }
-                Spacer(Modifier.height(12.dp))
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
-                    label = { Text("Home") },
-                    selected = false,
-                    onClick = {
-                        navController.navigate(Paths.Home.Path){
-                            popUpTo("Home" ){
-                                inclusive = true
-                            }
-                        }
-                        scope.launch { drawerState.close()}
-                    },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                )
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    label = { Text("New Recipie - Classic") },
-                    selected = false,
-                    onClick = {
-
-                        navController.navigate(Paths.NewInput.Path){
-                            popUpTo("Home")
-                        }
-                        scope.launch { drawerState.close()}
-
-                    },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                )
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    label = { Text("New Recipie - Request") },
-                    selected = false,
-                    onClick = {
-
-                        navController.navigate(Paths.SpecificRecipeInput.Path){
-                            popUpTo("Home")
-                        }
-                        scope.launch { drawerState.close()}
-
-                    },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                )
-                Divider(
-                    color = MaterialTheme.colorScheme.tertiary,
-                    thickness = 1.dp,
-                    modifier = Modifier.padding(8.dp)
-                )
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    label = { Text("Search") },
-                    selected = false,
-                    onClick = {
-
-                        navController.navigate(Paths.Search.Path){
-                            popUpTo("Home")
-                        }
-                        scope.launch { drawerState.close()}
-
-                    },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                )
-
-                LazyColumn(
-                    modifier=Modifier.padding(horizontal=8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ){
-                    items(items.size){item->
-                        Spacer(Modifier.height(1.dp))
-                        DrawerRecipeItem(input = items[item],  navController = navController, scope = scope, drawerState = drawerState)
-                    }
-                }
-                Divider(
-                    color = MaterialTheme.colorScheme.tertiary,
-                    thickness = 1.dp,
-                    modifier = Modifier.padding(8.dp))
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-                    label = { Text("Settings") },
-                    selected = false,
-                    onClick = {
-                        navController.navigate(Paths.Settings.Path) {
-                            popUpTo("Home")
-                        }
-                        scope.launch { drawerState.close()}
-
-                    },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                )
-
-
-
-            }
-        }
-    ) {
-
-        Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            topBar = {
-                /*TopAppBar(
-                    title = {
-                        Text(topAppBarText.value)
-                    },
-                    scrollBehavior = scrollBehaviour,
-                    navigationIcon = {
-                        IconButton(
-                            onClick = {
-                                if (drawerState.isClosed) scope.launch { drawerState.open() }
-                                else scope.launch { drawerState.close() }
-                            }
-                        ) {
-                            Icon(Icons.Filled.ArrowBack, contentDescription = "back")
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                )*/
-            },
-            content = { padding ->
-
-                Box(
-                    Modifier
-                        .padding(padding)
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.TopCenter
-                ) {
-                    content()
-                }
-            }
-        )
-
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ImageTopBar(
-    fileName:String, title:String, scrollBehavior: TopAppBarScrollBehavior
-){
-    Box(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        val currentFile = File(LocalContext.current.filesDir, fileName)
-        val filePath = currentFile.path
-        val bitmap = BitmapFactory.decodeFile(filePath)
-        val painter = BitmapPainter(image = bitmap.asImageBitmap())
-        val configuration = LocalConfiguration.current
-        val screenWidth = configuration.screenWidthDp.dp
-        var sizeImage by remember { mutableStateOf(IntSize.Zero) }
-
-
-        Image(
-            painter = BitmapPainter(image = bitmap.asImageBitmap()),
-            contentDescription = title,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(screenWidth)
-                .onGloballyPositioned {
-                    sizeImage = it.size
-                }
-            ,
-            contentScale = ContentScale.Fit
-        )
-        val gradient = Brush.verticalGradient(
-            colors = listOf(Color.Transparent, Color.Black),
-            startY = (sizeImage.height.toFloat()*0.66).toFloat(),  // 1/3
-            endY = sizeImage.height.toFloat()
-        )
-        Box(modifier = Modifier
-            .matchParentSize()
-            .background(gradient))
-        LargeTopAppBar(
-            title = {
-                Text(title,
-                    style = MaterialTheme.typography.headlineSmall)
-            },
-            colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent),
-            scrollBehavior = scrollBehavior,
-
-        )
     }
 }
 
@@ -704,7 +421,7 @@ fun TitleCardImage(thisRecipe: SavedRecipe, imageHeight:Dp){
     val currentFile = File(LocalContext.current.filesDir, thisRecipe.image)
     val filePath = currentFile.path
     val bitmap = BitmapFactory.decodeFile(filePath)
-    val painter = BitmapPainter(image = bitmap.asImageBitmap())
+    val painter = remember{ BitmapPainter(image = bitmap.asImageBitmap())}
 
     val gradient = Brush.verticalGradient(
         colors = listOf(Color.Transparent, Color.Black),
@@ -721,7 +438,7 @@ fun TitleCardImage(thisRecipe: SavedRecipe, imageHeight:Dp){
     {
 
         Image(
-            painter = BitmapPainter(image = bitmap.asImageBitmap()),
+            painter = painter,
             contentDescription = thisRecipe.title,
             modifier = Modifier
                 .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height)
