@@ -79,13 +79,14 @@ class HomeViewModel: ViewModel() {
      * response from chat gpt then navigates to the apropriate recipe page once its created
      */
     fun executeRandom(flag: MutableState<Boolean>, context: Context, navController: NavHostController){
-        var request = getRandomPrompt(abs(Random(Date().time).nextInt()))
+        var randQuery = getRandomQuery(abs(Random(Date().time).nextInt()))
+        val randQuestion = getRandomQuestion(randQuery)
         flag.value = true
 
-        getResponse(request, context, 1) {
+        getResponse(randQuestion, context, 1) {
             var received = SavedRecipe()
             try {
-                received = SavedRecipe(QandA(Query(), it, parseResponse(it)))
+                received = SavedRecipe(QandA(randQuery, it, parseResponse(it)))
             } catch (e:IndexOutOfBoundsException){
                 navController.navigate(Paths.Error.Path+"/"+it.choices[0].message.content)
             }
@@ -113,7 +114,7 @@ class HomeViewModel: ViewModel() {
     /**
      * generate a randomised prompt for use with executeRandom()
      */
-    fun getRandomPrompt(seed:Int):String{
+    fun getRandomQuery(seed:Int):Query{
         val cuisines=listOf("Chinese","Chinese","Chinese","Chinese","Chinese","Chinese","Chinese",
             "Chinese","Chinese","Chinese","Indian","Indian","Indian","Indian","Indian","Indian",
             "Indian","Indian","Indian","Indian","Japanese","Japanese","Japanese","Japanese",
@@ -152,25 +153,38 @@ class HomeViewModel: ViewModel() {
             "Eclectic","Daring","Exotic","Adventurous","Thrilling","Unconventional","Unexpected",
             "Novel","Innovative","Bold")
 
-        var vegFlag = false
-        var question = "give me a recipe for a "
-
-        question+=cuisines[seed%cuisines.size]+" "
+        var vegFlag = "Yes"
 
         if(Random(Date().time).nextInt(50)==0) {
-            question+="Vegan "
-            vegFlag=true
+            vegFlag="Vegan"
         }
         else if(Random(Date().time).nextInt(10)==0){
-            question+="Vegetarian "
-            vegFlag=true
+            vegFlag="Vegetarian"
+        }
+        return Query(
+            vegFlag,
+            protein[seed%protein.size],
+            "Any",
+            cuisines[seed%cuisines.size],
+            mutableListOf(),
+            mutableListOf(),
+            mutableListOf(descriptors[seed%descriptors.size])
+        )
+    }
+    fun getRandomQuestion(query: Query):String{
+        var question = "give me a recipe for a "
+
+        question+=query.cuisine+" "
+
+        if(query.meatContent == "Yes") {
+            question+=query.primaryMeat+" "
+        }
+        else {
+            question+=query.meatContent+" "
         }
 
-        if(!vegFlag){
-            question += protein[seed%protein.size]+" "
-        }
         question += "dish that could be described as "
-        question += descriptors[seed%descriptors.size]+".[fin]"
+        question += query.descriptiveTags[0]+".[fin]"
         return question
     }
 }

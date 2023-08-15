@@ -404,8 +404,6 @@ fun NewInput(
             ) {
                 Surface(
                     modifier = Modifier
-                        .wrapContentWidth()
-                        .wrapContentHeight()
                         .wrapContentSize(Alignment.Center)
                         .border(
                             width = 1.dp,
@@ -418,7 +416,7 @@ fun NewInput(
                 ) {
                     Column(
                         modifier = Modifier
-                            //.background(SurfaceOrange)
+                            .background(MaterialTheme.colorScheme.background)
                             .padding(10.dp),
                     ) {
                         Row(
@@ -467,8 +465,6 @@ fun NewInput(
             ) {
                 Surface(
                     modifier = Modifier
-                        .wrapContentWidth()
-                        .wrapContentHeight()
                         .wrapContentSize(Alignment.Center)
                         .border(
                             width = 1.dp,
@@ -481,7 +477,7 @@ fun NewInput(
                     Column(
                         modifier = Modifier
                             .verticalScroll(rememberScrollState())
-                            //.background(SurfaceOrange)
+                            .background(MaterialTheme.colorScheme.background)
                             .padding(10.dp),
                     ) {
                         Row(
@@ -561,19 +557,19 @@ fun MultiDialog(
     ) {
         Surface(
             modifier = Modifier
-                .wrapContentWidth()
-                .wrapContentHeight()
                 .wrapContentSize(Alignment.Center)
                 .border(
                     width = 1.dp,
                     color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(15.dp)
-                ),
+                )
+                ,
             shape = MaterialTheme.shapes.large,
             tonalElevation = AlertDialogDefaults.TonalElevation
         ) {
             Column(
                 modifier= Modifier
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(10.dp)
             ) {
                 Text(title)
@@ -666,20 +662,19 @@ fun SingleDialog(
     ) {
         Surface(
             modifier = Modifier
-                .wrapContentWidth()
-                .wrapContentHeight()
                 .wrapContentSize(Alignment.Center)
                 .border(
                     width = 1.dp,
                     color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(15.dp)
-                ),
+                )
+                ,
             shape = MaterialTheme.shapes.large,
             tonalElevation = AlertDialogDefaults.TonalElevation
         ) {
             Column(
                 modifier= Modifier
-                    //.background(SurfaceOrange)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(10.dp)
             ) {
                 Text(title)
@@ -744,8 +739,6 @@ fun ProcessingDialog(){
     ) {
         Surface(
             modifier = Modifier
-                .wrapContentWidth()
-                .wrapContentHeight()
                 .wrapContentSize(Alignment.Center)
                 .border(
                     width = 1.dp,
@@ -757,7 +750,7 @@ fun ProcessingDialog(){
         ) {
             Column(
                 modifier= Modifier
-                    //.background(SurfaceOrange)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(10.dp)
             ) {
                 Row(
