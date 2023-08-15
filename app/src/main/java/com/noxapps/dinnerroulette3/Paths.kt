@@ -1,5 +1,8 @@
 package com.noxapps.dinnerroulette3
 
+/**
+ * paths for nav controller
+ */
 sealed class Paths(val Path:String) {
     object Home:Paths("Home")
     object NewInput:Paths("NewInput")

@@ -49,15 +49,22 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavHostController
 import com.noxapps.dinnerroulette3.ui.theme.md_theme_light_secondaryContainer
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-
+/**
+ * ui code for classic input
+ * needs to be rewritten to fit with new ui design paradigms
+ * maybe need to remove the drawer?
+ * it might be a good idea to take the stopper and disclamer dialogues and extract most of the code
+ * into a "text dialogue" composable functionbut then ill be passing a collosal string to the function
+ * instead of declaring it locally. probably better tbh.
+ *
+ * i would like to remove the dialogue composables and move them to a "commons" file but im
+ * unsure of the potential reprecussions. perhaps thats a job for next friday
+ */
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,7 +102,7 @@ fun NewInput(
 
         var text by remember { mutableStateOf("") }
 
-        var cuisineText = remember { mutableStateOf("(Optional)") }
+        val cuisineText = remember { mutableStateOf("(Optional)") }
 
         val ingredients = remember { mutableStateListOf<String>() }
         val exclIngredients = remember { mutableStateListOf<String>() }
@@ -107,19 +114,18 @@ fun NewInput(
         var primaryCarbIndex by remember { mutableStateOf(0) }
 
 
-        var cuisine = remember { mutableStateOf(false) }
-        var addIngredientsOpen = remember { mutableStateOf(false) }
-        var removeIngredientsOpen = remember { mutableStateOf(false) }
-        var tagsOpen = remember { mutableStateOf(false) }
-        var processing = remember { mutableStateOf(false) }
+        val cuisine = remember { mutableStateOf(false) }
+        val addIngredientsOpen = remember { mutableStateOf(false) }
+        val removeIngredientsOpen = remember { mutableStateOf(false) }
+        val tagsOpen = remember { mutableStateOf(false) }
+        val processing = remember { mutableStateOf(false) }
 
-        val interactionSource = remember { MutableInteractionSource() }
         val context = LocalContext.current
         val store = UserStore(context)
 
 
         var stopper by remember { mutableStateOf(false) }
-        var stopperFlag by remember { mutableStateOf(false) }
+        val stopperFlag by remember { mutableStateOf(false) }
         var disclamer by remember { mutableStateOf(true) }
 
         var loadedFlag by remember { mutableStateOf(false) }
@@ -525,6 +531,20 @@ fun NewInput(
     }
 }
 
+/**
+ * customised alert dialogue feturing a title, a text box and a cancel button, and a list of current
+ * array entries. Designed for declaring multiple things to an [array]
+ * [stateValue] : mutable boolean declaring whether the dialogue should be shown
+ * [title] : the title for the dialogue
+ * [array] : the target array to add/ remove elements from
+ *
+ * todo:
+ * fix code to display excess list elements on new lines
+ * give list elements a rounded shape
+ * smooth out element placements
+ * make background white / change based on current ui paradigm
+ *
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MultiDialog(
@@ -554,34 +574,32 @@ fun MultiDialog(
         ) {
             Column(
                 modifier= Modifier
-                    //.background(SurfaceOrange)
                     .padding(10.dp)
             ) {
                 Text(title)
+                //need to handle code to put excess elements on new lines
                 Row() {
-                    Text(text = "")
                     array.forEachIndexed() { index, s ->
-                        Row() {
-                            Box(modifier = Modifier
-                                .background(md_theme_light_secondaryContainer)
-                                .padding(3.dp)
-                                .clickable(
-                                    interactionSource = interactionSource,
-                                    indication = null
-                                ) {
-                                    array.remove(s)
-                                }) {
-                                Row() {
-                                    Text(s)
-                                    Icon(
-                                        Icons.Filled.Close,
-                                        contentDescription = "Delete",
-                                        modifier = Modifier.size(22.dp)
-                                    )
-                                }
+                        Box(modifier = Modifier
+                            .background(md_theme_light_secondaryContainer)
+                            .padding(3.dp)
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = null
+                            ) {
+                                array.remove(s)
+                            }) {
+                            Row() {
+                                Text(s)
+                                Icon(
+                                    Icons.Filled.Close,
+                                    contentDescription = "Delete",
+                                    modifier = Modifier.size(22.dp)
+                                )
                             }
-                            Spacer(modifier = Modifier.size(1.dp))
                         }
+                        Spacer(modifier = Modifier.size(1.dp))
+
                     }
                 }
 
@@ -621,6 +639,18 @@ fun MultiDialog(
     }
 }
 
+/**
+ * customised alert dialogue feturing a title, a text box and a cancel button. designed for
+ * setting a string value
+ * [stateValue] : mutable boolean declaring whether the dialogue should be shown
+ * [title] : the title for the dialogue
+ * [data] : the target string to change
+ *
+ * todo:
+ * title text style
+ * smooth out element placements
+ * make background white / change based on current ui paradigm
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SingleDialog(
@@ -628,7 +658,6 @@ fun SingleDialog(
     title: String,
     data: MutableState<String>
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
     var text by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = {
@@ -695,6 +724,16 @@ fun SingleDialog(
     }
 }
 
+
+/**
+ * customised alert dialogue featuring text to inform the user that the app is processing something
+ * and a visual indicator to shot that the process is still running. intentionally designed to be
+ * uninterruptable.
+ *
+ * todo:
+ * text style
+ * make background white / change based on current ui paradigm
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProcessingDialog(){

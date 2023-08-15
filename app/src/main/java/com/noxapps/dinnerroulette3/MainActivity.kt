@@ -62,15 +62,14 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "sa
 val savedPreferences = stringPreferencesKey("savedPreferences")
 val usedTokens = intPreferencesKey("usedTokens")
 
+/**
+ * main activity file
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //Realm.Init(Context)
-        /*lifecycleScope.launch {
-            context.dataStore.data.first()
-            // You should also handle IOExceptions here.
-        }*/
         ObjectBox.init(this)
+        //normalising code
         /*val recipeBox: Box<SavedRecipe> = ObjectBox.store.boxFor(SavedRecipe::class.java)
         val allRecipes = recipeBox.all
         allRecipes.forEach(){
@@ -100,7 +99,10 @@ class MainActivity : ComponentActivity() {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+/**
+ * common drawer and scaffold for top bar used on the majority of pages
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DrawerAndScaffold(tabt:String, navController:NavHostController, content:@Composable () -> Unit){
     val scope = rememberCoroutineScope()
@@ -264,6 +266,9 @@ fun DrawerAndScaffold(tabt:String, navController:NavHostController, content:@Com
 }
 
 
+/**
+ * composabe Drawer item for recipes
+ */
 @Composable
 fun DrawerRecipeItem(input:SavedRecipe, navController: NavHostController, scope:CoroutineScope, drawerState:DrawerState){
     NavigationDrawerItem(
@@ -293,6 +298,10 @@ fun DefaultPreview() {
         //DrawerAndScaffold()
     }
 }
+
+/**
+ * nav controller
+ */
 
 @Composable
 fun NavMain(navController: NavHostController, TABT:MutableState<String>){//, realm: Realm) {
@@ -330,6 +339,9 @@ fun NavMain(navController: NavHostController, TABT:MutableState<String>){//, rea
     }
 }
 
+/**
+ * object box helper function thing taken direcly from the object box tutorial
+ */
 object ObjectBox {
     lateinit var store: BoxStore
         private set

@@ -10,13 +10,20 @@ import io.objectbox.Box
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.util.Date
 import kotlin.math.abs
 import kotlin.random.Random
-import kotlin.random.nextUInt
 
+/**
+ * view model for the home page, holding home page related functions and variables
+ */
 class HomeViewModel: ViewModel() {
 
     val recipeBox: Box<SavedRecipe> = ObjectBox.store.boxFor(SavedRecipe::class.java)
+
+    /**
+     * generates a list of 5, random favourited recipes
+     */
     fun faveFive():List<Long>{
         val query = recipeBox.query(SavedRecipe_.favourite.equal(true)).build()
         val orderedFaves = query.findIds()
@@ -32,6 +39,10 @@ class HomeViewModel: ViewModel() {
         }
         return randomFaves
     }
+
+    /**
+     * generates a list of the last 5 generated recipes
+     */
     fun lastFive():List<Long>{
         val allRecipes = recipeBox.all
         val lastFive:MutableList<Long> = mutableListOf()
@@ -46,20 +57,29 @@ class HomeViewModel: ViewModel() {
         return lastFive
     }
 
+    /**
+     * returns a random saved recipe
+     */
     fun randomSaved():Long{
         val allRecipes = recipeBox.all
         return allRecipes[Random.nextInt(allRecipes.size)].id
     }
 
+    /**
+     * returns a random favourited saved recipe
+     */
     fun randomFavourite():Long{
         val query = recipeBox.query(SavedRecipe_.favourite.equal(true)).build()
         val allFaves = query.findIds()
         return allFaves[Random.nextInt(allFaves.size)]
     }
 
-
+    /**
+     * generate a random recipe using chat gpt. pulls up a processing dialogue while waiting for a
+     * response from chat gpt then navigates to the apropriate recipe page once its created
+     */
     fun executeRandom(flag: MutableState<Boolean>, context: Context, navController: NavHostController){
-        var request = getRandomPrompt(abs(Random.nextInt()))
+        var request = getRandomPrompt(abs(Random(Date().time).nextInt()))
         flag.value = true
 
         getResponse(request, context, 1) {
@@ -90,6 +110,9 @@ class HomeViewModel: ViewModel() {
         }
     }
 
+    /**
+     * generate a randomised prompt for use with executeRandom()
+     */
     fun getRandomPrompt(seed:Int):String{
         val cuisines=listOf("Chinese","Chinese","Chinese","Chinese","Chinese","Chinese","Chinese",
             "Chinese","Chinese","Chinese","Indian","Indian","Indian","Indian","Indian","Indian",
@@ -134,11 +157,11 @@ class HomeViewModel: ViewModel() {
 
         question+=cuisines[seed%cuisines.size]+" "
 
-        if(Random.nextInt(50)==0) {
+        if(Random(Date().time).nextInt(50)==0) {
             question+="Vegan "
             vegFlag=true
         }
-        else if(Random.nextInt(10)==0){
+        else if(Random(Date().time).nextInt(10)==0){
             question+="Vegetarian "
             vegFlag=true
         }

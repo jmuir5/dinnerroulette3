@@ -1,6 +1,5 @@
 package com.noxapps.dinnerroulette3
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -28,6 +26,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 
+/**
+ * home page composable. needs a total redesign based on ui paradigms
+ */
 @Composable
 fun HomePage(
     viewModel: HomeViewModel = HomeViewModel(),
@@ -176,6 +177,9 @@ fun HomePage(
 
 }
 
+/**
+ * header card composable, requires total redesign, probably going to be removed in the future
+ */
 @Composable
 fun HeadCard(state:MutableState<Boolean>, title:String){
     val height =if (state.value){65.dp}else{100.dp}
@@ -199,6 +203,11 @@ fun HeadCard(state:MutableState<Boolean>, title:String){
         )
     }
 }
+
+/**
+ * subheader card composable, requires total redesign, probably going to be removed in the future
+ */
+
 @Composable
 fun subHeadCard(state:MutableState<Boolean>, title:String){
     val height =if (state.value){45.dp}else{80.dp}

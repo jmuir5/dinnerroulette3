@@ -19,11 +19,21 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.decodeFromString
+import java.util.Date
 import kotlin.random.Random
 
+/**
+ * viewModel containing functions for classic input and new input(nyi)
+ */
 class InputViewModel: ViewModel() {
     init{}
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
+
+    /**
+     * generate a question to submit to chat gpt to generate a recipe based on query paramaters.
+     * used by classic input
+     */
+
     fun generateQuestion(input:Query):String{
         var question = "give me a recipe for a "
         var meatFlag = 0
@@ -74,6 +84,11 @@ class InputViewModel: ViewModel() {
         return question
     }
 
+    /**
+     * generate a recipe using chat gpt based on a specific recipe request.
+     * pulls up a processing dialogue while waiting for a response from chat gpt then navigates to
+     * the appropriate recipe page once its created.
+     */
     fun executeRequest(promptText:String, flag: MutableState<Boolean>, context:Context, navController:NavHostController){
         var request = "Give me a recipe for $promptText"
         Log.d("constructed question", request)
@@ -107,6 +122,11 @@ class InputViewModel: ViewModel() {
         }
     }
 
+    /**
+     * generate a recipe using chat gpt based on a classic input query.
+     * pulls up a processing dialogue while waiting for a response from chat gpt then navigates to
+     * the appropriate recipe page once its created.
+     */
     fun executeClassic(query: Query, flag: MutableState<Boolean>, context:Context, navController:NavHostController){
         var question2 = generateQuestion(query)
         Log.d("constructed question", question2)
@@ -137,14 +157,17 @@ class InputViewModel: ViewModel() {
         }
     }
 
-    //https://platform.openai.com/docs/api-reference/making-requests
+    /**
+     * simple function to return a string containing a random recipe name for use with the recipe
+     * request page
+     */
 
     fun randomDishName():String{
         val dishes = arrayOf("Lamb Rogan Josh", "Chicken Pizza", "Cheeseburger and Chips",
             "Lemon Pie","Butter Chicken", "Mapo Tofu", "Vegan Eggs and Bacon", "IceCream",
             "Cajun Shrimp Boil", "Spaghetti Bolognese", "Fettuccine Carobonara", "Nachos",
             "Buffalo Wings", "Chicken Pesto Pasta")
-        return dishes[Random.nextInt(dishes.size)]
+        return dishes[Random(Date().time).nextInt(dishes.size)]
     }
 
 }

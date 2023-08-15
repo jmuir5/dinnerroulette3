@@ -2,6 +2,10 @@ package com.noxapps.dinnerroulette3
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonNames
 
+/**
+ * object classes for gpt responses
+ */
+
 @Serializable
 class GptResponse(
     val id:String,

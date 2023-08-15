@@ -1,6 +1,14 @@
 package com.noxapps.dinnerroulette3
-import io.reactivex.rxjava3.internal.operators.flowable.FlowableSkipLast
+
 import kotlinx.serialization.Serializable
+
+
+/**
+ * query object intended to be used to hold info from input to use in question generation
+ * and origonally intended to be used to help with search, though it probably will not be
+ * meaningfully used that way.
+ */
+
 class Query(
     var meatContent:String = "",
     var primaryMeat:String = "",
@@ -14,6 +22,7 @@ class Query(
 
     }
 }
+
 
 class QandA(
     val question:Query,

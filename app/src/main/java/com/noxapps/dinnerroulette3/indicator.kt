@@ -5,13 +5,10 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.progressSemantics
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
@@ -19,8 +16,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.noxapps.dinnerroulette3.ui.theme.md_theme_light_primary
 
-//import com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
-
+/**
+ * indicator animation stolen shamelessly from stack overflow, changed the colour tho
+ */
 @Composable
 fun Indicator(
     size: Dp = 32.dp, // indicator size
