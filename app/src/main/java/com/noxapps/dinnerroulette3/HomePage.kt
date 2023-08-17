@@ -3,6 +3,7 @@ package com.noxapps.dinnerroulette3
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,8 +36,6 @@ fun HomePage(
     navController: NavHostController,
 ) {
     DrawerAndScaffold("Dinner Roulette",navController) {
-        var faveList = remember { viewModel.faveFive() }
-        var recentList = remember { viewModel.lastFive() }
         val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
         val processing = remember { mutableStateOf(false) }
         val context = LocalContext.current
@@ -55,6 +54,9 @@ fun HomePage(
                 horizontalAlignment = Alignment.CenterHorizontally
 
             ) {
+                Box(){
+
+                }
                 HeadCard(state = genState, title = "Generate New Recipes")
                 if (genState.value) {
                     Button(
@@ -103,69 +105,7 @@ fun HomePage(
                         Text(text = "Search Recipes - nyi")
                     }
                     Spacer(modifier = Modifier.size(1.dp))
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            navController.navigate(Paths.Recipe.Path + "/" + viewModel.randomFavourite())
-                        }) {
-                        Text(text = "Random Favourite Recipe")
-                    }
-                    Spacer(modifier = Modifier.size(1.dp))
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            navController.navigate(Paths.Recipe.Path + "/" + viewModel.randomSaved())
-                        }) {
-                        Text(text = "Random Saved Recipe")
-                    }
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Divider(color = MaterialTheme.colorScheme.tertiary, thickness = 1.dp)
-                    LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
-                        items(1) { item ->
-                            subHeadCard(state = faveState, title = "Favourites")
-                        }
-                        if (faveState.value) {
-                            if (faveList.isEmpty()) {
-                                items(1) { item ->
-                                    Text("No favourite recipes. Make some recipes you love!")
-                                }
-                            } else {
-                                items(faveList.size) {
-                                    Spacer(modifier = Modifier.size(1.dp))
-                                    Button(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        onClick = {
-                                            navController.navigate(Paths.Recipe.Path + "/" + faveList[it])
-                                        }) {
-                                        recipeBox[faveList[it]].title?.let { it1 -> Text(text = it1) }
-                                    }
-                                    Spacer(modifier = Modifier.size(8.dp))
-                                }
-                            }
-                        }
-                        items(1) { item ->
-                            Divider(color = MaterialTheme.colorScheme.tertiary, thickness = 1.dp)
-                            subHeadCard(state = recentState, title = "Recently Generated")
-                        }
-                        if (recentState.value) {
-                            if (recentList.isEmpty()) {
-                                items(1) { item ->
-                                    Text("No recent recipes. Make something new!")
-                                }
-                            } else {
-                                items(recentList.size) {
-                                    Spacer(modifier = Modifier.size(1.dp))
-                                    Button(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        onClick = {
-                                            navController.navigate(Paths.Recipe.Path + "/" + recentList[it])
-                                        }) {
-                                        recipeBox[recentList[it]].title?.let { it1 -> Text(text = it1) }
-                                    }
-                                }
-                            }
-                        }
-                    }
+
                 }
             }
 

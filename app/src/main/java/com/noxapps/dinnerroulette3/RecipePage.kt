@@ -50,14 +50,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -282,7 +276,7 @@ fun Recipe(
 
 @SuppressLint("UnusedTransitionTargetStateParameter")
 @Composable
-fun FavouriteButton(id:Long){
+fun FavouriteButton(id:Long, modifier:Modifier = Modifier){
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
     val thisRecipe = recipeBox[id]
     val checkedState = remember { mutableStateOf(thisRecipe.favourite) }
@@ -342,6 +336,60 @@ fun FavouriteButton(id:Long){
                 modifier = Modifier.size(size)
             )
         }
+    }
+}
+
+@SuppressLint("UnusedTransitionTargetStateParameter")
+@Composable
+fun FreeFavouriteButton(id:Long, modifier:Modifier = Modifier) {
+    val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
+    val thisRecipe = recipeBox[id]
+    val checkedState = remember { mutableStateOf(thisRecipe.favourite) }
+    IconToggleButton(
+        checked = checkedState.value,
+        onCheckedChange = {
+            checkedState.value = !checkedState.value
+            thisRecipe.favourite = !thisRecipe.favourite
+            recipeBox.put(thisRecipe)
+        },
+        modifier = modifier
+
+    ) {
+        val transition = updateTransition(checkedState.value)
+        val tint by transition.animateColor(label = "iconColor") { isChecked ->
+            if (isChecked) Color.Red else Color.White
+        }
+        val size by transition.animateDp(
+            transitionSpec = {
+                // on below line we are specifying transition
+                if (false isTransitioningTo true) {
+                    // on below line we are specifying key frames
+                    keyframes {
+                        // on below line we are specifying animation duration
+                        durationMillis = 250
+                        // on below line we are specifying animations.
+                        30.dp at 0 with LinearOutSlowInEasing // for 0-15 ms
+                        35.dp at 15 with FastOutLinearInEasing // for 15-75 ms
+                        40.dp at 75 // ms
+                        35.dp at 150 // ms
+                    }
+                } else {
+                    spring(stiffness = Spring.StiffnessVeryLow)
+                }
+            },
+            label = "Size"
+        ) { 30.dp }
+        Icon(
+            // on below line we are specifying icon for our image vector.
+            imageVector = if (checkedState.value) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+            contentDescription = "Icon",
+            // on below line we are specifying
+            // tint for our icon.
+            tint = tint,
+            // on below line we are specifying
+            // size for our icon.
+            modifier = Modifier.size(size)
+        )
     }
 }
 

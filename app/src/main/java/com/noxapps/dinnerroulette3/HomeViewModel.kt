@@ -24,55 +24,6 @@ class HomeViewModel: ViewModel() {
     /**
      * generates a list of 5, random favourited recipes
      */
-    fun faveFive():List<Long>{
-        val query = recipeBox.query(SavedRecipe_.favourite.equal(true)).build()
-        val orderedFaves = query.findIds()
-        val randomFaves = mutableListOf<Long>()
-        if(orderedFaves.isNotEmpty()) {
-            while (randomFaves.size < 5) {
-                val randInt = Random.nextInt(orderedFaves.size)
-                if (!randomFaves.contains(orderedFaves[randInt])) {
-                    randomFaves.add(orderedFaves[randInt])
-                }
-                if (randomFaves.size == orderedFaves.size) break
-            }
-        }
-        return randomFaves
-    }
-
-    /**
-     * generates a list of the last 5 generated recipes
-     */
-    fun lastFive():List<Long>{
-        val allRecipes = recipeBox.all
-        val lastFive:MutableList<Long> = mutableListOf()
-        if(allRecipes.size>=5) {
-            for (i in allRecipes.size downTo (allRecipes.size-4)) {
-                lastFive.add(recipeBox[(i).toLong()].id)
-            }
-        }
-        else for(i in allRecipes.size downTo 1){
-            lastFive.add(recipeBox[i.toLong()].id)
-        }
-        return lastFive
-    }
-
-    /**
-     * returns a random saved recipe
-     */
-    fun randomSaved():Long{
-        val allRecipes = recipeBox.all
-        return allRecipes[Random.nextInt(allRecipes.size)].id
-    }
-
-    /**
-     * returns a random favourited saved recipe
-     */
-    fun randomFavourite():Long{
-        val query = recipeBox.query(SavedRecipe_.favourite.equal(true)).build()
-        val allFaves = query.findIds()
-        return allFaves[Random.nextInt(allFaves.size)]
-    }
 
     /**
      * generate a random recipe using chat gpt. pulls up a processing dialogue while waiting for a

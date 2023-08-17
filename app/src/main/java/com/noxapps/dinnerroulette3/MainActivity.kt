@@ -29,6 +29,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -57,6 +58,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import kotlin.random.Random
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "saveData")
 val savedPreferences = stringPreferencesKey("savedPreferences")
@@ -111,6 +113,8 @@ fun DrawerAndScaffold(tabt:String, navController:NavHostController, content:@Com
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
     val items = recipeBox.all
     var topAppBarText = remember{ mutableStateOf(tabt)}
+    val recents = lastFive(recipeBox)
+    val faves = faveFive(recipeBox)
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -121,98 +125,182 @@ fun DrawerAndScaffold(tabt:String, navController:NavHostController, content:@Com
                 ) {
                     scope.launch { drawerState.close() }
                 }
-                Spacer(Modifier.height(12.dp))
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
-                    label = { Text("Home") },
-                    selected = false,
-                    onClick = {
-                        navController.navigate(Paths.Home.Path){
-                            popUpTo("Home" ){
-                                inclusive = true
+                Column(modifier = Modifier
+                    .weight(2f)) {
+                    Spacer(Modifier.height(12.dp))
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                        label = { Text("New Recipe") },
+                        selected = false,
+                        onClick = {
+                            navController.navigate(Paths.Home.Path) {
+                                popUpTo("Home") {
+                                    inclusive = true
+                                }
                             }
-                        }
-                        scope.launch { drawerState.close()}
-                    },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                            scope.launch { drawerState.close() }
+                        },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
+                    /*NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                        label = { Text("New Recipie - Classic") },
+                        selected = false,
+                        onClick = {
+
+                            navController.navigate(Paths.NewInput.Path){
+                                popUpTo("Home")
+                            }
+                            scope.launch { drawerState.close()}
+
+                        },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                        label = { Text("New Recipie - Request") },
+                        selected = false,
+                        onClick = {
+
+                            navController.navigate(Paths.SpecificRecipeInput.Path){
+                                popUpTo("Home")
+                            }
+                            scope.launch { drawerState.close()}
+
+                        },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )*/
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        label = { Text("Browse / Search") },
+                        selected = false,
+                        onClick = {
+                            navController.navigate(Paths.Search.Path) {
+                                popUpTo("Home")
+                            }
+                            scope.launch { drawerState.close() }
+                        },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
+                    Divider(
+                        color = MaterialTheme.colorScheme.tertiary,
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+                Text("Favourites",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier
+                        .padding(24.dp, 0.dp)
                 )
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    label = { Text("New Recipie - Classic") },
-                    selected = false,
-                    onClick = {
+                LazyColumn(
+                    modifier= Modifier
+                        .padding(horizontal = 8.dp)
+                        .weight(4f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
 
-                        navController.navigate(Paths.NewInput.Path){
-                            popUpTo("Home")
+                    if (faves.isEmpty()) {
+                        item() {
+                            Text("No favourite recipes. Make some recipes you love!")
                         }
-                        scope.launch { drawerState.close()}
-
-                    },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                )
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    label = { Text("New Recipie - Request") },
-                    selected = false,
-                    onClick = {
-
-                        navController.navigate(Paths.SpecificRecipeInput.Path){
-                            popUpTo("Home")
+                    } else {
+                        item() {
+                            NavigationDrawerItem(
+                                icon = { Icon(Icons.Default.Favorite, contentDescription = null) },
+                                label = { Text("Random Favourite Recipe") },
+                                selected = false,
+                                onClick = {
+                                    navController.navigate(
+                                        Paths.Recipe.Path + "/" + randomFavourite(
+                                            recipeBox
+                                        )
+                                    ) {
+                                        popUpTo("Home")
+                                    }
+                                    scope.launch { drawerState.close() }
+                                },
+                                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                            )
                         }
-                        scope.launch { drawerState.close()}
+                        items(faves.size) { item ->
+                            Spacer(Modifier.height(1.dp))
+                            DrawerRecipeItem(
+                                input = recipeBox[faves[item]],
+                                navController = navController,
+                                scope = scope,
+                                drawerState = drawerState,
+                                icon = Icons.Default.Favorite
+                            )
+                        }
+                    }
+                }
 
-                    },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                )
                 Divider(
                     color = MaterialTheme.colorScheme.tertiary,
                     thickness = 1.dp,
                     modifier = Modifier.padding(8.dp)
                 )
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    label = { Text("Search") },
-                    selected = false,
-                    onClick = {
-
-                        navController.navigate(Paths.Search.Path){
-                            popUpTo("Home")
-                        }
-                        scope.launch { drawerState.close()}
-
-                    },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                Text("Recent",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier
+                        .padding(24.dp, 0.dp)
                 )
 
                 LazyColumn(
-                    modifier=Modifier.padding(horizontal=8.dp),
+                    modifier= Modifier
+                        .padding(horizontal = 8.dp)
+                        .weight(4f),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ){
-                    items(items.size){item->
-                        Spacer(Modifier.height(1.dp))
-                        DrawerRecipeItem(input = items[item],  navController = navController, scope = scope, drawerState = drawerState)
-                    }
-                }
-                Divider(
-                    color = MaterialTheme.colorScheme.tertiary,
-                    thickness = 1.dp,
-                    modifier = Modifier.padding(8.dp))
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-                    label = { Text("Settings") },
-                    selected = false,
-                    onClick = {
-                        navController.navigate(Paths.Settings.Path) {
-                            popUpTo("Home")
+                    if(recents.isEmpty()){
+                        item(){
+                            Text("No recent recipes. Make something new!")
                         }
-                        scope.launch { drawerState.close()}
+                    }
+                    else{
+                        item(){
+                            NavigationDrawerItem(
+                                icon = { Icon(Icons.Default.Article, contentDescription = null) },
+                                label = { Text("Random Previous Recipe") },
+                                selected = false,
+                                onClick = {
+                                    navController.navigate(Paths.Recipe.Path+"/"+randomSaved(recipeBox)){
+                                        popUpTo("Home")
+                                    }
+                                    scope.launch { drawerState.close()}
+                                },
+                                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                            )
+                        }
+                        items(recents.size){item->
+                            Spacer(Modifier.height(1.dp))
+                            DrawerRecipeItem(input = recipeBox[recents[item]],  navController = navController, scope = scope, drawerState = drawerState)
+                        }
+                    }
 
-                    },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                )
+                }
+                Column(modifier = Modifier
+                    .weight(1f)) {
+                    Divider(
+                        color = MaterialTheme.colorScheme.tertiary,
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+                        label = { Text("Settings") },
+                        selected = false,
+                        onClick = {
+                            navController.navigate(Paths.Settings.Path) {
+                                popUpTo("Home")
+                            }
+                            scope.launch { drawerState.close() }
 
-
-
+                        },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
+                }
             }
         }
     ) {
@@ -270,9 +358,13 @@ fun DrawerAndScaffold(tabt:String, navController:NavHostController, content:@Com
  * composabe Drawer item for recipes
  */
 @Composable
-fun DrawerRecipeItem(input:SavedRecipe, navController: NavHostController, scope:CoroutineScope, drawerState:DrawerState){
+fun DrawerRecipeItem(input:SavedRecipe,
+                     navController: NavHostController,
+                     scope:CoroutineScope,
+                     drawerState:DrawerState,
+                     icon: ImageVector = Icons.Default.Article ){
     NavigationDrawerItem(
-        icon = { Icon(Icons.Default.Article, contentDescription = null) },
+        icon = { Icon(icon, contentDescription = null) },
         label = { Text(text = input.title!!) },
         selected = false,
         onClick = {
@@ -351,4 +443,53 @@ object ObjectBox {
             .androidContext(context.applicationContext)
             .build()
     }
+}
+fun faveFive(box:Box<SavedRecipe>):List<Long>{
+    val query = box.query(SavedRecipe_.favourite.equal(true)).build()
+    val orderedFaves = query.findIds()
+    val randomFaves = mutableListOf<Long>()
+    if(orderedFaves.isNotEmpty()) {
+        while (randomFaves.size < 5) {
+            val randInt = Random.nextInt(orderedFaves.size)
+            if (!randomFaves.contains(orderedFaves[randInt])) {
+                randomFaves.add(orderedFaves[randInt])
+            }
+            if (randomFaves.size == orderedFaves.size) break
+        }
+    }
+    return randomFaves
+}
+
+/**
+ * generates a list of the last 5 generated recipes
+ */
+fun lastFive(box:Box<SavedRecipe>):List<Long>{
+    val allRecipes = box.all
+    val lastFive:MutableList<Long> = mutableListOf()
+    if(allRecipes.size>=5) {
+        for (i in allRecipes.size downTo (allRecipes.size-4)) {
+            lastFive.add(box[(i).toLong()].id)
+        }
+    }
+    else for(i in allRecipes.size downTo 1){
+        lastFive.add(box[i.toLong()].id)
+    }
+    return lastFive
+}
+
+/**
+ * returns a random saved recipe
+ */
+fun randomSaved(box:Box<SavedRecipe>):Long{
+    val allRecipes = box.all
+    return allRecipes[Random.nextInt(allRecipes.size)].id
+}
+
+/**
+ * returns a random favourited saved recipe
+ */
+fun randomFavourite(box:Box<SavedRecipe>):Long{
+    val query = box.query(SavedRecipe_.favourite.equal(true)).build()
+    val allFaves = query.findIds()
+    return allFaves[Random.nextInt(allFaves.size)]
 }
