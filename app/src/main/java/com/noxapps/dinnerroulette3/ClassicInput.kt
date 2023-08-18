@@ -1,6 +1,8 @@
 package com.noxapps.dinnerroulette3
 
+import android.graphics.BitmapFactory
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,14 +12,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -27,6 +32,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,6 +51,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -72,7 +84,7 @@ fun NewInput(
     viewModel: InputViewModel = InputViewModel(),
     navController: NavHostController
 ) {
-    DrawerAndScaffold(tabt = "Create Recipe", navController = navController) {
+    DrawerAndScaffold(tabt = "Create Custom Recipe", navController = navController) {
 
 
         var dd1Expanded by remember { mutableStateOf(false) }
@@ -102,7 +114,7 @@ fun NewInput(
 
         var text by remember { mutableStateOf("") }
 
-        val cuisineText = remember { mutableStateOf("(Optional)") }
+        val cuisineText = remember { mutableStateOf("") }
 
         val ingredients = remember { mutableStateListOf<String>() }
         val exclIngredients = remember { mutableStateListOf<String>() }
@@ -123,6 +135,9 @@ fun NewInput(
         val context = LocalContext.current
         val store = UserStore(context)
 
+        val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.roulette_table)
+        val painter = remember{ BitmapPainter(image = bitmap.asImageBitmap()) }
+        val buttonSize = (LocalConfiguration.current.screenWidthDp/2.5).dp
 
         var stopper by remember { mutableStateOf(false) }
         val stopperFlag by remember { mutableStateOf(false) }
@@ -147,85 +162,107 @@ fun NewInput(
                 .fillMaxSize()
                 .wrapContentSize(Alignment.TopStart)
         ) {
-            Column() {
+            Column(modifier = Modifier
+                .padding(24.dp)) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
-                        .padding(8.dp)
+                        .fillMaxWidth()
+                        .clickable(onClick = {
+                            dd1Expanded = true
+                        })
+
                 ) {
                     Text(
-                        text = "Meat Content:", modifier = Modifier
-                            .clickable(onClick = {
-                                dd1Expanded = true
-                            })
+                        text = "Want To Include Meat?",
+                        style = MaterialTheme.typography.titleMedium
+
                     )
                     Text(
                         text = meatContentItems[meatContentIndex],
-                        textAlign = TextAlign.End, modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(onClick = {
-                                dd1Expanded = true
-                            })
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.End,
                     )
+                }
+                DropdownMenu(
+                    expanded = dd1Expanded,
+                    onDismissRequest = { dd1Expanded = false },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp, 4.dp),
 
-
-                    DropdownMenu(
-                        expanded = dd1Expanded,
-                        onDismissRequest = { dd1Expanded = false },
-                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        meatContentItems.forEachIndexed() { index, s ->
-                            if (index != 0) {
-                                DropdownMenuItem(onClick = {
+                    meatContentItems.forEachIndexed() { index, s ->
+                        if (index != 0) {
+                            DropdownMenuItem(
+
+                                onClick = {
                                     meatExpanded = index == 1 || index == 2
                                     if (!carbExpanded) carbExpanded = index == 3 || index == 4
                                     meatContentIndex = index
 
                                     dd1Expanded = false
-                                }, text = { Text(text = s, textAlign = TextAlign.End) },
+                                }, text = { Text(text = s,
+                                    textAlign = TextAlign.End,
                                     modifier = Modifier
-                                        .padding(8.dp)
+                                        .fillMaxWidth()
                                 )
-                            }
+                                          },
+                                modifier = Modifier
+                                    .padding(0.dp, 4.dp)
+                                    .fillMaxWidth()
+                            )
                         }
                     }
-
                 }
                 if (meatExpanded) {
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
-                            .padding(8.dp)
+                            .padding(0.dp,8.dp)
+                            .clickable(onClick = {
+                                dd2Expanded = true
+                            })
                     ) {
                         Text(
-                            text = "Primary Meat:", modifier = Modifier
-                                .clickable(onClick = {
-                                    dd2Expanded = true
-                                })
+                            text = "What Primary Meat?",
+                            style = MaterialTheme.typography.titleMedium
+
                         )
                         Text(
                             text = primaryMeatItems[primaryMeatIndex],
-                            textAlign = TextAlign.End, modifier = Modifier
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable(onClick = {
-                                    dd2Expanded = true
-                                })
                         )
+                    }
+                    DropdownMenu(
+                        expanded = dd2Expanded,
+                        onDismissRequest = { dd2Expanded = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp, 4.dp),
+                    ) {
+                        primaryMeatItems.forEachIndexed() { index, s ->
+                            if (index != 0) {
+                                DropdownMenuItem(
+                                    modifier = Modifier
+                                        .padding(0.dp, 4.dp)
+                                        .fillMaxWidth(),
+                                    onClick = {
+                                    carbExpanded = true
+                                    primaryMeatIndex = index
+                                    dd2Expanded = false
 
-                        DropdownMenu(
-                            expanded = dd2Expanded,
-                            onDismissRequest = { dd2Expanded = false },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            primaryMeatItems.forEachIndexed() { index, s ->
-                                if (index != 0) {
-                                    DropdownMenuItem(onClick = {
-                                        carbExpanded = true
-                                        primaryMeatIndex = index
-                                        dd2Expanded = false
-
-                                    }, text = { Text(text = s, textAlign = TextAlign.End) })
-                                }
+                                }, text = { Text(text = s,
+                                    textAlign = TextAlign.End,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                ) }
+                                )
                             }
                         }
                     }
@@ -234,36 +271,46 @@ fun NewInput(
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
-                            .padding(8.dp)
+                            .clickable(onClick = {
+                                dd3Expanded = true
+                            })
+                            .padding(0.dp,8.dp)
                     ) {
                         Text(
-                            text = "Primary Carbohydrate:", modifier = Modifier
-                                .clickable(onClick = {
-                                    dd3Expanded = true
-                                })
+                            text = "What Primary Carbohydrate?",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier
                         )
                         Text(
                             text = primaryCarbItems[primaryCarbIndex],
-                            textAlign = TextAlign.End, modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(onClick = {
-                                    dd3Expanded = true
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier
+                                .fillMaxWidth())
+                        }
+                    DropdownMenu(
+                        expanded = dd3Expanded,
+                        onDismissRequest = { dd3Expanded = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp, 4.dp),
+                    ) {
+                        primaryCarbItems.forEachIndexed() { index, s ->
+                            if (index != 0) {
+                                DropdownMenuItem(
+                                    modifier = Modifier
+                                        .padding(0.dp, 4.dp)
+                                        .fillMaxWidth(),
+                                    onClick = {
+                                    additionalExpanded = true
+                                    primaryCarbIndex = index
+                                    dd3Expanded = false
+                                }, text = { Text(text = s,
+                                        textAlign = TextAlign.End,
+                                        modifier = Modifier
+                                            .fillMaxWidth())
                                 })
-                        )
-
-                        DropdownMenu(
-                            expanded = dd3Expanded,
-                            onDismissRequest = { dd3Expanded = false },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            primaryCarbItems.forEachIndexed() { index, s ->
-                                if (index != 0) {
-                                    DropdownMenuItem(onClick = {
-                                        additionalExpanded = true
-                                        primaryCarbIndex = index
-                                        dd3Expanded = false
-                                    }, text = { Text(text = s, textAlign = TextAlign.End) })
-                                }
                             }
                         }
                     }
@@ -272,32 +319,36 @@ fun NewInput(
                     Column() {
                         Row(
                             horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
-                                .padding(8.dp)
+                                .fillMaxWidth()
+                                .padding(0.dp, 8.dp)
+
                         ) {
                             Text(
-                                text = "Cuisine:", modifier = Modifier
-                                    .clickable(onClick = {
-                                        cuisine.value = true
-                                    })
+                                text = "Cuisine:",
+                                style = MaterialTheme.typography.titleMedium
                             )
-                            Text(
-                                text = cuisineText.value,
-                                textAlign = TextAlign.End, modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable(onClick = {
-                                        cuisine.value = true
-                                    })
-                            )
+                            Button(onClick = {
+                                cuisine.value = true
+                            }) {
+                                Text(
+                                    text =
+                                        if(cuisineText.value.isEmpty()) "Edit"
+                                        else cuisineText.value
+                                )
+                            }
+
                         }
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(8.dp),
+                                .padding(0.dp, 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = "Add Ingredients:")
+                            Text(text = "Add Ingredients:",
+                                style = MaterialTheme.typography.titleMedium)
                             Button(onClick = {
                                 addIngredientsOpen.value = true
                             }) {
@@ -308,11 +359,12 @@ fun NewInput(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(8.dp),
+                                .padding(0.dp, 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = "Excluded Ingredients:")
+                            Text(text = "Excluded Ingredients:",
+                                style = MaterialTheme.typography.titleMedium)
                             Button(onClick = {
                                 removeIngredientsOpen.value = true
                             }) {
@@ -323,28 +375,39 @@ fun NewInput(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(8.dp),
+                                .padding(0.dp, 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = "Descriptive Tags:")
+                            Text(text = "Descriptive Tags:",
+                                style = MaterialTheme.typography.titleMedium)
                             Button(onClick = {
                                 tagsOpen.value = true
                             }) {
                                 Text(text = "Edit")
                             }
-
                         }
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (!stopperFlag) {
-                                Button(onClick = {
+                        Box(
+                            Modifier
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.Center){
+                            Image(
+                                painter = painter,
+                                contentDescription = "DinnerRoulette",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(CircleShape)
+                                    .size(buttonSize),
+                                contentScale = ContentScale.Fit
+                            )
+                            Button(
+                                modifier = Modifier
+                                    .width(buttonSize)
+                                    .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height),
+                                enabled = !stopperFlag,
+                                onClick = {
+
                                     val query = Query(
                                         meatContentItems[meatContentIndex],
                                         primaryMeatItems[primaryMeatIndex],
@@ -360,15 +423,20 @@ fun NewInput(
                                         context,
                                         navController
                                     )
-
-
-                                }) {
-                                    Text(text = "Generate Recipe")
-                                }
-                            } else {
-                                Text(text = "All Beta Tokens Used")
+                                },
+                                colors = ButtonDefaults.textButtonColors(
+                                    containerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Gray
+                                )
+                            ) {
+                                Text(text = "Generate Recipe",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    textAlign = TextAlign.Center
+                                        )
                             }
-
+                        }
+                        if (stopperFlag){
+                            Text(text = "All Beta Tokens Used")
                         }
 
                     }

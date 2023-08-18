@@ -38,25 +38,26 @@ class HomeViewModel: ViewModel() {
             var received = SavedRecipe()
             try {
                 received = SavedRecipe(QandA(randQuery, it, parseResponse(it)))
+                Log.e("id before", received.id.toString())
+                val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
+                recipeBox.put(received)
+
+                runBlocking {
+                    context.dataStore.edit { settings ->
+                        val currentCounterValue = settings[usedTokens] ?: 0
+                        settings[usedTokens] =
+                            currentCounterValue + it.usage.total_tokens
+                    }
+                }
+
+                MainScope().launch {
+                    Log.e("id after", received.id.toString())
+                    navController.navigate(Paths.Recipe.Path+"/"+received.id)
+                }
             } catch (e:IndexOutOfBoundsException){
                 navController.navigate(Paths.Error.Path+"/"+it.choices[0].message.content)
             }
-            Log.e("id before", received.id.toString())
-            val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
-            recipeBox.put(received)
 
-            runBlocking {
-                context.dataStore.edit { settings ->
-                    val currentCounterValue = settings[usedTokens] ?: 0
-                    settings[usedTokens] =
-                        currentCounterValue + it.usage.total_tokens
-                }
-            }
-
-            MainScope().launch {
-                Log.e("id after", received.id.toString())
-                navController.navigate(Paths.Recipe.Path+"/"+received.id)
-            }
 
 
         }

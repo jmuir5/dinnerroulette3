@@ -98,27 +98,27 @@ class InputViewModel: ViewModel() {
             var received = SavedRecipe()
             try {
                 received = SavedRecipe(QandA(Query(), it, parseResponse(it)))
-            } catch (e:IndexOutOfBoundsException){
-                navController.navigate(Paths.Error.Path+"/"+it.choices[0].message.content)
-            }
-            Log.e("id before", received.id.toString())
-            val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
-            recipeBox.put(received)
+                Log.e("id before", received.id.toString())
+                val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
+                recipeBox.put(received)
 
-            runBlocking {
-                context.dataStore.edit { settings ->
-                    val currentCounterValue = settings[usedTokens] ?: 0
-                    settings[usedTokens] =
-                        currentCounterValue + it.usage.total_tokens
+                runBlocking {
+                    context.dataStore.edit { settings ->
+                        val currentCounterValue = settings[usedTokens] ?: 0
+                        settings[usedTokens] =
+                            currentCounterValue + it.usage.total_tokens
+                    }
+                }
+
+                MainScope().launch {
+                    Log.e("id after", received.id.toString())
+                    navController.navigate(Paths.Recipe.Path+"/"+received.id)
+                }
+            } catch (e:Exception){
+                MainScope().launch {
+                    navController.navigate(Paths.Error.Path+"/"+it.choices[0].message.content)
                 }
             }
-
-            MainScope().launch {
-                Log.e("id after", received.id.toString())
-                navController.navigate(Paths.Recipe.Path+"/"+received.id)
-            }
-
-
         }
     }
 
@@ -133,25 +133,31 @@ class InputViewModel: ViewModel() {
         flag.value = true
 
         getResponse(question2, context, 0) { it ->
-            val received =
-                SavedRecipe(QandA(query, it, parseResponse(it)))
+            var received = SavedRecipe()
+            try {
+                received = SavedRecipe(QandA(query, it, parseResponse(it)))
+                Log.e("id before", received.id.toString())
+                val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
+                recipeBox.put(received)
 
-            Log.e("id before", received.id.toString())
-            val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
-            recipeBox.put(received)
+                runBlocking {
+                    context.dataStore.edit { settings ->
+                        val currentCounterValue = settings[usedTokens] ?: 0
+                        settings[usedTokens] =
+                            currentCounterValue + it.usage.total_tokens
+                    }
+                }
 
-            runBlocking {
-                context.dataStore.edit { settings ->
-                    val currentCounterValue = settings[usedTokens] ?: 0
-                    settings[usedTokens] =
-                        currentCounterValue + it.usage.total_tokens
+                MainScope().launch {
+                    Log.e("id after", received.id.toString())
+                    navController.navigate(Paths.Recipe.Path+"/"+received.id)
+                }
+            } catch (e:Exception){
+                MainScope().launch {
+                    navController.navigate(Paths.Error.Path+"/"+it.choices[0].message.content)
                 }
             }
 
-            MainScope().launch {
-                Log.e("id after", received.id.toString())
-                navController.navigate(Paths.Recipe.Path+"/"+received.id)
-            }
 
 
         }

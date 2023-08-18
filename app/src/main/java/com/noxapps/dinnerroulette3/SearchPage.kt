@@ -384,6 +384,7 @@ fun RecipeList(recipesList:List<SavedRecipe>, navController: NavHostController, 
 @Composable
 fun RecipeCard(recipe: SavedRecipe, navController: NavHostController, viewModel: SearchViewModel){
     val bitmap = viewModel.getImageOrPlaceholder(recipe.image, LocalContext.current)
+
     Column(
         modifier = Modifier
             .width((viewModel.screenWidth / viewModel.tilesPerRow).dp)

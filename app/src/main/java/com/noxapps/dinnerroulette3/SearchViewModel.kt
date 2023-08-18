@@ -67,12 +67,17 @@ class SearchViewModel:ViewModel() {
             }
         }
         var combinedCriteria =searchLocQuery
+
         filters.forEach{
             combinedCriteria=combinedCriteria.and(it)
         }
+
         var query = recipeBox.query(combinedCriteria)
+
         if(sortMethod>2) query = query.order(SavedRecipe_.title)
+
         var finalList = query.build().find()
+
         return if(sortMethod==0||sortMethod==3) finalList.reversed()
         else finalList
 
