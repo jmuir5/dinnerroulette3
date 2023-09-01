@@ -1,6 +1,8 @@
 package com.noxapps.dinnerroulette3
 
+import android.app.Activity
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,6 +40,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.interstitial.InterstitialAd
 
 /**
  * home page composable. needs a total redesign based on ui paradigms
@@ -56,6 +61,43 @@ fun HomePage(
         val savedState = remember { mutableStateOf(false) }
         val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.roulette_table)
         val painter = remember{ BitmapPainter(image = bitmap.asImageBitmap())}
+
+        val TAG = "Home Page Interstitial"
+
+        val mInterstitialAd:MutableState<InterstitialAd?> = remember{ mutableStateOf(null) }
+        loadInterstitialAd(context, mInterstitialAd, "Home Page Interstitial")
+
+        /*mInterstitialAd.value?.fullScreenContentCallback = object: FullScreenContentCallback() {
+            override fun onAdClicked() {
+                // Called when a click is recorded for an ad.
+                Log.d(TAG, "Ad was clicked.")
+            }
+
+            override fun onAdDismissedFullScreenContent() {
+                // Called when ad is dismissed.
+                Log.d(TAG, "Ad dismissed fullscreen content.")
+                mInterstitialAd.value = null
+            }
+
+            //override fun onAdFailedToShowFullScreenContent(adError: AdError?) {
+                // Called when ad fails to show.
+            //    Log.e(TAG, "Ad failed to show fullscreen content.")
+            //    mInterstitialAd.value = null
+            //}
+
+            override fun onAdImpression() {
+                // Called when an impression is recorded for an ad.
+                Log.d(TAG, "Ad recorded an impression.")
+            }
+
+            override fun onAdShowedFullScreenContent() {
+                // Called when ad is shown.
+                Log.d(TAG, "Ad showed fullscreen content.")
+            }
+        }
+
+         */
+
 
         Column(
             modifier = Modifier.padding(horizontal = 24.dp)
@@ -83,6 +125,11 @@ fun HomePage(
                             .fillMaxWidth()
                             .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height),
                         onClick = {
+                            if (mInterstitialAd.value != null) {
+                                mInterstitialAd.value?.show(context as Activity)
+                            } else {
+                                Log.d("TAG", "The interstitial ad wasn't ready yet.")
+                            }
                             viewModel.executeRandom(processing, context, navController)
                         },
                         colors = ButtonDefaults.textButtonColors(
@@ -132,18 +179,14 @@ fun HomePage(
                         }) {
                         Text(text = "New Input - nyi")
                     }*/
-
-
-
                 //Spacer(modifier = Modifier.size(10.dp))
-
-
                 Row (modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
                 ){
                     Button(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .fillMaxHeight()
                             .padding(0.dp, 12.dp),
                         shape = RoundedCornerShape(25.dp),
@@ -154,6 +197,7 @@ fun HomePage(
                             style = MaterialTheme.typography.headlineSmall)
                     }
                 }
+
             }
         }
         if (processing.value) {

@@ -42,9 +42,11 @@ class ParsedResponse(
 
 
 @Serializable
-class Settings(
+class SettingsObject(
     val imperial: Boolean,
     val fahrenheit: Boolean,
     val allergens:List<String>,
-    val skill:Int
+    val skill:Int,
+    val dietPreset:String,
+    val meatContent:Int
 )

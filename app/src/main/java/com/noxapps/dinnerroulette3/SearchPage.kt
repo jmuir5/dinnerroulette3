@@ -87,7 +87,7 @@ fun SearchPage(
     viewModel.screenWidth = LocalConfiguration.current.screenWidthDp
 
 
-    DrawerAndScaffold(tabt = "View Recipes", navController = navController) {
+    DrawerAndScaffold(tabt = "View Recipes", navController = navController, adFlag = false) {
         Column {
             SearchBlock(recipeStateList, viewModel)
             RecipeList(recipeStateList.value, navController, viewModel)

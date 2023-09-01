@@ -1,6 +1,7 @@
 package com.noxapps.dinnerroulette3
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.util.Log
@@ -100,6 +101,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -113,6 +115,9 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.google.android.gms.ads.OnUserEarnedRewardListener
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.rewarded.RewardedAd
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.math.roundToInt
@@ -413,27 +418,38 @@ fun RecipeBody(
             color = MaterialTheme.colorScheme.primary
         )
         parsedIngredients?.forEach() {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                val checkedState = remember { mutableStateOf(false) }
-                Checkbox(
-                    checked = checkedState.value,
-                    onCheckedChange = { checkedState.value = it },
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .weight(1f)
-                )
-                Text(
-                    text = it,
-                    modifier = Modifier
-                        .weight(9f)
-                        .clickable { checkedState.value = !checkedState.value },
-                    style = if (checkedState.value) {
-                        MaterialTheme.typography.bodyMedium.copy(
-                            textDecoration = TextDecoration.LineThrough
-                        )
-                    } else MaterialTheme.typography.bodyMedium
-                )
+            if(it.isEmpty()){
+                Spacer(modifier=Modifier.size(10.dp))
+            }
+            else if(it.startsWith("-")) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val checkedState = remember { mutableStateOf(false) }
+                    Checkbox(
+                        checked = checkedState.value,
+                        onCheckedChange = { checkedState.value = it },
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .weight(1f)
+                    )
+                    Text(
+                        text = it,
+                        modifier = Modifier
+                            .weight(9f)
+                            .clickable { checkedState.value = !checkedState.value },
+                        style = if (checkedState.value) {
+                            MaterialTheme.typography.bodyMedium.copy(
+                                textDecoration = TextDecoration.LineThrough
+                            )
+                        } else MaterialTheme.typography.bodyMedium
+                    )
 
+                }
+            }
+            else{
+                Text(text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
         Spacer(modifier = Modifier.size(10.dp))
@@ -553,6 +569,12 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>,image
     val screenWidth = configuration.screenWidthDp.dp
     val context = LocalContext.current
 
+    val TAG = "recipe Image Rewarded"
+
+    val mRewardedAd:MutableState<RewardedAd?> = remember{ mutableStateOf(null) }
+    loadRewardedAd(context, mRewardedAd, TAG)
+    var imageCredits = 0
+
 
     Box(modifier = Modifier
         .fillMaxWidth()
@@ -589,7 +611,34 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>,image
 
                             }
                         }) {
-                        Text(text = "generate picture")
+                        Text(text = "Dev generate picture")
+                    }
+                }
+                thisRecipe.imageDescription?.let{
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            mRewardedAd.value?.let{ad ->
+                                ad.show(context as Activity, OnUserEarnedRewardListener { rewardItem ->
+                                    // Handle the reward.
+                                    //imageCredits += rewardItem.amount
+                                    val rewardType = rewardItem.type
+                                    Log.d(TAG, "User earned the reward.")
+                                    imageFlag.value = true
+                                    getImage(it, context) {
+                                        saveImage(context, thisRecipe, it.data[0].url) { it2 ->
+                                            imageFlag2.value = it2
+                                        }
+                                    }
+                                })
+                            } ?: run {
+                                Log.d(TAG, "The rewarded ad wasn't ready yet.")
+                            }
+                            if(imageCredits>0) {
+
+                            }
+                        }) {
+                        Text(text = "watch an ad to generate an image picture")
                     }
                 }
             }

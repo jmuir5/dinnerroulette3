@@ -85,7 +85,7 @@ fun SpecificRecipeInput(
                         drawLine(
                             color = primaryOrange,
                             start = Offset(12f, size.height),
-                            end = Offset(size.width-12f, size.height),
+                            end = Offset(size.width - 12f, size.height),
                             strokeWidth = borderSize
                         )
                     },

@@ -3,13 +3,20 @@ package com.noxapps.dinnerroulette3
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import io.objectbox.Box
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import java.util.Date
 import kotlin.math.abs
 import kotlin.random.Random
@@ -21,6 +28,8 @@ class HomeViewModel: ViewModel() {
 
     val recipeBox: Box<SavedRecipe> = ObjectBox.store.boxFor(SavedRecipe::class.java)
 
+
+
     /**
      * generates a list of 5, random favourited recipes
      */
@@ -30,7 +39,7 @@ class HomeViewModel: ViewModel() {
      * response from chat gpt then navigates to the apropriate recipe page once its created
      */
     fun executeRandom(flag: MutableState<Boolean>, context: Context, navController: NavHostController){
-        var randQuery = getRandomQuery(abs(Random(Date().time).nextInt()))
+        var randQuery = getRandomQuery(abs(Random(Date().time).nextInt()), context)
         val randQuestion = getRandomQuestion(randQuery)
         flag.value = true
 
@@ -66,7 +75,8 @@ class HomeViewModel: ViewModel() {
     /**
      * generate a randomised prompt for use with executeRandom()
      */
-    fun getRandomQuery(seed:Int):Query{
+    fun getRandomQuery(seed:Int, context: Context):Query{
+
         val cuisines=listOf("Chinese","Chinese","Chinese","Chinese","Chinese","Chinese","Chinese",
             "Chinese","Chinese","Chinese","Indian","Indian","Indian","Indian","Indian","Indian",
             "Indian","Indian","Indian","Indian","Japanese","Japanese","Japanese","Japanese",
@@ -105,14 +115,36 @@ class HomeViewModel: ViewModel() {
             "Eclectic","Daring","Exotic","Adventurous","Thrilling","Unconventional","Unexpected",
             "Novel","Innovative","Bold")
 
-        var vegFlag = "Yes"
+        var meatContentIndex = 0
+        val loadedData = runBlocking { context.dataStore.data.first() }
 
-        if(Random(Date().time).nextInt(50)==0) {
-            vegFlag="Vegan"
+        loadedData[savedPreferences]?.let {
+            meatContentIndex = Json.decodeFromString<SettingsObject>(it).meatContent
         }
-        else if(Random(Date().time).nextInt(10)==0){
-            vegFlag="Vegetarian"
+
+
+
+        var vegFlag = "Yes"
+        when(meatContentIndex){
+            0->{
+                if(Random(Date().time).nextInt(50)==0) {
+                vegFlag="Vegan"
+                }
+                else if(Random(Date().time).nextInt(10)==0){
+                    vegFlag="Vegetarian"
+                }
+            }
+            1->Unit
+            2->{
+                vegFlag="Vegetarian"
+                if(Random(Date().time).nextInt(10)==0) {
+                    vegFlag="Vegan"
+                }
+            }
+            3->vegFlag="Vegan"
         }
+
+
         return Query(
             vegFlag,
             protein[seed%protein.size],

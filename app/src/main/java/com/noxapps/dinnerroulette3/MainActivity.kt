@@ -2,63 +2,42 @@ package com.noxapps.dinnerroulette3
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.Switch
-import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
+import androidx.compose.material3.*
 import androidx.compose.material3.TopAppBarDefaults.exitUntilCollapsedScrollBehavior
-import androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import com.noxapps.dinnerroulette3.ui.theme.*
-import kotlinx.coroutines.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import coil.compose.AsyncImage
+import com.google.android.gms.ads.MobileAds
+import com.noxapps.dinnerroulette3.ui.theme.*
 import io.objectbox.Box
 import io.objectbox.BoxStore
-import kotlinx.coroutines.flow.first
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
+import kotlinx.coroutines.*
 import kotlin.random.Random
+import com.noxapps.dinnerroulette3.AdMob
+
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "saveData")
 val savedPreferences = stringPreferencesKey("savedPreferences")
@@ -71,6 +50,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ObjectBox.init(this)
+
+        MobileAds.initialize(this) { }
         //normalising code
         /*val recipeBox: Box<SavedRecipe> = ObjectBox.store.boxFor(SavedRecipe::class.java)
         val allRecipes = recipeBox.all
@@ -106,7 +87,7 @@ class MainActivity : ComponentActivity() {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DrawerAndScaffold(tabt:String, navController:NavHostController, content:@Composable () -> Unit){
+fun DrawerAndScaffold(tabt:String, navController:NavHostController, adFlag:Boolean = true, content:@Composable () -> Unit){
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
@@ -338,14 +319,27 @@ fun DrawerAndScaffold(tabt:String, navController:NavHostController, content:@Com
                 )
             },
             content = { padding ->
+                Column (verticalArrangement = Arrangement.SpaceEvenly){
+                    Box(
+                        Modifier
+                            .padding(padding)
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        content()
+                    }
+                    if(adFlag){
+                        Row(){
+                            Spacer(modifier = Modifier
+                                .height(50.dp))
+                            AdmobBanner(modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                            )
+                        }
+                    }
 
-                Box(
-                    Modifier
-                        .padding(padding)
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.TopCenter
-                ) {
-                    content()
                 }
             }
         )
@@ -402,7 +396,7 @@ fun NavMain(navController: NavHostController, TABT:MutableState<String>){//, rea
         composable(Paths.NewInput.Path) { NewInput(navController = navController) }
         composable(Paths.NatLanInput.Path) { NatLanInput(navController = navController) }
         composable(Paths.SpecificRecipeInput.Path) { SpecificRecipeInput(navController = navController) }
-        composable(Paths.Settings.Path) { Settings(TABT = TABT) }
+        composable(Paths.Settings.Path) { Settings(navController = navController) }
         composable(Paths.Search.Path) { SearchPage(navController = navController) }
         composable(Paths.Recipe.Path+"/{recipeId}",
             arguments = listOf(
