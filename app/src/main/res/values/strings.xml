@@ -1,3 +1,27 @@
 <resources>
-    <string name="app_name">DinnerRoulette3</string>
+    <string name="app_name">Dinner Roulette</string>
+    <string name="scaffold_banner_ad_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="recipe_banner_ad_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="search_banner_ad_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="roulette_interstitial_ad_id">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="build_interstitial_ad_id">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="request_interstitial_ad_id">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="rewarded_ad_id">ca-app-pub-3940256099942544/5224354917</string>
+    <!--
+    test implementations
+    <string name="scaffold_banner_ad_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="recipe_banner_ad_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="search_banner_ad_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="roulette_interstitial_ad_id">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="build_interstitial_ad_id">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="request_interstitial_ad_id">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="rewarded_ad_id">ca-app-pub-3940256099942544/5224354917</string>
+    live implementations
+    <string name="scaffold_banner_ad_id">ca-app-pub-3830795303099315/4827852167</string>
+    <string name="recipe_banner_ad_id">ca-app-pub-3830795303099315/6063190019</string>
+    <string name="search_banner_ad_id">ca-app-pub-3830795303099315/9316001324</string>
+    <string name="roulette_interstitial_ad_id">ca-app-pub-3830795303099315/5270543595</string>
+    <string name="build_interstitial_ad_id">ca-app-pub-3830795303099315/4588372532</string>
+    <string name="request_interstitial_ad_id">ca-app-pub-3830795303099315/7240540319</string>
+    <string name="rewarded_ad_id">ca-app-pub-3830795303099315/5140156431</string>-->
 </resources>

@@ -1,5 +1,6 @@
 package com.noxapps.dinnerroulette3
 
+import android.app.Activity
 import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -94,6 +95,7 @@ fun NewInput(
     viewModel: InputViewModel = InputViewModel(),
     navController: NavHostController
 ) {
+
     DrawerAndScaffold(tabt = "Create Custom Recipe", navController = navController) {
 
 
@@ -176,6 +178,9 @@ fun NewInput(
             }
         }
         loadedFlag = true
+
+        loadInterstitialAd(context, viewModel.mInterstitialAd, viewModel.TAG2, context.getString(R.string.build_interstitial_ad_id))
+
 
 
         Box(
@@ -468,7 +473,11 @@ fun NewInput(
                                     .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height),
                                 enabled = !stopperFlag,
                                 onClick = {
-
+                                    if (viewModel.mInterstitialAd.value != null) {
+                                        viewModel.mInterstitialAd.value?.show(context as Activity)
+                                    } else {
+                                        Log.d("TAG", "The interstitial ad wasn't ready yet.")
+                                    }
                                     val query = Query(
                                         meatContentItems[meatContentIndex],
                                         primaryMeatItems[primaryMeatIndex],

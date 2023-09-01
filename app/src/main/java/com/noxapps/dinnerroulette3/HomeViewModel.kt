@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
+import com.google.android.gms.ads.interstitial.InterstitialAd
 import io.objectbox.Box
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.first
@@ -27,7 +28,9 @@ import kotlin.random.Random
 class HomeViewModel: ViewModel() {
 
     val recipeBox: Box<SavedRecipe> = ObjectBox.store.boxFor(SavedRecipe::class.java)
+    val TAG = "Home Page Interstitial"
 
+    val mInterstitialAd:MutableState<InterstitialAd?> = mutableStateOf(null)
 
 
     /**

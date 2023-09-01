@@ -356,8 +356,10 @@ fun SearchBlock(recipesList:MutableState<List<SavedRecipe>>,  viewModel: SearchV
 
 @Composable
 fun RecipeList(recipesList:List<SavedRecipe>, navController: NavHostController, viewModel: SearchViewModel){
+    var counter = 0
     LazyColumn{
         for (i in recipesList.indices step(3)){
+            counter+=1
             item(){
                 Row(modifier = Modifier
                     .fillMaxWidth(),
@@ -375,6 +377,19 @@ fun RecipeList(recipesList:List<SavedRecipe>, navController: NavHostController, 
                     }
                     else Spacer(modifier = Modifier
                         .width((viewModel.screenWidth / viewModel.tilesPerRow).dp))
+                }
+            }
+            if(counter%2==0){
+                item(){
+                    Row(){
+                        Spacer(modifier = Modifier
+                            .height(50.dp))
+                        AdmobBanner(modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                            reference = LocalContext.current.getString(R.string.search_banner_ad_id)
+                        )
+                    }
                 }
             }
         }

@@ -62,10 +62,8 @@ fun HomePage(
         val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.roulette_table)
         val painter = remember{ BitmapPainter(image = bitmap.asImageBitmap())}
 
-        val TAG = "Home Page Interstitial"
 
-        val mInterstitialAd:MutableState<InterstitialAd?> = remember{ mutableStateOf(null) }
-        loadInterstitialAd(context, mInterstitialAd, "Home Page Interstitial")
+        loadInterstitialAd(context, viewModel.mInterstitialAd, "Home Page Interstitial", context.getString(R.string.roulette_interstitial_ad_id))
 
         /*mInterstitialAd.value?.fullScreenContentCallback = object: FullScreenContentCallback() {
             override fun onAdClicked() {
@@ -125,8 +123,8 @@ fun HomePage(
                             .fillMaxWidth()
                             .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height),
                         onClick = {
-                            if (mInterstitialAd.value != null) {
-                                mInterstitialAd.value?.show(context as Activity)
+                            if (viewModel.mInterstitialAd.value != null) {
+                                viewModel.mInterstitialAd.value?.show(context as Activity)
                             } else {
                                 Log.d("TAG", "The interstitial ad wasn't ready yet.")
                             }

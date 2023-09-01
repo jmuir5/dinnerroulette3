@@ -412,6 +412,16 @@ fun RecipeBody(
             style = MaterialTheme.typography.titleLarge
         )
         Spacer(modifier = Modifier.size(10.dp))
+        Row(){
+            Spacer(modifier = Modifier
+                .height(50.dp))
+            AdmobBanner(modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+                reference = LocalContext.current.getString(R.string.recipe_banner_ad_id)
+            )
+        }
+        Spacer(modifier = Modifier.size(10.dp))
         Text(
             text = "Ingredients",
             style = MaterialTheme.typography.headlineSmall,
@@ -453,6 +463,16 @@ fun RecipeBody(
             }
         }
         Spacer(modifier = Modifier.size(10.dp))
+        Row(){
+            Spacer(modifier = Modifier
+                .height(50.dp))
+            AdmobBanner(modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+                reference = LocalContext.current.getString(R.string.recipe_banner_ad_id)
+            )
+        }
+        Spacer(modifier = Modifier.size(10.dp))
         Text(
             text = "Method",
             style = MaterialTheme.typography.headlineSmall,
@@ -462,7 +482,16 @@ fun RecipeBody(
             text = thisRecipe.method!!,
             style = MaterialTheme.typography.bodyMedium
         )
-
+        Spacer(modifier = Modifier.size(10.dp))
+        Row(){
+            Spacer(modifier = Modifier
+                .height(50.dp))
+            AdmobBanner(modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+                reference = LocalContext.current.getString(R.string.recipe_banner_ad_id)
+            )
+        }
         Spacer(modifier = Modifier.size(10.dp))
         Text(
             text = "Notes",
@@ -598,7 +627,7 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>,image
                     style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
-                thisRecipe.imageDescription?.let{
+                /*thisRecipe.imageDescription?.let{
                     Button(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = {
@@ -613,7 +642,7 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>,image
                         }) {
                         Text(text = "Dev generate picture")
                     }
-                }
+                }*/
                 thisRecipe.imageDescription?.let{
                     Button(
                         modifier = Modifier.fillMaxWidth(),
@@ -638,7 +667,7 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>,image
 
                             }
                         }) {
-                        Text(text = "watch an ad to generate an image picture")
+                        Text(text = "watch an ad to generate an image for your recipe")
                     }
                 }
             }

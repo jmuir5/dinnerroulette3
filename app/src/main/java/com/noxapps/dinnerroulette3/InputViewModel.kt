@@ -3,10 +3,12 @@ package com.noxapps.dinnerroulette3
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
+import com.google.android.gms.ads.interstitial.InterstitialAd
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -28,6 +30,10 @@ import kotlin.random.Random
 class InputViewModel: ViewModel() {
     init{}
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
+    val TAG1 = "Request Recipe Interstitial"
+    val TAG2 = "Build Recipe Interstitial"
+
+    val mInterstitialAd:MutableState<InterstitialAd?> = mutableStateOf(null)
 
     /**
      * generate a question to submit to chat gpt to generate a recipe based on query paramaters.

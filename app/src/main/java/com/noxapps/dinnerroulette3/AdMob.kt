@@ -13,7 +13,6 @@ import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.admanager.AdManagerAdRequest
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.google.android.gms.ads.rewarded.RewardedAd
@@ -23,7 +22,7 @@ class AdMob {
 
 }
 @Composable
-fun AdmobBanner(modifier: Modifier = Modifier) {
+fun AdmobBanner(modifier: Modifier = Modifier, reference:String) {
     Column {
         AndroidView(
             modifier = Modifier.fillMaxWidth(),
@@ -35,7 +34,7 @@ fun AdmobBanner(modifier: Modifier = Modifier) {
                     // on below line specifying ad unit id
                     // currently added a test ad unit id.
                     setAdSize(AdSize.BANNER)
-                    adUnitId = "ca-app-pub-3830795303099315/4827852167"
+                    adUnitId = reference//"ca-app-pub-3830795303099315/4827852167"
                     // calling load ad to load our ad.
                     loadAd(AdRequest.Builder().build())
                 }
@@ -43,11 +42,10 @@ fun AdmobBanner(modifier: Modifier = Modifier) {
         )
     }
 }
-fun loadInterstitialAd(context: Context, mInterstitialAd: MutableState<InterstitialAd?>, TAG:String){
-
+fun loadInterstitialAd(context: Context, mInterstitialAd: MutableState<InterstitialAd?>, TAG:String, reference:String){
     var adRequest = AdRequest.Builder().build()
 
-    InterstitialAd.load(context,"ca-app-pub-3940256099942544/1033173712", adRequest, object : InterstitialAdLoadCallback() {
+    InterstitialAd.load(context,reference, adRequest, object : InterstitialAdLoadCallback() {
         override fun onAdFailedToLoad(adError: LoadAdError) {
             Log.d("ad Error", adError.toString())
             mInterstitialAd.value = null
@@ -94,7 +92,7 @@ fun loadRewardedAd(context: Context, mRewardedAd: MutableState<RewardedAd?>, TAG
 
     RewardedAd.load(
         context,
-        "ca-app-pub-3940256099942544/5224354917",
+        context.getString(R.string.rewarded_ad_id),
         adRequest,
         object : RewardedAdLoadCallback() {
             override fun onAdFailedToLoad(adError: LoadAdError) {

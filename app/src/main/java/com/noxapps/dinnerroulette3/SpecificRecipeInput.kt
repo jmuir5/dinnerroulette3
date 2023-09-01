@@ -1,5 +1,6 @@
 package com.noxapps.dinnerroulette3
 
+import android.app.Activity
 import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -67,6 +68,9 @@ fun SpecificRecipeInput(
         val stopperFlag by remember { mutableStateOf(false) }
 
         val primaryOrange = MaterialTheme.colorScheme.primary
+
+        loadInterstitialAd(context, viewModel.mInterstitialAd, viewModel.TAG1, context.getString(R.string.request_interstitial_ad_id))
+
 
         Column(
             Modifier
@@ -138,6 +142,11 @@ fun SpecificRecipeInput(
                     onClick = {
                         if (promptText.length < 3) errorState = 1
                         else {
+                            if (viewModel.mInterstitialAd.value != null) {
+                                viewModel.mInterstitialAd.value?.show(context as Activity)
+                            } else {
+                                Log.d("TAG", "The interstitial ad wasn't ready yet.")
+                            }
                             errorState = 0
                             viewModel.executeRequest(promptText, processing, context, navController)
                         }
