@@ -73,8 +73,7 @@ class MainActivity : ComponentActivity() {
                     //color = com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange//MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-                    val tabtx = remember { mutableStateOf("dinner Roulette") }
-                    NavMain(navController, tabtx)
+                    NavMain(navController)
 
                 }
             }
@@ -392,7 +391,7 @@ fun DefaultPreview() {
  */
 
 @Composable
-fun NavMain(navController: NavHostController, TABT:MutableState<String>){//, realm: Realm) {
+fun NavMain(navController: NavHostController){//, realm: Realm) {
     NavHost(navController = navController, startDestination = Paths.Home.Path) {
         composable(Paths.Home.Path) { HomePage(navController = navController) }
         composable(Paths.NewInput.Path) { NewInput(navController = navController) }
@@ -416,9 +415,9 @@ fun NavMain(navController: NavHostController, TABT:MutableState<String>){//, rea
                 navArgument("ErrorBody") { type = NavType.StringType})) {
             val ErrorBody = it.arguments?.getString("ErrorBody")
             if (ErrorBody != null) {
-                ErrorPage(ErrorBody, TABT = TABT)
+                ErrorPage(ErrorBody)
             }else{
-                ErrorPage("An Unspecified Error Has Occurred", TABT = TABT)
+                ErrorPage("An Unspecified Error Has Occurred")
             }
 
 

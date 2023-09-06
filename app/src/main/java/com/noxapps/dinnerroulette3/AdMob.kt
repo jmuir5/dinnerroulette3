@@ -1,22 +1,50 @@
 package com.noxapps.dinnerroulette3
 
+import android.app.Activity
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.navigation.NavHostController
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.OnUserEarnedRewardListener
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
 class AdMob {
 
@@ -135,4 +163,239 @@ fun loadRewardedAd(context: Context, mRewardedAd: MutableState<RewardedAd?>, TAG
             }
         }
     )
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RewardedAdFrame(
+    mRewardedAd:MutableState<RewardedAd?>,
+    context:Context,
+    imageFlag: MutableState<Boolean>,
+    imageFlag2: MutableState<Boolean>,
+    thisRecipe: SavedRecipe,
+    displayFlag:MutableState<Boolean>
+){
+    var i by remember{mutableStateOf(0)}
+    val scope = rememberCoroutineScope()
+    var lock by remember{ mutableStateOf(false) }
+
+    if(i<5){
+        if (mRewardedAd.value!= null) {
+            i=5
+
+        }
+        else{
+            if (!lock) {
+                lock = true
+                LaunchedEffect(true) {
+                    scope.launch {
+                        Thread.sleep(1000)
+                        MainScope().launch {
+                            i += 1
+                            lock=false
+                        }
+                    }
+                }
+            }
+        }
+        AlertDialog(
+            onDismissRequest = {
+
+            }
+        ) {
+            Surface(
+                modifier = Modifier
+                    .wrapContentSize(Alignment.Center)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(15.dp)
+                    ),
+                shape = MaterialTheme.shapes.large,
+                tonalElevation = AlertDialogDefaults.TonalElevation
+            ) {
+                Column(
+                    modifier= Modifier
+                        .background(MaterialTheme.colorScheme.background)
+                        .padding(10.dp)
+                    ,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text("Please Wait",
+                            style = MaterialTheme.typography.titleLarge)
+                    }
+                    Row(modifier = Modifier
+                        .padding(4.dp)
+                        .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center) {
+                        Indicator()
+                    }
+                    Row(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text("Attempting to Load Ad ($i)")
+                    }
+                }
+            }
+        }
+    }
+    else {
+        if (mRewardedAd.value != null) {
+            mRewardedAd.value?.let { ad ->
+                ad.show(context as Activity, OnUserEarnedRewardListener { rewardItem ->
+                    // Handle the reward.
+                    displayFlag.value = false
+                    imageFlag.value = true
+                    getImage(thisRecipe.imageDescription!!, context) {
+                        saveImage(context, thisRecipe, it.data[0].url) { it2 ->
+                            imageFlag2.value = it2
+                        }
+                    }
+                })
+            } ?: run {
+                Log.d("rewarded ad", "The rewarded ad wasn't ready yet.")
+            }
+        } else {
+            AlertDialog(
+                onDismissRequest = {
+                    displayFlag.value = false
+                }
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .wrapContentSize(Alignment.Center)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(15.dp)
+                        ),
+                    shape = MaterialTheme.shapes.large,
+                    tonalElevation = AlertDialogDefaults.TonalElevation
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.background)
+                            .padding(10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                "Ad Failed",
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text("unable to load Advertisement, please try again later")
+                        }
+                        Button(onClick = { displayFlag.value = false }) {
+                            Text(text = "Return")
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InterstitialAdDialogue(
+    mInterstitialAd:MutableState<InterstitialAd?>,
+    context:Context,
+    displayFlag:MutableState<Boolean>,
+    function:()->Unit
+){
+    var i by remember{mutableStateOf(0)}
+    val scope = rememberCoroutineScope()
+
+    if (i<5){
+        if (mInterstitialAd.value!= null) {
+            mInterstitialAd.value!!.show(context as Activity)
+            i=5
+        }
+        else{
+            LaunchedEffect(true){
+                scope.launch{
+                    Thread.sleep(1000)
+                    MainScope().launch{ i+=1}
+                }
+            }
+        }
+        AlertDialog(
+            onDismissRequest = {
+
+            }
+        ) {
+            Surface(
+                modifier = Modifier
+                    .wrapContentSize(Alignment.Center)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(15.dp)
+                    ),
+                shape = MaterialTheme.shapes.large,
+                tonalElevation = AlertDialogDefaults.TonalElevation
+            ) {
+                Column(
+                    modifier= Modifier
+                        .background(MaterialTheme.colorScheme.background)
+                        .padding(10.dp)
+                    ,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text("Please Wait",
+                            style = MaterialTheme.typography.titleLarge)
+                    }
+                    Row(modifier = Modifier
+                        .padding(4.dp)
+                        .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center) {
+                        Indicator()
+                    }
+                    Row(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text("Attempting to Load Ad ($i)")
+                    }
+                }
+            }
+        }
+    }
+    else {
+
+        function()
+        displayFlag.value = false
+    }
+
+
 }

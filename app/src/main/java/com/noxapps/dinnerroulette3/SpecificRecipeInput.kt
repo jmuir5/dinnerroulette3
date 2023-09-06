@@ -67,6 +67,9 @@ fun SpecificRecipeInput(
 
         val stopperFlag by remember { mutableStateOf(false) }
 
+        val adFrameFlag = remember { mutableStateOf(false) }
+
+
         val primaryOrange = MaterialTheme.colorScheme.primary
 
         loadInterstitialAd(context, viewModel.mInterstitialAd, viewModel.TAG1, context.getString(R.string.request_interstitial_ad_id))
@@ -142,13 +145,13 @@ fun SpecificRecipeInput(
                     onClick = {
                         if (promptText.length < 3) errorState = 1
                         else {
-                            if (viewModel.mInterstitialAd.value != null) {
-                                viewModel.mInterstitialAd.value?.show(context as Activity)
-                            } else {
-                                Log.d("TAG", "The interstitial ad wasn't ready yet.")
-                            }
                             errorState = 0
-                            viewModel.executeRequest(promptText, processing, context, navController)
+                            if(viewModel.recipeBox.all.size<2){
+                                viewModel.executeRequest(promptText, processing, context, navController)
+                            }
+                            else {
+                                adFrameFlag.value = true
+                            }
                         }
                     },
                     colors = ButtonDefaults.textButtonColors(
@@ -168,6 +171,16 @@ fun SpecificRecipeInput(
         }
         if (processing.value) {
             ProcessingDialog()
+        }
+        if(adFrameFlag.value){
+            InterstitialAdDialogue(
+                mInterstitialAd = viewModel.mInterstitialAd,
+                context = context,
+                displayFlag = adFrameFlag,
+                function = {
+                    viewModel.executeRequest(promptText, processing, context, navController)
+                }
+            )
         }
     }
 }

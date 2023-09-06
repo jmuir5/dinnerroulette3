@@ -17,10 +17,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ErrorPage(
     ErrorBody:String,
-    TABT: MutableState<String>
 
 ) {
-    TABT.value = "An Error Has Occurred"
+
 
     Column(modifier = Modifier
         .padding(8.dp)

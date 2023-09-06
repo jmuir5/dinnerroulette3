@@ -97,8 +97,6 @@ fun NewInput(
 ) {
 
     DrawerAndScaffold(tabt = "Create Custom Recipe", navController = navController) {
-
-
         var dd1Expanded by remember { mutableStateOf(false) }
         var dd2Expanded by remember { mutableStateOf(false) }
         var dd3Expanded by remember { mutableStateOf(false) }
@@ -153,7 +151,7 @@ fun NewInput(
 
         var stopper by remember { mutableStateOf(false) }
         val stopperFlag by remember { mutableStateOf(false) }
-        var disclamer by remember { mutableStateOf(true) }
+        var disclamer by remember { mutableStateOf(false) }
 
         var loadedFlag by remember { mutableStateOf(false) }
 
@@ -178,6 +176,8 @@ fun NewInput(
             }
         }
         loadedFlag = true
+
+        val adFrameFlag = remember { mutableStateOf(false) }
 
         loadInterstitialAd(context, viewModel.mInterstitialAd, viewModel.TAG2, context.getString(R.string.build_interstitial_ad_id))
 
@@ -460,7 +460,7 @@ fun NewInput(
                         ) {
                             Image(
                                 painter = painter,
-                                contentDescription = "DinnerRoulette",
+                                contentDescription = "ChefRoulette",
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(CircleShape)
@@ -473,26 +473,26 @@ fun NewInput(
                                     .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height),
                                 enabled = !stopperFlag,
                                 onClick = {
-                                    if (viewModel.mInterstitialAd.value != null) {
-                                        viewModel.mInterstitialAd.value?.show(context as Activity)
-                                    } else {
-                                        Log.d("TAG", "The interstitial ad wasn't ready yet.")
+                                    if(viewModel.recipeBox.all.size<2){
+                                        val query = Query(
+                                            meatContentItems[meatContentIndex],
+                                            primaryMeatItems[primaryMeatIndex],
+                                            primaryCarbItems[primaryCarbIndex],
+                                            cuisineText.value,
+                                            ingredients,
+                                            exclIngredients,
+                                            tags
+                                        )
+                                        viewModel.executeClassic(
+                                            query,
+                                            processing,
+                                            context,
+                                            navController
+                                        )
                                     }
-                                    val query = Query(
-                                        meatContentItems[meatContentIndex],
-                                        primaryMeatItems[primaryMeatIndex],
-                                        primaryCarbItems[primaryCarbIndex],
-                                        cuisineText.value,
-                                        ingredients,
-                                        exclIngredients,
-                                        tags
-                                    )
-                                    viewModel.executeClassic(
-                                        query,
-                                        processing,
-                                        context,
-                                        navController
-                                    )
+                                    else {
+                                        adFrameFlag.value = true
+                                    }
                                 },
                                 colors = ButtonDefaults.textButtonColors(
                                     containerColor = Color.Transparent,
@@ -534,6 +534,31 @@ fun NewInput(
 
         if (processing.value) {
             ProcessingDialog()
+        }
+
+        if(adFrameFlag.value){
+            InterstitialAdDialogue(
+                mInterstitialAd = viewModel.mInterstitialAd,
+                context = context,
+                displayFlag = adFrameFlag,
+                function = {
+                    val query = Query(
+                        meatContentItems[meatContentIndex],
+                        primaryMeatItems[primaryMeatIndex],
+                        primaryCarbItems[primaryCarbIndex],
+                        cuisineText.value,
+                        ingredients,
+                        exclIngredients,
+                        tags
+                    )
+                    viewModel.executeClassic(
+                        query,
+                        processing,
+                        context,
+                        navController
+                    )
+                }
+            )
         }
 
         if (stopper) {

@@ -52,7 +52,7 @@ fun HomePage(
     viewModel: HomeViewModel = HomeViewModel(),
     navController: NavHostController,
 ) {
-    DrawerAndScaffold("Dinner Roulette",navController) {
+    DrawerAndScaffold("Chef Roulette",navController) {
         val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
         val processing = remember { mutableStateOf(false) }
         val context = LocalContext.current
@@ -61,6 +61,8 @@ fun HomePage(
         val savedState = remember { mutableStateOf(false) }
         val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.roulette_table)
         val painter = remember{ BitmapPainter(image = bitmap.asImageBitmap())}
+
+        val adFrameFlag = remember { mutableStateOf(false) }
 
 
         loadInterstitialAd(context, viewModel.mInterstitialAd, "Home Page Interstitial", context.getString(R.string.roulette_interstitial_ad_id))
@@ -112,7 +114,7 @@ fun HomePage(
                     contentAlignment = Alignment.Center){
                     Image(
                         painter = painter,
-                        contentDescription = "DinnerRoulette",
+                        contentDescription = "ChefRoulette",
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(CircleShape),
@@ -123,18 +125,18 @@ fun HomePage(
                             .fillMaxWidth()
                             .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height),
                         onClick = {
-                            if (viewModel.mInterstitialAd.value != null) {
-                                viewModel.mInterstitialAd.value?.show(context as Activity)
-                            } else {
-                                Log.d("TAG", "The interstitial ad wasn't ready yet.")
+                            if(recipeBox.all.size<2){
+                                viewModel.executeRandom(processing, context, navController)
                             }
-                            viewModel.executeRandom(processing, context, navController)
+                            else {
+                                adFrameFlag.value = true
+                            }
                         },
                         colors = ButtonDefaults.textButtonColors(
                             containerColor = Color.Transparent
                         )
                     ) {
-                        Text(text = "Play Dinner\nRoulette",
+                        Text(text = "Play Chef\nRoulette",
                             style = MaterialTheme.typography.headlineSmall)
                     }
                 }
@@ -167,17 +169,6 @@ fun HomePage(
                             style = MaterialTheme.typography.headlineSmall)
                     }
                 }
-
-                    /*Button(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(5f),
-                        onClick = {
-                            navController.navigate(Paths.NatLanInput.Path)
-                        }) {
-                        Text(text = "New Input - nyi")
-                    }*/
-                //Spacer(modifier = Modifier.size(10.dp))
                 Row (modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
@@ -201,60 +192,16 @@ fun HomePage(
         if (processing.value) {
             ProcessingDialog()
         }
+        if(adFrameFlag.value){
+            InterstitialAdDialogue(
+                mInterstitialAd = viewModel.mInterstitialAd,
+                context = context,
+                displayFlag = adFrameFlag,
+                function = {
+                    viewModel.executeRandom(processing, context, navController)
+                }
+            )
+        }
     }
 }
 
-/**
- * header card composable, requires total redesign, probably going to be removed in the future
- */
-@Composable
-fun HeadCard(state:MutableState<Boolean>, title:String){
-    val height =if (state.value){65.dp}else{100.dp}
-    val style = if (state.value){MaterialTheme.typography.titleLarge}else{MaterialTheme.typography.headlineLarge}
-    //val color = if (state.value){MaterialTheme.colorScheme.primaryContainer}else{MaterialTheme.colorScheme
-    Row (modifier = Modifier
-        .fillMaxWidth()
-        .height(height)
-        .padding(0.dp, 8.dp)
-        .border(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.primary,
-            shape = RoundedCornerShape(15.dp)
-        )
-        .clickable { state.value = !state.value },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center){
-        Text(
-            text = title,
-            style = MaterialTheme.typography.headlineLarge//style
-        )
-    }
-}
-
-/**
- * subheader card composable, requires total redesign, probably going to be removed in the future
- */
-
-@Composable
-fun subHeadCard(state:MutableState<Boolean>, title:String){
-    val height =if (state.value){45.dp}else{80.dp}
-    val style = if (state.value){MaterialTheme.typography.titleLarge} else{MaterialTheme.typography.headlineLarge}
-    //val color = if (state.value){MaterialTheme.colorScheme.primaryContainer}else{MaterialTheme.colorScheme
-    Row (modifier = Modifier
-        .fillMaxWidth()
-        .height(height)
-        .padding(8.dp)
-        .border(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.primary,
-            shape = RoundedCornerShape(15.dp)
-        )
-        .clickable { state.value = !state.value },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center){
-        Text(
-            text = title,
-            style = style
-        )
-    }
-}
