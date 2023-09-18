@@ -10,6 +10,7 @@ sealed class Paths(val Path:String) {
     object SpecificRecipeInput:Paths("SpecificRecipeInput")
     object Search:Paths("Search")
     object Settings:Paths("Settings")
+    object DietPreset:Paths("DietPreset")
     object Recipe:Paths("Recipe")
     object Error:Paths("Error")
 

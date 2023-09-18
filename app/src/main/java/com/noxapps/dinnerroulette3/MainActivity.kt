@@ -1,7 +1,11 @@
 package com.noxapps.dinnerroulette3
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -31,6 +35,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.google.android.gms.ads.MobileAds
 import com.noxapps.dinnerroulette3.ui.theme.*
 import io.objectbox.Box
@@ -48,11 +56,25 @@ val usedTokens = intPreferencesKey("usedTokens")
  * main activity file
  */
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        ObjectBox.init(this)
+        Log.d("objextbox crash test", "init - before")
+        try{
+            ObjectBox.init(this)
+        }catch(_:Exception){
+            ObjectBox.store.close()
+            ObjectBox.init(this)
+        }
+        var presetBox = ObjectBox.store.boxFor(DietPreset::class.java)
+        if(presetBox.isEmpty) initiliseDietPreset(presetBox)
 
+        Log.d("objextbox crash test", "init - after")
         MobileAds.initialize(this) { }
+
+
+        ReminderNotificationWorker.schedule(this, 16, 0)
+
         //normalising code
         /*val recipeBox: Box<SavedRecipe> = ObjectBox.store.boxFor(SavedRecipe::class.java)
         val allRecipes = recipeBox.all
@@ -392,12 +414,14 @@ fun DefaultPreview() {
 
 @Composable
 fun NavMain(navController: NavHostController){//, realm: Realm) {
+    val uri = "chefroulette://noximilionapplications.com"
     NavHost(navController = navController, startDestination = Paths.Home.Path) {
         composable(Paths.Home.Path) { HomePage(navController = navController) }
         composable(Paths.NewInput.Path) { NewInput(navController = navController) }
         composable(Paths.NatLanInput.Path) { NatLanInput(navController = navController) }
         composable(Paths.SpecificRecipeInput.Path) { SpecificRecipeInput(navController = navController) }
         composable(Paths.Settings.Path) { Settings(navController = navController) }
+        composable(Paths.DietPreset.Path){ DietPresetPage(navController = navController)}
         composable(Paths.Search.Path) { SearchPage(navController = navController) }
         composable(Paths.Recipe.Path+"/{recipeId}",
             arguments = listOf(
@@ -421,6 +445,26 @@ fun NavMain(navController: NavHostController){//, realm: Realm) {
             }
 
 
+        }
+        composable(
+            route = "page/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.StringType }),
+            deepLinks = listOf(navDeepLink {
+                uriPattern = "$uri/page/{id}"
+                action= Intent.ACTION_VIEW
+            })
+        ) { backStackEntry ->
+            val arguments = backStackEntry.arguments
+            Log.d("notification info", "recieved")
+            arguments?.getString("id")?.let { Log.d("notification info", it) }
+
+            when(arguments?.getString("id")){
+                "Home"-> HomePage(navController = navController)
+                "NewInput" -> NewInput(navController = navController)
+                "SpecificRecipeInput"-> SpecificRecipeInput(navController = navController)
+                "Search"-> SearchPage(navController = navController)
+                else -> HomePage(navController = navController)
+            }
         }
         /*...*/
     }

@@ -119,10 +119,18 @@ class HomeViewModel: ViewModel() {
             "Novel","Innovative","Bold")
 
         var meatContentIndex = 0
+        var budgetIndex = 0
         val loadedData = runBlocking { context.dataStore.data.first() }
 
         loadedData[savedPreferences]?.let {
-            meatContentIndex = Json.decodeFromString<SettingsObject>(it).meatContent
+            val retrievedData:SettingsObject = try {
+                Json.decodeFromString<SettingsObject>(it)
+            }catch(exception: Exception){
+                SettingsObject(false, false, listOf(), 0, 0, 0, 0)
+            }
+            meatContentIndex = retrievedData.meatContent
+            budgetIndex = if(retrievedData.budget>0) retrievedData.budget
+                else seed%4
         }
 
 
@@ -155,7 +163,8 @@ class HomeViewModel: ViewModel() {
             cuisines[seed%cuisines.size],
             mutableListOf(),
             mutableListOf(),
-            mutableListOf(descriptors[seed%descriptors.size])
+            mutableListOf(descriptors[seed%descriptors.size]),
+            budgetIndex
         )
     }
     fun getRandomQuestion(query: Query):String{
@@ -171,7 +180,13 @@ class HomeViewModel: ViewModel() {
         }
 
         question += "dish that could be described as "
-        question += query.descriptiveTags[0]+".[fin]"
+        question += query.descriptiveTags[0]
+        question += when(query.budget){
+            1-> " and costs less than $20. Do not mention this cost anywhere in the recipe.[fin]"
+            2-> " and costs between $15 and $40. Do not mention this cost anywhere in the recipe.[fin]"
+            3-> " and costs more than $50. Do not mention this cost anywhere in the recipe.[fin]"
+            else -> ".[fin]"
+        }
         return question
     }
 }

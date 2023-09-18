@@ -16,7 +16,8 @@ class Query(
     var cuisine:String="",
     var additionalIngredients:MutableList<String> = mutableListOf(),
     var excludedIngredients:MutableList<String> = mutableListOf(),
-    var descriptiveTags:MutableList<String> = mutableListOf()
+    var descriptiveTags:MutableList<String> = mutableListOf(),
+    var budget:Int=0
 ) {
     operator fun set(i: Int, value: String) {
 
@@ -47,6 +48,8 @@ class SettingsObject(
     val fahrenheit: Boolean,
     val allergens:List<String>,
     val skill:Int,
-    val dietPreset:String,
-    val meatContent:Int
+    val dietPreset:Long,
+    val meatContent:Int,
+    val budget:Int
+
 )

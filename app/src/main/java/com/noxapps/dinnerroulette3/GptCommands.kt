@@ -173,7 +173,7 @@ fun generatePrompt(context:Context, flag:Int):String{
     var fahrenheit = false
     val allergens = mutableListOf<String>()
     var skill = 0
-    var diet = ""
+    var diet = 0L
     var meatContent = 0
     val loadedData = runBlocking { context.dataStore.data.first() }
     loadedData[savedPreferences]?.let{
@@ -181,7 +181,7 @@ fun generatePrompt(context:Context, flag:Int):String{
         val retrievedData:SettingsObject = try {
             Json.decodeFromString<SettingsObject>(it)
         }catch(exception: MissingFieldException){
-            SettingsObject(false, false, listOf(), 0, "", 0)
+            SettingsObject(false, false, listOf(), 0, 0, 0, 0)
         }
         imperial=retrievedData.imperial
         fahrenheit=retrievedData.fahrenheit
@@ -212,7 +212,7 @@ fun generatePrompt(context:Context, flag:Int):String{
     if (fahrenheit)unit2Text = "fahrenheit"
 
     var dietText = ""
-    if (diet.isNotEmpty()) dietText = "The recipe should be suitable for a $diet diet"
+    //if (diet.isNotEmpty()) dietText = "The recipe should be suitable for a $diet diet"
 
     val prompt=when(flag){
         1-> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText. $dietText The prompt will end with [fin], indicating the intended end of the prompt. include a recommendation for an appropriate carbohydrate component or accompaniment. you are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"

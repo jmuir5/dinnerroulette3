@@ -555,7 +555,11 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>,image
     val TAG = "recipe Image Rewarded"
 
     val mRewardedAd:MutableState<RewardedAd?> = remember{ mutableStateOf(null) }
-    loadRewardedAd(context, mRewardedAd, TAG)
+    var loadAttempted by remember{mutableStateOf(false)}
+    if(!loadAttempted) {
+        loadRewardedAd(context, mRewardedAd, TAG)
+        loadAttempted=true
+    }
     var imageCredits = 0
     var adFrameFlag = remember{ mutableStateOf(false) }
 

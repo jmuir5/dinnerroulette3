@@ -98,7 +98,12 @@ fun SpecificRecipeInput(
                     },
                 placeholder = { Text(placeholder) },
                 value = promptText,
-                onValueChange = { if (promptText.length <= 30) promptText = it },
+                onValueChange = {
+                    if (promptText.length <= 60) promptText = it
+                    else {
+                        if (promptText.length >= it.length) promptText = it
+                    }
+                },
                 label = {
                     if (errorState == 1)
                         Text(
@@ -132,9 +137,9 @@ fun SpecificRecipeInput(
                     painter = painter,
                     contentDescription = "DinnerRoulette",
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(CircleShape)
-                        .size(buttonSize),
+                        //.fillMaxWidth()
+                        .size(buttonSize)
+                        .clip(CircleShape),
                     contentScale = ContentScale.Fit
                 )
                 Button(

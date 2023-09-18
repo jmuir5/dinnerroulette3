@@ -523,7 +523,15 @@ fun CusTitButton(modifier:Modifier = Modifier,
                  onClick:()->Unit,
                  iconInit: ImageVector,
                  iconChecked:ImageVector,
-                 colors:CusTitButtonColors){
+                 colors:CusTitButtonColors = CusTitButtonColors(
+                    ButtonBgColorInit = MaterialTheme.colorScheme.primaryContainer,
+                    ButtonBgColorChecked = MaterialTheme.colorScheme.primary,
+                    TextColorInit = MaterialTheme.colorScheme.onPrimaryContainer,
+                    TextColorChecked = MaterialTheme.colorScheme.onPrimary,
+                    IconColorInit = MaterialTheme.colorScheme.onPrimaryContainer,
+                    IconColorChecked = MaterialTheme.colorScheme.onPrimary
+                 )
+){
     val backgroundColor =
         if(value) colors.ButtonBgColorChecked
         else colors.ButtonBgColorInit

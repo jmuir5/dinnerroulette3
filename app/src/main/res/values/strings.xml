@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Chef Roulette</string>
+    <string name="channel_name">Chef_Roulette_notification_chanel</string>
+    <string name="channel_description">notification chanel for chef roulette</string>
     <string name="scaffold_banner_ad_id">ca-app-pub-3830795303099315/4827852167</string>
     <string name="recipe_banner_ad_id">ca-app-pub-3830795303099315/6063190019</string>
     <string name="search_banner_ad_id">ca-app-pub-3830795303099315/9316001324</string>

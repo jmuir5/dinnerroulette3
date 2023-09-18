@@ -42,7 +42,6 @@ import androidx.navigation.NavHostController
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -71,8 +70,11 @@ fun Settings(
         var meatContent = listOf("Optional", "Always","Vegitarian", "Vegan")
         var meatContentIndex by remember { mutableStateOf(0) }
 
-        var dietOpen = remember { mutableStateOf(false) }
-        var dietText = remember { mutableStateOf("") }
+        var dietId = remember { mutableStateOf(0L) }
+
+        val budgetOpen = remember { mutableStateOf(false) }
+        var budgetIndex by remember {mutableStateOf(0)}
+        val budgetItems = listOf("Select...","$","$$","$$$")
 
         var saveMessage = remember { mutableStateOf(false) }
 
@@ -87,7 +89,7 @@ fun Settings(
                 val retrievedData:SettingsObject = try {
                     Json.decodeFromString<SettingsObject>(it)
                 }catch(exception: Exception){
-                    SettingsObject(false, false, listOf(), 0, "", 0)
+                    SettingsObject(false, false, listOf(), 0, 0, 0, 0)
                 }
                 imperial.value = retrievedData.imperial
                 fahrenheit.value = retrievedData.fahrenheit
@@ -95,8 +97,9 @@ fun Settings(
                 retrievedData.allergens.forEach() { allergen ->
                     if (!allergens.contains(allergen)) allergens.add(allergen)
                 }
-                dietText.value = retrievedData.dietPreset
+                dietId.value = retrievedData.dietPreset
                 meatContentIndex = retrievedData.meatContent
+                budgetIndex = retrievedData.budget
 
             }
             loadedFlag = true
@@ -158,13 +161,64 @@ fun Settings(
                             style = MaterialTheme.typography.titleMedium
                         )
                         Button(onClick = {
-                            dietOpen.value = true
+                            navController.navigate(Paths.DietPreset.Path)
                         }) {
                             Text(
-                                text = dietText.value.ifEmpty { "Edit" }
+                                text =  "->" 
                             )
                         }
 
+                    }
+                    Row(                                                                //Budget
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .clickable(onClick = {
+                                budgetOpen.value = true
+                            })
+                            .padding(0.dp, 8.dp)
+                    ) {
+                        Text(
+                            text = "Budget:",
+                            style = MaterialTheme.typography.titleMedium
+
+                        )
+                        DropdownMenu(
+                            expanded = budgetOpen.value,
+                            onDismissRequest = { budgetOpen.value = false },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp, 4.dp),
+                        ) {
+                            budgetItems.forEachIndexed() { index, s ->
+                                if (index != 0) {
+                                    DropdownMenuItem(
+                                        modifier = Modifier
+                                            .padding(0.dp, 4.dp)
+                                            .fillMaxWidth(),
+                                        onClick = {
+                                            budgetIndex = index
+                                            budgetOpen.value = false
+                                        },
+                                        text = {
+                                            Text(
+                                                text = s,
+                                                textAlign = TextAlign.End,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                        Text(
+                            text = budgetItems[budgetIndex],
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        )
                     }
                     Row(
                         modifier = Modifier
@@ -262,8 +316,9 @@ fun Settings(
                                 fahrenheit.value,
                                 allergens.toList(),
                                 skillLevelIndex,
-                                dietText.value,
-                                meatContentIndex
+                                dietId.value,
+                                meatContentIndex,
+                                budgetIndex
                             )
                             scope.launch {
                                 context.dataStore.edit { settings ->
@@ -322,9 +377,6 @@ fun Settings(
 
             if (allergensOpen.value) {
                 MultiDialog(allergensOpen, "Allergens And Intolerances", allergens)
-            }
-            if (dietOpen.value) {
-                SingleDialog(dietOpen, "Diet Preset", dietText)
             }
         }
     }

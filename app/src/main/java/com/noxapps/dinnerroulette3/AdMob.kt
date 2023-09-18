@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,19 +31,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.navigation.NavHostController
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.OnUserEarnedRewardListener
-import com.google.android.gms.ads.interstitial.InterstitialAd;
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AdMob {
 
@@ -176,7 +176,6 @@ fun RewardedAdFrame(
 ){
     var i by remember{mutableStateOf(0)}
     val scope = rememberCoroutineScope()
-    var lock by remember{ mutableStateOf(false) }
 
     if(i<5){
         if (mRewardedAd.value!= null) {
@@ -184,15 +183,16 @@ fun RewardedAdFrame(
 
         }
         else{
-            if (!lock) {
-                lock = true
-                LaunchedEffect(true) {
-                    scope.launch {
+            loadRewardedAd(context, mRewardedAd, "recipe Image Rewarded")
+            LaunchedEffect(true) {
+                for (j in 0..5) {
+                    withContext(Dispatchers.IO) {
                         Thread.sleep(1000)
-                        MainScope().launch {
-                            i += 1
-                            lock=false
-                        }
+                    }
+                    MainScope().launch { i += 1 }
+                    if (mRewardedAd.value!= null) {
+                        i=5
+                        break
                     }
                 }
             }
@@ -336,8 +336,17 @@ fun InterstitialAdDialogue(
         else{
             LaunchedEffect(true){
                 scope.launch{
-                    Thread.sleep(1000)
-                    MainScope().launch{ i+=1}
+                    for (j in 0..5) {
+                        withContext(Dispatchers.IO) {
+                            Thread.sleep(1000)
+                        }
+                        MainScope().launch { i += 1 }
+                        if (mInterstitialAd.value!= null) {
+                            mInterstitialAd.value!!.show(context as Activity)
+                            i=5
+                            break
+                        }
+                    }
                 }
             }
         }
@@ -385,7 +394,7 @@ fun InterstitialAdDialogue(
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Text("Attempting to Load Ad ($i)")
+                        Text("Attempting to Load Ad (${i+1})")
                     }
                 }
             }

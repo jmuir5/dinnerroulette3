@@ -84,6 +84,12 @@ class InputViewModel: ViewModel() {
             question += "fits the following descriptors: "
             input.descriptiveTags.forEach { s -> question += "$s, " }
         }
+        question += when(input.budget){
+            1-> ". This dish should cost less than $20. Do not mention this cost anywhere in the recipe."
+            2-> ". This dish should cost between $15 and $40. Do not mention this cost anywhere in the recipe."
+            3-> ". This dish should cost more than $50. Do not mention this cost anywhere in the recipe."
+            else -> ""
+        }
         question+="[fin]"
 
 
@@ -101,7 +107,7 @@ class InputViewModel: ViewModel() {
         flag.value = true
 
         getResponse(request, context, 1) {
-            var received = SavedRecipe()
+            var received: SavedRecipe
             try {
                 received = SavedRecipe(QandA(Query(), it, parseResponse(it)))
                 Log.e("id before", received.id.toString())
