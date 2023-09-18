@@ -1,5 +1,7 @@
 package com.noxapps.dinnerroulette3
 
+import com.noxapps.dinnerroulette3.gpt.GptResponse
+import com.noxapps.dinnerroulette3.input.ParsedResponse
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.decodeFromString
 import org.junit.Test
@@ -43,7 +45,9 @@ internal class  GptCommandsKtTest{
             "1. In a bowl, combine the fish sauce, soy sauce, lime juice, and brown sugar. Mix well to dissolve the sugar.\\n2. Heat the vegetable oil in a wok or large skillet over high heat. Add the minced garlic and sliced chili, and stir-fry for about 30 seconds until fragrant.\\n3. Add the beef slices to the wok and stir-fry for 2-3 minutes until they are cooked to your liking. Remove the beef from the wok and set it aside.\\n4. In the same wok, add the onion and bell pepper slices. Stir-fry for 2-3 minutes until they start to soften and caramelize.\\n5. Return the cooked beef to the wok and pour in the sauce mixture. Stir-fry for another minute to coat the beef and vegetables with the sauce.\\n6. Remove from heat and garnish with fresh mint leaves.\\n7. Serve the Piquant Vietnamese Beef Stir Fry with cooked rice or rice noodles.",
             "- Adjust the amount of chili according to your preferred level of spiciness.\\n- Feel free to add other vegetables such as carrots, broccoli, or bean sprouts for extra texture and flavor.\\n- You can marinate the beef in the sauce mixture for 20-30 minutes before cooking for more intense flavors.",
             "This Vietnamese Beef Stir Fry is a vibrant and colorful dish. It features tender slices of beef coated in a flavorful sauce, accompanied by the inviting aroma of garlic, chili, and fresh mint. Serve it alongside a bed of steamed jasmine rice or rice noodles for a complete and satisfying meal.")
-        assertEquals(expectedOutput, parseResponse(sampleGptResponse))
+        assertEquals(expectedOutput,
+            com.noxapps.dinnerroulette3.gpt.parseResponse(sampleGptResponse)
+        )
     }
 
     @Test

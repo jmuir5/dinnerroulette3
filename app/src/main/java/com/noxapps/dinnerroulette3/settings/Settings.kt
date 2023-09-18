@@ -1,4 +1,4 @@
-package com.noxapps.dinnerroulette3
+package com.noxapps.dinnerroulette3.settings
 
 import android.util.Log
 import androidx.compose.foundation.clickable
@@ -36,6 +36,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavHostController
+import com.noxapps.dinnerroulette3.DrawerAndScaffold
+import com.noxapps.dinnerroulette3.Paths
+import com.noxapps.dinnerroulette3.dataStore
+import com.noxapps.dinnerroulette3.input.MultiDialog
+import com.noxapps.dinnerroulette3.input.SettingsObject
+import com.noxapps.dinnerroulette3.input.StyledLazyRow
+import com.noxapps.dinnerroulette3.savedPreferences
 //import com.noxapps.dinnerroulette3.ui.theme.ObfsuGrey
 //import com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
 //import com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange
@@ -86,7 +93,7 @@ fun Settings(
             loadedData[savedPreferences]?.let { Log.d("saved preferences2", it) }
 
             loadedData[savedPreferences]?.let {
-                val retrievedData:SettingsObject = try {
+                val retrievedData: SettingsObject = try {
                     Json.decodeFromString<SettingsObject>(it)
                 }catch(exception: Exception){
                     SettingsObject(false, false, listOf(), 0, 0, 0, 0)

@@ -1,16 +1,24 @@
-package com.noxapps.dinnerroulette3
+package com.noxapps.dinnerroulette3.home
 
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.noxapps.dinnerroulette3.ObjectBox
+import com.noxapps.dinnerroulette3.Paths
+import com.noxapps.dinnerroulette3.input.QandA
+import com.noxapps.dinnerroulette3.input.Query
+import com.noxapps.dinnerroulette3.recipe.SavedRecipe
+import com.noxapps.dinnerroulette3.input.SettingsObject
+import com.noxapps.dinnerroulette3.dataStore
+import com.noxapps.dinnerroulette3.gpt.getResponse
+import com.noxapps.dinnerroulette3.gpt.parseResponse
+import com.noxapps.dinnerroulette3.savedPreferences
+import com.noxapps.dinnerroulette3.usedTokens
 import io.objectbox.Box
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.first
@@ -78,7 +86,7 @@ class HomeViewModel: ViewModel() {
     /**
      * generate a randomised prompt for use with executeRandom()
      */
-    fun getRandomQuery(seed:Int, context: Context):Query{
+    fun getRandomQuery(seed:Int, context: Context): Query {
 
         val cuisines=listOf("Chinese","Chinese","Chinese","Chinese","Chinese","Chinese","Chinese",
             "Chinese","Chinese","Chinese","Indian","Indian","Indian","Indian","Indian","Indian",
@@ -123,7 +131,7 @@ class HomeViewModel: ViewModel() {
         val loadedData = runBlocking { context.dataStore.data.first() }
 
         loadedData[savedPreferences]?.let {
-            val retrievedData:SettingsObject = try {
+            val retrievedData: SettingsObject = try {
                 Json.decodeFromString<SettingsObject>(it)
             }catch(exception: Exception){
                 SettingsObject(false, false, listOf(), 0, 0, 0, 0)

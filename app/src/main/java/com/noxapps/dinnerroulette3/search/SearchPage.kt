@@ -1,4 +1,4 @@
-package com.noxapps.dinnerroulette3
+package com.noxapps.dinnerroulette3.search
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -38,7 +38,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBarDefaults
@@ -77,6 +76,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.noxapps.dinnerroulette3.AdmobBanner
+import com.noxapps.dinnerroulette3.DrawerAndScaffold
+import com.noxapps.dinnerroulette3.recipe.FreeFavouriteButton
+import com.noxapps.dinnerroulette3.Paths
+import com.noxapps.dinnerroulette3.R
+import com.noxapps.dinnerroulette3.recipe.SavedRecipe
 
 @Composable
 fun SearchPage(
@@ -98,7 +103,7 @@ fun SearchPage(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBlock(recipesList:MutableState<List<SavedRecipe>>,  viewModel: SearchViewModel) {
+fun SearchBlock(recipesList:MutableState<List<SavedRecipe>>, viewModel: SearchViewModel) {
     /**
      * todo:
      * filters:
@@ -523,7 +528,7 @@ fun CusTitButton(modifier:Modifier = Modifier,
                  onClick:()->Unit,
                  iconInit: ImageVector,
                  iconChecked:ImageVector,
-                 colors:CusTitButtonColors = CusTitButtonColors(
+                 colors: CusTitButtonColors = CusTitButtonColors(
                     ButtonBgColorInit = MaterialTheme.colorScheme.primaryContainer,
                     ButtonBgColorChecked = MaterialTheme.colorScheme.primary,
                     TextColorInit = MaterialTheme.colorScheme.onPrimaryContainer,

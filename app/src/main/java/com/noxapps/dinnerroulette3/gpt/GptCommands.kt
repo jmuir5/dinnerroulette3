@@ -1,9 +1,16 @@
-package com.noxapps.dinnerroulette3
+package com.noxapps.dinnerroulette3.gpt
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
+import com.noxapps.dinnerroulette3.ObjectBox
+import com.noxapps.dinnerroulette3.R
+import com.noxapps.dinnerroulette3.recipe.SavedRecipe
+import com.noxapps.dinnerroulette3.dataStore
+import com.noxapps.dinnerroulette3.input.ParsedResponse
+import com.noxapps.dinnerroulette3.input.SettingsObject
+import com.noxapps.dinnerroulette3.savedPreferences
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -151,7 +158,7 @@ fun getImage(prompt: String, context: Context, callback: (GptImageResponse) -> U
  * format.
  * [gptResponse]: source response to decode
  */
-fun parseResponse(gptResponse: GptResponse):ParsedResponse{
+fun parseResponse(gptResponse: GptResponse): ParsedResponse {
     val initialText = gptResponse.choices[0].message.content
     val title = initialText.split("[title]", "[desc]")[1]
     val description = initialText.split("[desc]", "[ingredients]")[1]
@@ -178,7 +185,7 @@ fun generatePrompt(context:Context, flag:Int):String{
     val loadedData = runBlocking { context.dataStore.data.first() }
     loadedData[savedPreferences]?.let{
         Log.d("saved preferences", it)
-        val retrievedData:SettingsObject = try {
+        val retrievedData: SettingsObject = try {
             Json.decodeFromString<SettingsObject>(it)
         }catch(exception: MissingFieldException){
             SettingsObject(false, false, listOf(), 0, 0, 0, 0)

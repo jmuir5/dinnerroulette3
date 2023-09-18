@@ -1,10 +1,14 @@
-package com.noxapps.dinnerroulette3
+package com.noxapps.dinnerroulette3.search
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
+import com.noxapps.dinnerroulette3.ObjectBox
+import com.noxapps.dinnerroulette3.R
+import com.noxapps.dinnerroulette3.recipe.SavedRecipe
+import com.noxapps.dinnerroulette3.SavedRecipe_
 import io.objectbox.Box
 import io.objectbox.query.QueryCondition
 import java.io.File
@@ -42,13 +46,13 @@ class SearchViewModel:ViewModel() {
         ):List<SavedRecipe> {
 
         val searchLocQuery = when(searchLoc){
-            1->SavedRecipe_.title.contains(searchText)
-            2->SavedRecipe_.ingredients.contains(searchText)
-            3->SavedRecipe_.cuisine.contains(searchText)
-            4->SavedRecipe_.description.contains(searchText)
-            5->SavedRecipe_.method.contains(searchText)
-            6->SavedRecipe_.notes.contains(searchText)
-            else->SavedRecipe_.title.contains(searchText)
+            1-> SavedRecipe_.title.contains(searchText)
+            2-> SavedRecipe_.ingredients.contains(searchText)
+            3-> SavedRecipe_.cuisine.contains(searchText)
+            4-> SavedRecipe_.description.contains(searchText)
+            5-> SavedRecipe_.method.contains(searchText)
+            6-> SavedRecipe_.notes.contains(searchText)
+            else-> SavedRecipe_.title.contains(searchText)
                 .or(SavedRecipe_.ingredients.contains(searchText))
                 .or(SavedRecipe_.cuisine.contains(searchText))
                 .or(SavedRecipe_.description.contains(searchText))

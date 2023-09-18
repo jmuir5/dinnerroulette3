@@ -1,4 +1,4 @@
-package com.noxapps.dinnerroulette3
+package com.noxapps.dinnerroulette3.gpt
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonNames
 
@@ -13,13 +13,13 @@ class GptResponse(
     val created:Int,
     val model:String,
     val choices:List<GptChoices>,
-    val usage:GptUsage
+    val usage: GptUsage
 )
 
 @Serializable
 class GptChoices(
     val index:Int,
-    val message:GptMessage,
+    val message: GptMessage,
     val finish_reason:String
 )
 

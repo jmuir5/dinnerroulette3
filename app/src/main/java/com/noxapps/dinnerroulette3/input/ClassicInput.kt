@@ -1,6 +1,5 @@
-package com.noxapps.dinnerroulette3
+package com.noxapps.dinnerroulette3.input
 
-import android.app.Activity
 import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -11,19 +10,15 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -63,7 +58,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
@@ -71,7 +65,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.noxapps.dinnerroulette3.DrawerAndScaffold
+import com.noxapps.dinnerroulette3.commons.Indicator
+import com.noxapps.dinnerroulette3.InterstitialAdDialogue
+import com.noxapps.dinnerroulette3.R
+import com.noxapps.dinnerroulette3.UserStore
+import com.noxapps.dinnerroulette3.dataStore
+import com.noxapps.dinnerroulette3.loadInterstitialAd
+import com.noxapps.dinnerroulette3.savedPreferences
 import com.noxapps.dinnerroulette3.ui.theme.md_theme_light_secondaryContainer
+import com.noxapps.dinnerroulette3.usedTokens
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
@@ -171,7 +174,7 @@ fun NewInput(
             }
 
             loadedData[savedPreferences]?.let {
-                val retrievedData:SettingsObject = try {
+                val retrievedData: SettingsObject = try {
                     Json.decodeFromString<SettingsObject>(it)
                 }catch(exception: Exception){
                     SettingsObject(false, false, listOf(), 0, 0, 0, 0)
@@ -186,7 +189,9 @@ fun NewInput(
         val adFrameFlag = remember { mutableStateOf(false) }
         var loadAttempted by remember{mutableStateOf(false)}
         if(!loadAttempted) {
-            loadInterstitialAd(context, viewModel.mInterstitialAd, viewModel.TAG2, context.getString(R.string.build_interstitial_ad_id))
+            loadInterstitialAd(context, viewModel.mInterstitialAd, viewModel.TAG2, context.getString(
+                R.string.build_interstitial_ad_id
+            ))
             loadAttempted=true
         }
         Box(

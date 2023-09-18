@@ -1,6 +1,5 @@
-package com.noxapps.dinnerroulette3
+package com.noxapps.dinnerroulette3.settings.dietpreset
 
-import coil.request.Tags
 import io.objectbox.Box
 import io.objectbox.annotation.Entity
 import io.objectbox.annotation.Id
@@ -21,7 +20,8 @@ public class DietPreset(
 }
 
 fun initiliseDietPreset(box: Box<DietPreset>){
-    box.put(DietPreset(0,
+    box.put(
+        DietPreset(0,
         "Coeliacs Disease",
         0,
         mutableListOf(),
@@ -29,7 +29,8 @@ fun initiliseDietPreset(box: Box<DietPreset>){
         mutableListOf("Gluten"),
         mutableListOf("Gluten Free"))
     )
-    box.put(DietPreset(0,
+    box.put(
+        DietPreset(0,
         "Keto Diet",
         0,
         mutableListOf(),
@@ -37,7 +38,8 @@ fun initiliseDietPreset(box: Box<DietPreset>){
         mutableListOf("Carbohydrates"),
         mutableListOf("Keto Friendly", "High Fat", "No Carbohydrates"))
     )
-    box.put(DietPreset(0,
+    box.put(
+        DietPreset(0,
         "Chron's Preventative Diet",
         0,
         mutableListOf(),
@@ -46,7 +48,8 @@ fun initiliseDietPreset(box: Box<DietPreset>){
         mutableListOf("Chron's Friendly", "Low in insoluble fibre", "Low fibre", "Low fat",
             "Low lactose", "Low in added sugars", "Not Spicy"))
     )
-    box.put(DietPreset(0,
+    box.put(
+        DietPreset(0,
         "Chron's Flare Up Diet",
         0,
         mutableListOf(),
@@ -56,7 +59,8 @@ fun initiliseDietPreset(box: Box<DietPreset>){
             "Low in insoluble fibre", "Low fibre", "Low fat", "Low lactose", "Low in added sugars",
             "Not Spicy"))
     )
-    box.put(DietPreset(0,
+    box.put(
+        DietPreset(0,
         "Atkins Diet",
         0,
         mutableListOf(),
@@ -64,7 +68,8 @@ fun initiliseDietPreset(box: Box<DietPreset>){
         mutableListOf(),
         mutableListOf("Atkins Diet Friendly", "High Protein", "High Fat", "Low Carbohydrates"))
     )
-    box.put(DietPreset(0,
+    box.put(
+        DietPreset(0,
         "GallBladder Diet",
         0,
         mutableListOf(),
@@ -72,7 +77,8 @@ fun initiliseDietPreset(box: Box<DietPreset>){
         mutableListOf("Fried foods","Highly processed foods","Whole milk dairy products"),
         mutableListOf("Gallbladder Friendly", "Low Cholesterol", "Low Fat"))
     )
-    box.put(DietPreset(0,
+    box.put(
+        DietPreset(0,
         "Keto Diet",
         0,
         mutableListOf(),

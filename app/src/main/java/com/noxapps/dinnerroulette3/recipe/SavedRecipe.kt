@@ -1,5 +1,12 @@
-package com.noxapps.dinnerroulette3
+package com.noxapps.dinnerroulette3.recipe
 
+import com.noxapps.dinnerroulette3.gpt.GptChoices
+import com.noxapps.dinnerroulette3.gpt.GptMessage
+import com.noxapps.dinnerroulette3.gpt.GptResponse
+import com.noxapps.dinnerroulette3.gpt.GptUsage
+import com.noxapps.dinnerroulette3.input.ParsedResponse
+import com.noxapps.dinnerroulette3.input.QandA
+import com.noxapps.dinnerroulette3.input.Query
 import io.objectbox.annotation.Entity
 import io.objectbox.annotation.Id
 
@@ -26,7 +33,7 @@ public class SavedRecipe(
     var imageDescription:String?=""
     )  {
 
-    constructor(recipe:QandA, image:String?) : this() {
+    constructor(recipe: QandA, image:String?) : this() {
         meatContent = recipe.question.meatContent
         primaryMeat = recipe.question.primaryMeat
         primaryCarb = recipe.question.primaryCarb
@@ -48,7 +55,7 @@ public class SavedRecipe(
         this.image = image
         imageDescription = recipe.parsed.image
     }
-    constructor(recipe:QandA) : this() {
+    constructor(recipe: QandA) : this() {
         meatContent = recipe.question.meatContent
         primaryMeat = recipe.question.primaryMeat
         primaryCarb = recipe.question.primaryCarb
@@ -80,4 +87,5 @@ val defaultQandA = QandA(
             GptMessage("0", "0"),"finish")
     ),
         GptUsage(1, 1, 2) ),
-    ParsedResponse("1","2", "3", "4", "5", ""))
+    ParsedResponse("1","2", "3", "4", "5", "")
+)

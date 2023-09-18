@@ -2,8 +2,8 @@ package com.noxapps.dinnerroulette3
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.navigation.NavHostController
+import com.noxapps.dinnerroulette3.input.InputViewModel
 
 
 /**

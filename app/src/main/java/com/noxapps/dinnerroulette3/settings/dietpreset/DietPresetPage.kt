@@ -1,4 +1,4 @@
-package com.noxapps.dinnerroulette3
+package com.noxapps.dinnerroulette3.settings.dietpreset
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,7 +33,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -43,12 +42,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.noxapps.dinnerroulette3.search.CusTitButton
+import com.noxapps.dinnerroulette3.DrawerAndScaffold
+import com.noxapps.dinnerroulette3.input.MultiDialog
+import com.noxapps.dinnerroulette3.input.SingleDialog
+import com.noxapps.dinnerroulette3.input.StyledLazyRow
 
 @Composable
 fun DietPresetPage(

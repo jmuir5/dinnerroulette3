@@ -1,7 +1,5 @@
 package com.noxapps.dinnerroulette3
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -37,15 +35,22 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
 import com.google.android.gms.ads.MobileAds
+import com.noxapps.dinnerroulette3.home.HomePage
 import com.noxapps.dinnerroulette3.ui.theme.*
 import io.objectbox.Box
 import io.objectbox.BoxStore
 import kotlinx.coroutines.*
 import kotlin.random.Random
-import com.noxapps.dinnerroulette3.AdMob
+import com.noxapps.dinnerroulette3.input.NewInput
+import com.noxapps.dinnerroulette3.input.SpecificRecipeInput
+import com.noxapps.dinnerroulette3.recipe.Recipe
+import com.noxapps.dinnerroulette3.recipe.SavedRecipe
+import com.noxapps.dinnerroulette3.search.SearchPage
+import com.noxapps.dinnerroulette3.settings.Settings
+import com.noxapps.dinnerroulette3.settings.dietpreset.DietPreset
+import com.noxapps.dinnerroulette3.settings.dietpreset.DietPresetPage
+import com.noxapps.dinnerroulette3.settings.dietpreset.initiliseDietPreset
 
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "saveData")
@@ -375,7 +380,7 @@ fun DrawerAndScaffold(tabt:String, navController:NavHostController, adFlag:Boole
  * composabe Drawer item for recipes
  */
 @Composable
-fun DrawerRecipeItem(input:SavedRecipe,
+fun DrawerRecipeItem(input: SavedRecipe,
                      navController: NavHostController,
                      scope:CoroutineScope,
                      drawerState:DrawerState,
@@ -421,7 +426,7 @@ fun NavMain(navController: NavHostController){//, realm: Realm) {
         composable(Paths.NatLanInput.Path) { NatLanInput(navController = navController) }
         composable(Paths.SpecificRecipeInput.Path) { SpecificRecipeInput(navController = navController) }
         composable(Paths.Settings.Path) { Settings(navController = navController) }
-        composable(Paths.DietPreset.Path){ DietPresetPage(navController = navController)}
+        composable(Paths.DietPreset.Path){ DietPresetPage(navController = navController) }
         composable(Paths.Search.Path) { SearchPage(navController = navController) }
         composable(Paths.Recipe.Path+"/{recipeId}",
             arguments = listOf(

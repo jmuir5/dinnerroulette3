@@ -1,4 +1,4 @@
-package com.noxapps.dinnerroulette3
+package com.noxapps.dinnerroulette3.recipe
 
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
@@ -74,6 +74,14 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.android.gms.ads.rewarded.RewardedAd
+import com.noxapps.dinnerroulette3.AdmobBanner
+import com.noxapps.dinnerroulette3.commons.Indicator
+import com.noxapps.dinnerroulette3.ObjectBox
+import com.noxapps.dinnerroulette3.R
+import com.noxapps.dinnerroulette3.RewardedAdFrame
+import com.noxapps.dinnerroulette3.gpt.getImage
+import com.noxapps.dinnerroulette3.gpt.saveImage
+import com.noxapps.dinnerroulette3.loadRewardedAd
 import java.io.File
 
 
@@ -547,7 +555,7 @@ fun TitleCardLoading(thisRecipe: SavedRecipe, imageHeight:Dp) {
 }
 
 @Composable
-fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>,imageFlag2:MutableState<Boolean>){
+fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>, imageFlag2:MutableState<Boolean>){
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val context = LocalContext.current

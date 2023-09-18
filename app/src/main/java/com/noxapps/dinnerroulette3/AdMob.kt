@@ -41,6 +41,10 @@ import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import com.noxapps.dinnerroulette3.commons.Indicator
+import com.noxapps.dinnerroulette3.gpt.getImage
+import com.noxapps.dinnerroulette3.gpt.saveImage
+import com.noxapps.dinnerroulette3.recipe.SavedRecipe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch

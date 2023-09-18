@@ -1,4 +1,4 @@
-package com.noxapps.dinnerroulette3
+package com.noxapps.dinnerroulette3.commons
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas

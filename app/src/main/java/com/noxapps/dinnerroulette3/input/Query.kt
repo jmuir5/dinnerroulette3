@@ -1,5 +1,6 @@
-package com.noxapps.dinnerroulette3
+package com.noxapps.dinnerroulette3.input
 
+import com.noxapps.dinnerroulette3.gpt.GptResponse
 import kotlinx.serialization.Serializable
 
 
@@ -26,9 +27,9 @@ class Query(
 
 
 class QandA(
-    val question:Query,
-    val raw:GptResponse,
-    val parsed:ParsedResponse
+    val question: Query,
+    val raw: GptResponse,
+    val parsed: ParsedResponse
 )
 
 class ParsedResponse(

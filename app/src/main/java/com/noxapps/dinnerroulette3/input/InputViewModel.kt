@@ -1,26 +1,23 @@
-package com.noxapps.dinnerroulette3
+package com.noxapps.dinnerroulette3.input
 
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.noxapps.dinnerroulette3.ObjectBox
+import com.noxapps.dinnerroulette3.Paths
+import com.noxapps.dinnerroulette3.recipe.SavedRecipe
+import com.noxapps.dinnerroulette3.dataStore
+import com.noxapps.dinnerroulette3.gpt.getResponse
+import com.noxapps.dinnerroulette3.gpt.parseResponse
+import com.noxapps.dinnerroulette3.usedTokens
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.MissingFieldException
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.IOException
-import java.util.concurrent.TimeUnit
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.decodeFromString
 import java.util.Date
 import kotlin.random.Random
 
@@ -40,7 +37,7 @@ class InputViewModel: ViewModel() {
      * used by classic input
      */
 
-    fun generateQuestion(input:Query):String{
+    fun generateQuestion(input: Query):String{
         var question = "give me a recipe for a "
         var meatFlag = 0
         var carbFlag = 0
