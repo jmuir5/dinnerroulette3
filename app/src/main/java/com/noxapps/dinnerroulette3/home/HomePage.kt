@@ -29,6 +29,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.noxapps.dinnerroulette3.BuildConfig
 import com.noxapps.dinnerroulette3.DrawerAndScaffold
 import com.noxapps.dinnerroulette3.InterstitialAdDialogue
 import com.noxapps.dinnerroulette3.ObjectBox
@@ -57,11 +58,13 @@ fun HomePage(
         val painter = remember{ BitmapPainter(image = bitmap.asImageBitmap())}
 
         val adFrameFlag = remember { mutableStateOf(false) }
+        val adReference = if(BuildConfig.DEBUG){
+            LocalContext.current.getString(R.string.test_roulette_interstitial_ad_id)
+        }
+        else LocalContext.current.getString(R.string.roulette_interstitial_ad_id)
 
 
-        loadInterstitialAd(context, viewModel.mInterstitialAd, "Home Page Interstitial", context.getString(
-            R.string.roulette_interstitial_ad_id
-        ))
+        loadInterstitialAd(context, viewModel.mInterstitialAd, "Home Page Interstitial", adReference)
 
         /*mInterstitialAd.value?.fullScreenContentCallback = object: FullScreenContentCallback() {
             override fun onAdClicked() {

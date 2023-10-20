@@ -120,11 +120,16 @@ fun loadInterstitialAd(context: Context, mInterstitialAd: MutableState<Interstit
 }
 
 fun loadRewardedAd(context: Context, mRewardedAd: MutableState<RewardedAd?>, TAG:String){
-    var adRequest = AdRequest.Builder().build()
-
+    val adRequest = AdRequest.Builder().build()
+    val adId = if(BuildConfig.DEBUG){
+        context.getString(R.string.test_rewarded_ad_id)
+    }
+    else {
+        context.getString(R.string.rewarded_ad_id)
+    }
     RewardedAd.load(
         context,
-        context.getString(R.string.rewarded_ad_id),
+        adId,
         adRequest,
         object : RewardedAdLoadCallback() {
             override fun onAdFailedToLoad(adError: LoadAdError) {

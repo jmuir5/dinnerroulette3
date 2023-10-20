@@ -65,6 +65,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.noxapps.dinnerroulette3.BuildConfig
 import com.noxapps.dinnerroulette3.DrawerAndScaffold
 import com.noxapps.dinnerroulette3.commons.Indicator
 import com.noxapps.dinnerroulette3.InterstitialAdDialogue
@@ -177,7 +178,7 @@ fun NewInput(
                 val retrievedData: SettingsObject = try {
                     Json.decodeFromString<SettingsObject>(it)
                 }catch(exception: Exception){
-                    SettingsObject(false, false, listOf(), 0, 0, 0, 0)
+                    SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
                 }
                 meatContentIndex = retrievedData.meatContent
                 budgetIndex = retrievedData.budget
@@ -187,11 +188,13 @@ fun NewInput(
         loadedFlag = true
 
         val adFrameFlag = remember { mutableStateOf(false) }
+        val adReference = if(BuildConfig.DEBUG){
+            LocalContext.current.getString(R.string.test_roulette_interstitial_ad_id)
+        }
+        else LocalContext.current.getString(R.string.roulette_interstitial_ad_id)
         var loadAttempted by remember{mutableStateOf(false)}
         if(!loadAttempted) {
-            loadInterstitialAd(context, viewModel.mInterstitialAd, viewModel.TAG2, context.getString(
-                R.string.build_interstitial_ad_id
-            ))
+            loadInterstitialAd(context, viewModel.mInterstitialAd, viewModel.TAG2, adReference)
             loadAttempted=true
         }
         Box(
@@ -836,7 +839,15 @@ fun MultiDialog(
                         stateValue.value = false
                         text = ""
                     }) {
-                        Text(text = "Retrun")
+                        Text(text = "Return")
+                    }
+                    Button(onClick = {
+                        if(text.isNotEmpty()) {
+                            array.add(text)
+                            text = ""
+                        }
+                    }) {
+                        Text(text = "Add")
                     }
                 }
             }
@@ -929,7 +940,16 @@ fun SingleDialog(
                         data.value = ""
                         text = ""
                     }) {
-                        Text(text = "Remove")
+                        Text(text = "Clear")
+                    }
+                    Button(onClick = {
+                        if (text.isNotEmpty()) {
+                            data.value = text
+                            stateValue.value = false
+                            text = ""
+                        }
+                    }) {
+                        Text(text = "Save")
                     }
                 }
 

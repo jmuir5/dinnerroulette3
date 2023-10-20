@@ -30,6 +30,11 @@ import java.net.URL
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
+private val client = OkHttpClient.Builder()
+    .connectTimeout(300, TimeUnit.SECONDS)
+    .writeTimeout(300, TimeUnit.SECONDS)
+    .readTimeout(300, TimeUnit.SECONDS)
+    .build()
 
 /**
  * file containing common functions used for communicating with chat gpt
@@ -42,21 +47,16 @@ import java.util.concurrent.TimeUnit
  * [flag]: int flag for use with generatePrompt() indicating source/version of prompt that needs tobe generated
  * [callback] : GptResponse returned to parent function
  */
-fun getResponse(question: String, context: Context, flag:Int, callback: (GptResponse) -> Unit){
-    val client = OkHttpClient.Builder()
-        .connectTimeout(300, TimeUnit.SECONDS)
-        .writeTimeout(300, TimeUnit.SECONDS)
-        .readTimeout(300, TimeUnit.SECONDS)
-        .build()
+fun getResponse(question: String, context: Context, flag: Int, callback: (GptResponse) -> Unit) {
 
-    val apiKey= context.getString(R.string.api_Key)
+    val apiKey = context.getString(R.string.api_Key)
     Log.e("key", apiKey)
-    val url="https://api.openai.com/v1/chat/completions"
+    val url = "https://api.openai.com/v1/chat/completions"
 
     val prompt = generatePrompt(context, flag)
     Log.e("system", prompt)
 
-    val requestBody="""
+    val requestBody = """
             {
             "model": "gpt-3.5-turbo",
             "messages": [{"role": "system", "content": "$prompt"},{"role": "user", "content":"$question"}]
@@ -73,16 +73,15 @@ fun getResponse(question: String, context: Context, flag:Int, callback: (GptResp
 
     client.newCall(request).enqueue(object : Callback {
         override fun onFailure(call: Call, e: IOException) {
-            Log.e("error","API failed",e)
+            Log.e("error", "API failed", e)
         }
 
         override fun onResponse(call: Call, response: Response) {
-            val body=response.body?.string()
+            val body = response.body?.string()
             if (body != null) {
-                Log.v("data",body)
-            }
-            else{
-                Log.v("data","empty")
+                Log.v("data", body)
+            } else {
+                Log.v("data", "empty")
             }
             val output = body?.let { Json.decodeFromString<GptResponse>(it) }
             //val jsonObject= JSONObject(body)
@@ -99,21 +98,16 @@ fun getResponse(question: String, context: Context, flag:Int, callback: (GptResp
  * [context]: context (LocalContext.Current, usually)
  * [callback] : GptImageResponse returned to parent function
  */
-fun getImage(prompt: String, context: Context, callback: (GptImageResponse) -> Unit){
-    val client = OkHttpClient.Builder()
-        .connectTimeout(300, TimeUnit.SECONDS)
-        .writeTimeout(300, TimeUnit.SECONDS)
-        .readTimeout(300, TimeUnit.SECONDS)
-        .build()
+fun getImage(prompt: String, context: Context, callback: (GptImageResponse) -> Unit) {
 
-    val apiKey= context.getString(R.string.api_Key)
+    val apiKey = context.getString(R.string.api_Key)
     Log.e("key", apiKey)
-    val url="https://api.openai.com/v1/images/generations"
+    val url = "https://api.openai.com/v1/images/generations"
 
     //val prompt = generatePrompt(context, flag)
     Log.e("system", prompt)
 
-    val requestBody="""
+    val requestBody = """
             {
             "prompt": "$prompt",
             "n": 1,
@@ -131,16 +125,15 @@ fun getImage(prompt: String, context: Context, callback: (GptImageResponse) -> U
 
     client.newCall(request).enqueue(object : Callback {
         override fun onFailure(call: Call, e: IOException) {
-            Log.e("error","API failed",e)
+            Log.e("error", "API failed", e)
         }
 
         override fun onResponse(call: Call, response: Response) {
-            val body=response.body?.string()
+            val body = response.body?.string()
             if (body != null) {
-                Log.v("data",body)
-            }
-            else{
-                Log.v("data","empty")
+                Log.v("data", body)
+            } else {
+                Log.v("data", "empty")
             }
             val output = body?.let { Json.decodeFromString<GptImageResponse>(it) }
             //val jsonObject= JSONObject(body)
@@ -166,7 +159,14 @@ fun parseResponse(gptResponse: GptResponse): ParsedResponse {
     val method = initialText.split("[method]", "[notes]")[1]
     val notes = initialText.split("[notes]", "[image]")[1]
     val image = initialText.split("[image]")[1]
-    return ParsedResponse(title.trim(), description.trim(), ingredients.trim(), method.trim(), notes.trim(), image.trim())
+    return ParsedResponse(
+        title = title.trim(),
+        description = description.trim(),
+        ingredients = ingredients.trim(),
+        method = method.trim(),
+        notes = notes.trim(),
+        image = image.trim()
+    )
 }
 
 /**
@@ -175,55 +175,59 @@ fun parseResponse(gptResponse: GptResponse): ParsedResponse {
  * with [flag])
  */
 @OptIn(ExperimentalSerializationApi::class)
-fun generatePrompt(context:Context, flag:Int):String{
-    var imperial=false
+fun generatePrompt(context: Context, flag: Int): String {
+    var imperial = false
     var fahrenheit = false
-    val allergens = mutableListOf<String>()
+//    val allergens = mutableListOf<String>()
     var skill = 0
     var diet = 0L
     var meatContent = 0
     val loadedData = runBlocking { context.dataStore.data.first() }
-    loadedData[savedPreferences]?.let{
-        Log.d("saved preferences", it)
-        val retrievedData: SettingsObject = try {
-            Json.decodeFromString<SettingsObject>(it)
-        }catch(exception: MissingFieldException){
-            SettingsObject(false, false, listOf(), 0, 0, 0, 0)
-        }
-        imperial=retrievedData.imperial
-        fahrenheit=retrievedData.fahrenheit
-        skill = retrievedData.skill
-        retrievedData.allergens.forEach(){ allergen->
-            if(!allergens.contains(allergen))allergens.add(allergen)
-        }
-        diet= retrievedData.dietPreset
-        meatContent = retrievedData.meatContent
-
+    val retrievedData: SettingsObject = try {
+        Json.decodeFromString<SettingsObject>(loadedData[savedPreferences]!!)
+    } catch (exception: MissingFieldException) {
+        SettingsObject(
+            imperial = false,
+            fahrenheit = false,
+            allergens = listOf(),
+            skill = 0,
+            dietPreset = 0,
+            meatContent = 0,
+            budget = 0,
+            imageCredits = 2
+        )
     }
-    var skillText="a beginner"
-    when(skill){
-        1-> skillText="an intermediate"
-        2-> skillText="an expert"
+    imperial = retrievedData.imperial
+    fahrenheit = retrievedData.fahrenheit
+    skill = retrievedData.skill
+    val allergens = retrievedData.allergens.toSet()
+    diet = retrievedData.dietPreset
+    meatContent = retrievedData.meatContent
+
+    var skillText = "a beginner"
+    when (skill) {
+        1 -> skillText = "an intermediate"
+        2 -> skillText = "an expert"
     }
 
     var allergenText = ""
-    if(allergens.size>0){
-        allergenText=" who is algergic to or intolerant of the following: "
-        allergens.forEach { allergenText+="$it, " }
-        allergenText+="."
+    if (allergens.size > 0) {
+        allergenText = " who is algergic to or intolerant of the following: "
+        allergens.forEach { allergenText += "$it, " }
+        allergenText += "."
     }
     var unit1Text = "metric"
-    if (imperial)unit1Text="imperial"
+    if (imperial) unit1Text = "imperial"
 
     var unit2Text = "celsius"
-    if (fahrenheit)unit2Text = "fahrenheit"
+    if (fahrenheit) unit2Text = "fahrenheit"
 
     var dietText = ""
     //if (diet.isNotEmpty()) dietText = "The recipe should be suitable for a $diet diet"
 
-    val prompt=when(flag){
-        1-> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText. $dietText The prompt will end with [fin], indicating the intended end of the prompt. include a recommendation for an appropriate carbohydrate component or accompaniment. you are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
-        else-> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText. $dietText The prompt will end with [fin], indicating the intended end of the prompt. the prompt will include a primary protein and a primary carbohydrate. for example, if the prompt requests a 'chinese lamb dish', lamb is the primary protein. if the prompt includes additional sources of protein or carbohydrate include them both, but make the primary protein or carbohydrate more prominent. be sure to give the recipe an appropriate name. You are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
+    val prompt = when (flag) {
+        1 -> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText. $dietText The prompt will end with [fin], indicating the intended end of the prompt. include a recommendation for an appropriate carbohydrate component or accompaniment. you are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
+        else -> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText. $dietText The prompt will end with [fin], indicating the intended end of the prompt. the prompt will include a primary protein and a primary carbohydrate. for example, if the prompt requests a 'chinese lamb dish', lamb is the primary protein. if the prompt includes additional sources of protein or carbohydrate include them both, but make the primary protein or carbohydrate more prominent. be sure to give the recipe an appropriate name. You are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
 
     }
 
@@ -241,8 +245,13 @@ fun generatePrompt(context:Context, flag:Int):String{
  * [imageUrl]: string representation of the image url to be saved
  * [callback]: returns whether or not the function succeds or fails. perhaps theres a better way to do this?
  */
-fun saveImage(context: Context, savedRecipe: SavedRecipe, imageUrl:String, callback:(Boolean)->Unit){
-    val name = savedRecipe.title?.replace(" ", "_")+LocalDateTime.now().toString()
+fun saveImage(
+    context: Context,
+    savedRecipe: SavedRecipe,
+    imageUrl: String,
+    callback: (Boolean) -> Unit
+) {
+    val name = savedRecipe.title?.replace(" ", "_") + LocalDateTime.now().toString()
     val currentFile = File(context.filesDir, name)
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
 
@@ -252,10 +261,11 @@ fun saveImage(context: Context, savedRecipe: SavedRecipe, imageUrl:String, callb
     currentFile.outputStream().use {
         image.compress(Bitmap.CompressFormat.PNG, 100, it)
 
-        savedRecipe.image=name
+        savedRecipe.image = name
         recipeBox.put(savedRecipe)
         callback(true)
     }
+    image.recycle()
 
 
 }

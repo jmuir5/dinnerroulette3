@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -83,6 +85,8 @@ fun Settings(
         var budgetIndex by remember {mutableStateOf(0)}
         val budgetItems = listOf("Select...","$","$$","$$$")
 
+        var imageCredits by remember{ mutableStateOf(0)}
+
         var saveMessage = remember { mutableStateOf(false) }
 
         var loadedFlag by remember { mutableStateOf(false) }
@@ -96,7 +100,7 @@ fun Settings(
                 val retrievedData: SettingsObject = try {
                     Json.decodeFromString<SettingsObject>(it)
                 }catch(exception: Exception){
-                    SettingsObject(false, false, listOf(), 0, 0, 0, 0)
+                    SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
                 }
                 imperial.value = retrievedData.imperial
                 fahrenheit.value = retrievedData.fahrenheit
@@ -107,6 +111,7 @@ fun Settings(
                 dietId.value = retrievedData.dietPreset
                 meatContentIndex = retrievedData.meatContent
                 budgetIndex = retrievedData.budget
+                imageCredits = retrievedData.imageCredits
 
             }
             loadedFlag = true
@@ -137,7 +142,9 @@ fun Settings(
                         )
                         Text(
                             text = meatContent[meatContentIndex],
-                            textAlign = TextAlign.End, modifier = Modifier
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier
                                 .fillMaxWidth()
                         )
                     }
@@ -290,7 +297,9 @@ fun Settings(
                         )
                         Text(
                             text = skillLevel[skillLevelIndex],
-                            textAlign = TextAlign.End, modifier = Modifier
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier
                                 .fillMaxWidth()
                         )
                     }
@@ -325,7 +334,8 @@ fun Settings(
                                 skillLevelIndex,
                                 dietId.value,
                                 meatContentIndex,
-                                budgetIndex
+                                budgetIndex,
+                                imageCredits
                             )
                             scope.launch {
                                 context.dataStore.edit { settings ->
@@ -336,6 +346,60 @@ fun Settings(
                             Text(text = "Save")
                         }
                     }
+                    Spacer(modifier = Modifier.size(48.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+
+                    ) {
+                        Text(
+                            text = "Current Image Credits:",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text =  imageCredits.toString()
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+
+                    ) {
+                        Button(onClick = {
+                            navController.navigate(Paths.Redeem.Path)
+                        }) {
+                            Text(
+                                text =  "Purchase Image Credits"
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.size(48.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+
+                    ) {
+                        Text(
+                            text = "Redeem Code",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Button(onClick = {
+                            navController.navigate(Paths.Redeem.Path)
+                        }) {
+                            Text(
+                                text =  "->"
+                            )
+                        }
+                    }
+
                 }
             }
             if (saveMessage.value) {

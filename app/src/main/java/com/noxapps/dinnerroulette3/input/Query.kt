@@ -51,6 +51,7 @@ class SettingsObject(
     val skill:Int,
     val dietPreset:Long,
     val meatContent:Int,
-    val budget:Int
+    val budget:Int,
+    var imageCredits:Int,
 
-)
+    )

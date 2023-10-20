@@ -29,6 +29,7 @@ import kotlinx.serialization.json.Json
 import java.util.Date
 import kotlin.math.abs
 import kotlin.random.Random
+import kotlin.random.Random.Default.nextInt
 
 /**
  * view model for the home page, holding home page related functions and variables
@@ -50,7 +51,7 @@ class HomeViewModel: ViewModel() {
      * response from chat gpt then navigates to the apropriate recipe page once its created
      */
     fun executeRandom(flag: MutableState<Boolean>, context: Context, navController: NavHostController){
-        var randQuery = getRandomQuery(abs(Random(Date().time).nextInt()), context)
+        var randQuery = getRandomQuery(abs(nextInt()), context)
         val randQuestion = getRandomQuestion(randQuery)
         flag.value = true
 
@@ -88,31 +89,43 @@ class HomeViewModel: ViewModel() {
      */
     fun getRandomQuery(seed:Int, context: Context): Query {
 
-        val cuisines=listOf("Chinese","Chinese","Chinese","Chinese","Chinese","Chinese","Chinese",
-            "Chinese","Chinese","Chinese","Indian","Indian","Indian","Indian","Indian","Indian",
-            "Indian","Indian","Indian","Indian","Japanese","Japanese","Japanese","Japanese",
-            "Japanese","Japanese","Japanese","Japanese", "Thai","Thai","Thai","Thai","Thai","Thai",
-            "Thai","Thai","Korean","Korean","Korean","Korean","Korean","Korean","Vietnamese",
-            "Vietnamese","Vietnamese","Vietnamese","Filipino","Malaysian","Indonesian","Pakistani","Iranian","Afghan","SriLankan","Bangladeshi",
-            "Nepalese","Bhutanese","Mongolian","Tibetan","Cambodian","Italian","French","Italian",
-            "French","Italian","French","Italian","French","Italian","French","Italian","French",
-            "Italian","French","Italian","French","Italian","French","Italian","French","Spanish",
-            "Spanish","Spanish","Spanish","Spanish","Spanish","Spanish","Spanish","Greek","Greek",
-            "Greek","Greek","Greek","Greek","Turkish","British","German","British","German",
-            "British","German","British","German","British","German","British","German","Russian",
-            "Russian","Russian","Russian","Finnish","Swedish","Norwegian","Polish","Hungarian",
-            "Lebanese","Lebanese","Lebanese","Lebanese","Lebanese","Lebanese","Lebanese","Lebanese",
-            "Israeli","Egyptian","Israeli","Egyptian","Israeli","Egyptian","Israeli","Egyptian",
-            "Moroccan","Moroccan","Moroccan","Moroccan","Mexican","Mexican","Mexican","Mexican",
-            "Mexican","Mexican","Mexican","Mexican","Mexican","Mexican","Italian-American",
-            "Italian-American","Italian-American","Italian-American","Brazilian","Peruvian",
-            "Argentinian","Colombian","Chilean","Brazilian","Peruvian", "Argentinian","Colombian",
-            "Chilean","Brazilian","Peruvian","Argentinian","Colombian","Chilean","Ethiopian",
-            "South African","Caribbean","Australian","Caribbean","Australian","Caribbean",
-            "Australian","Caribbean","Australian","Caribbean","Australian","Caribbean","Australian",
-            "Caribbean","Australian","Caribbean","Australian","Cuban","Russian","Finnish",
-            "Norwegian","Hungarian","Tibetan","Afghan","Bhutanese","Kuwaiti","SaudiArabian",
-            "Emirati","Omani","Qatari","Bahraini","Jordanian","Iraqi","Palestinian","Yemeni")
+        val chinese = (0..10).map { "Chinese" }
+        val indian = (0..10).map { "Indian" }
+        val japanese = (0..8).map { "Japanese" }
+        val thai = (0..8).map { "Thai" }
+        val korean = (0..6).map { "Korean" }
+        val vietnamese = (0..4).map { "Vietnamese" }
+        val italian = (0..10).map { "Italian" }
+        val french = (0..10).map { "French" }
+        val spanish = (0..8).map { "Spanish" }
+        val greek = (0..6).map { "Greek" }
+        val british = (0..6).map { "British" }
+        val german = (0..6).map { "German" }
+        val russian = (0..4).map { "Russian" }
+        val lebanese = (0..8).map { "Lebanese" }
+        val israeli = (0..4).map { "Israeli" }
+        val egyptian = (0..4).map { "Egyptian" }
+        val moroccan = (0..4).map { "Moroccan" }
+        val mexican = (0..10).map { "Mexican" }
+        val itamerican = (0..4).map { "Italian-American" }
+        val brazilian = (0..4).map { "Brazilian" }
+        val peruvian = (0..4).map { "Peruvian" }
+        val argentinian = (0..4).map { "Argentinian" }
+        val colombian = (0..4).map { "Colombian" }
+        val chilean = (0..4).map { "Chilean" }
+        val caribbean = (0..8).map { "Caribbean" }
+        val australian = (0..8).map { "Australian" }
+        val cuisines = chinese + indian + japanese + thai + korean + vietnamese +italian+french+
+                spanish+greek+british+german+russian+lebanese+israeli+ egyptian+moroccan+
+                mexican+itamerican+brazilian+peruvian+argentinian+colombian +chilean+caribbean+
+                australian+
+                listOf( "Filipino","Malaysian","Indonesian","Pakistani","Iranian","Afghan",
+                    "SriLankan","Bangladeshi","Nepalese","Bhutanese","Mongolian","Tibetan",
+                    "Cambodian","Turkish","Finnish","Swedish","Norwegian","Polish","Hungarian", 
+                    "Ethiopian", "South African","Cuban","Russian","Finnish", "Norwegian",
+                    "Hungarian","Tibetan","Afghan","Bhutanese","Kuwaiti","SaudiArabian", "Emirati",
+                    "Omani","Qatari","Bahraini","Jordanian","Iraqi","Palestinian","Yemeni")
+
         val protein = listOf("Chicken","Beef","Chicken","Beef","Chicken","Beef","Chicken","Beef",
             "Chicken","Beef","Chicken","Beef","Chicken","Beef","Chicken","Beef","Chicken","Beef",
             "Chicken","Beef","Pork","Pork","Pork","Pork","Pork","Pork","Pork","Pork","Lamb","Lamb",
@@ -134,14 +147,12 @@ class HomeViewModel: ViewModel() {
             val retrievedData: SettingsObject = try {
                 Json.decodeFromString<SettingsObject>(it)
             }catch(exception: Exception){
-                SettingsObject(false, false, listOf(), 0, 0, 0, 0)
+                SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
             }
             meatContentIndex = retrievedData.meatContent
             budgetIndex = if(retrievedData.budget>0) retrievedData.budget
                 else seed%4
         }
-
-
 
         var vegFlag = "Yes"
         when(meatContentIndex){

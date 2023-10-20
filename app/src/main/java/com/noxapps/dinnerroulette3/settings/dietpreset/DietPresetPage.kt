@@ -69,21 +69,11 @@ fun DietPresetPage(
 
 
     var meatContentIndex by remember { mutableStateOf(0) }
-    val meatContentItems = listOf("Yes", "No - Vegetarian", "No - Vegan")
 
-    val primaryMeatItems = listOf(
-        "Beef",
-        "Chicken",
-        "Pork",
-        "Lamb",
-        "Shellfish",
-        "Salmon",
-        "White Fish"
-    )
+
     val primaryMeatValues = mutableListOf<MutableState<Boolean>>()
     val primaryMeatIcons = Pair(Icons.Outlined.NoFood, Icons.Filled.Fastfood)//todo custom icons?
 
-    val primaryCarbItems = listOf("Pasta", "Potato", "Rice", "Noodles", "Bread", "Other")
     val primaryCarbValues = mutableListOf<MutableState<Boolean>>()
     val primaryCarbIcons = Pair(Icons.Outlined.NoFood, Icons.Filled.Fastfood)//todo custom icons?
 
@@ -170,7 +160,7 @@ fun DietPresetPage(
                                 .padding(24.dp, 4.dp),
 
                             ) {
-                            meatContentItems.forEachIndexed() { index, s ->
+                            viewModel.meatContentItems.forEachIndexed() { index, s ->
                                 DropdownMenuItem(
                                     onClick = {
                                         meatContentIndex = index
@@ -190,7 +180,7 @@ fun DietPresetPage(
                             }
                         }
                         Text(
-                            text = meatContentItems[meatContentIndex],
+                            text = viewModel.meatContentItems[meatContentIndex],
                             color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.titleMedium,
                             textAlign = TextAlign.End,
@@ -208,7 +198,7 @@ fun DietPresetPage(
                             .padding(24.dp, 24.dp, 24.dp, 0.dp)
                     )
                     TITLazyRow(
-                        values = primaryMeatItems,
+                        values = viewModel.primaryMeatItems,
                         states = primaryMeatValues,
                         icons = primaryMeatIcons,
                         24.dp
@@ -221,7 +211,7 @@ fun DietPresetPage(
                         .padding(24.dp, 24.dp, 24.dp, 0.dp)
                 )
                 TITLazyRow(
-                    values = primaryCarbItems,
+                    values = viewModel.primaryCarbItems,
                     states = primaryCarbValues,
                     icons = primaryCarbIcons,
                     24.dp

@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModel
 import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.recipe.SavedRecipe
-import com.noxapps.dinnerroulette3.SavedRecipe_
+import com.noxapps.dinnerroulette3.recipe.SavedRecipe_
 import io.objectbox.Box
 import io.objectbox.query.QueryCondition
 import java.io.File

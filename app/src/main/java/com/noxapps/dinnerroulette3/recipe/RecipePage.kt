@@ -2,6 +2,7 @@ package com.noxapps.dinnerroulette3.recipe
 
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -51,6 +52,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,16 +74,28 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavHostController
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.noxapps.dinnerroulette3.AdmobBanner
+import com.noxapps.dinnerroulette3.BuildConfig
 import com.noxapps.dinnerroulette3.commons.Indicator
 import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.RewardedAdFrame
+import com.noxapps.dinnerroulette3.code1State
+import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.gpt.getImage
 import com.noxapps.dinnerroulette3.gpt.saveImage
+import com.noxapps.dinnerroulette3.input.SettingsObject
 import com.noxapps.dinnerroulette3.loadRewardedAd
+import com.noxapps.dinnerroulette3.savedPreferences
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.File
 
 
@@ -365,6 +379,10 @@ fun RecipeBody(
     thisRecipe: SavedRecipe
 ) {
     val parsedIngredients = thisRecipe.ingredients?.split("\n")
+    val adReference = if(BuildConfig.DEBUG){
+        LocalContext.current.getString(R.string.test_scaffold_banner_ad_id)
+    }
+    else LocalContext.current.getString(R.string.scaffold_banner_ad_id)
     Column(
         modifier = Modifier
             .padding(24.dp)
@@ -380,7 +398,7 @@ fun RecipeBody(
             AdmobBanner(modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-                reference = LocalContext.current.getString(R.string.recipe_banner_ad_id)
+                reference = adReference
             )
         }
         Spacer(modifier = Modifier.size(10.dp))
@@ -431,7 +449,7 @@ fun RecipeBody(
             AdmobBanner(modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-                reference = LocalContext.current.getString(R.string.recipe_banner_ad_id)
+                reference = adReference
             )
         }
         Spacer(modifier = Modifier.size(10.dp))
@@ -451,7 +469,7 @@ fun RecipeBody(
             AdmobBanner(modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-                reference = LocalContext.current.getString(R.string.recipe_banner_ad_id)
+                reference = adReference
             )
         }
         Spacer(modifier = Modifier.size(10.dp))
@@ -559,6 +577,7 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>, imag
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     val TAG = "recipe Image Rewarded"
 
@@ -569,6 +588,24 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>, imag
         loadAttempted=true
     }
     var imageCredits = 0
+
+    var loadedFlag by remember { mutableStateOf(false) }
+
+    if (!loadedFlag) {
+        val loadedData = runBlocking { context.dataStore.data.first() }
+
+        loadedData[savedPreferences]?.let {
+            val retrievedData: SettingsObject = try {
+                Json.decodeFromString<SettingsObject>(it)
+            }catch(exception: Exception){
+                SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
+            }
+            imageCredits = retrievedData.imageCredits
+
+        }
+        loadedFlag = true
+    }
+
     var adFrameFlag = remember{ mutableStateOf(false) }
 
 
@@ -608,6 +645,20 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>, imag
                             .padding(24.dp),
                         onClick = {
                             if(imageCredits>0) {
+                                val loadedData = runBlocking { context.dataStore.data.first() }
+                                loadedData[savedPreferences]?.let {
+                                    val retrievedData: SettingsObject = try {
+                                        Json.decodeFromString<SettingsObject>(it)
+                                    }catch(exception: Exception){
+                                        SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
+                                    }
+                                    retrievedData.imageCredits-=1
+                                    scope.launch {
+                                        context.dataStore.edit { settings ->
+                                            settings[savedPreferences] = Json.encodeToString(retrievedData)
+                                        }
+                                    }
+                                }
                                 imageFlag.value = true
                                 getImage(it, context) {
                                     saveImage(context, thisRecipe, it.data[0].url) { it2 ->

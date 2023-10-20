@@ -24,9 +24,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -43,39 +46,46 @@ import io.objectbox.BoxStore
 import kotlinx.coroutines.*
 import kotlin.random.Random
 import com.noxapps.dinnerroulette3.input.NewInput
+import com.noxapps.dinnerroulette3.input.SettingsObject
 import com.noxapps.dinnerroulette3.input.SpecificRecipeInput
 import com.noxapps.dinnerroulette3.recipe.Recipe
 import com.noxapps.dinnerroulette3.recipe.SavedRecipe
+import com.noxapps.dinnerroulette3.recipe.SavedRecipe_
 import com.noxapps.dinnerroulette3.search.SearchPage
+import com.noxapps.dinnerroulette3.settings.RedeemCode
 import com.noxapps.dinnerroulette3.settings.Settings
 import com.noxapps.dinnerroulette3.settings.dietpreset.DietPreset
 import com.noxapps.dinnerroulette3.settings.dietpreset.DietPresetPage
 import com.noxapps.dinnerroulette3.settings.dietpreset.initiliseDietPreset
+import kotlinx.coroutines.flow.first
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlin.coroutines.CoroutineContext
 
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "saveData")
 val savedPreferences = stringPreferencesKey("savedPreferences")
+val code1State = booleanPreferencesKey("code1State")
 val usedTokens = intPreferencesKey("usedTokens")
+val firstRun = booleanPreferencesKey("firstRun")
 
 /**
  * main activity file
  */
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        private const val TAG = "MainActivity"
+    }
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("objextbox crash test", "init - before")
-        try{
-            ObjectBox.init(this)
-        }catch(_:Exception){
-            ObjectBox.store.close()
-            ObjectBox.init(this)
-        }
-        var presetBox = ObjectBox.store.boxFor(DietPreset::class.java)
+        Log.d(TAG, "init - before")
+        val presetBox = ObjectBox.store.boxFor(DietPreset::class.java)
         if(presetBox.isEmpty) initiliseDietPreset(presetBox)
 
         Log.d("objextbox crash test", "init - after")
-        MobileAds.initialize(this) { }
+
 
 
         ReminderNotificationWorker.schedule(this, 16, 0)
@@ -99,6 +109,14 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     //color = com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange//MaterialTheme.colorScheme.background
                 ) {
+                    val context = LocalContext.current
+                    val loadedData = runBlocking { context.dataStore.data.first() }
+                    Log.d("datastore", "checking")
+                    if (loadedData[firstRun] == null) {
+                        Log.d("datastore", "Init required")
+
+                        initialiseDataStore(context, rememberCoroutineScope())
+                    }
                     val navController = rememberNavController()
                     NavMain(navController)
 
@@ -357,13 +375,17 @@ fun DrawerAndScaffold(tabt:String, navController:NavHostController, adFlag:Boole
                         content()
                     }
                     if(adFlag){
+                        val adReference = if(BuildConfig.DEBUG){
+                            LocalContext.current.getString(R.string.test_scaffold_banner_ad_id)
+                        }
+                        else LocalContext.current.getString(R.string.scaffold_banner_ad_id)
                         Row(){
                             Spacer(modifier = Modifier
                                 .height(50.dp))
                             AdmobBanner(modifier = Modifier
                                 .fillMaxWidth()
                                 .height(50.dp),
-                                reference = LocalContext.current.getString(R.string.scaffold_banner_ad_id)
+                                reference = adReference
                             )
                         }
                     }
@@ -428,6 +450,7 @@ fun NavMain(navController: NavHostController){//, realm: Realm) {
         composable(Paths.Settings.Path) { Settings(navController = navController) }
         composable(Paths.DietPreset.Path){ DietPresetPage(navController = navController) }
         composable(Paths.Search.Path) { SearchPage(navController = navController) }
+        composable(Paths.Redeem.Path) { RedeemCode(navController = navController) }
         composable(Paths.Recipe.Path+"/{recipeId}",
             arguments = listOf(
                 navArgument("recipeId") { type = NavType.LongType })) {
@@ -536,4 +559,18 @@ fun randomFavourite(box:Box<SavedRecipe>):Long{
     val query = box.query(SavedRecipe_.favourite.equal(true)).build()
     val allFaves = query.findIds()
     return allFaves[Random.nextInt(allFaves.size)]
+}
+
+fun initialiseDataStore(context:Context, scope:CoroutineScope){
+    Log.d("datastore", "Init started")
+
+    val defaultSettings = SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
+    scope.launch {
+        context.dataStore.edit { settings ->
+            settings[savedPreferences] = Json.encodeToString(defaultSettings)
+            settings[code1State] = false
+            settings[firstRun] = true
+        }
+        Log.d("datastore", "Init successfull")
+    }
 }

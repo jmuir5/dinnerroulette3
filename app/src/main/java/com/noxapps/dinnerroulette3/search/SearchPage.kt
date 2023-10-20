@@ -77,6 +77,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.noxapps.dinnerroulette3.AdmobBanner
+import com.noxapps.dinnerroulette3.BuildConfig
 import com.noxapps.dinnerroulette3.DrawerAndScaffold
 import com.noxapps.dinnerroulette3.recipe.FreeFavouriteButton
 import com.noxapps.dinnerroulette3.Paths
@@ -362,6 +363,10 @@ fun SearchBlock(recipesList:MutableState<List<SavedRecipe>>, viewModel: SearchVi
 @Composable
 fun RecipeList(recipesList:List<SavedRecipe>, navController: NavHostController, viewModel: SearchViewModel){
     var counter = 0
+    val adReference = if(BuildConfig.DEBUG){
+        LocalContext.current.getString(R.string.test_scaffold_banner_ad_id)
+    }
+    else LocalContext.current.getString(R.string.scaffold_banner_ad_id)
     LazyColumn{
         for (i in recipesList.indices step(3)){
             counter+=1
@@ -392,7 +397,7 @@ fun RecipeList(recipesList:List<SavedRecipe>, navController: NavHostController, 
                         AdmobBanner(modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
-                            reference = LocalContext.current.getString(R.string.search_banner_ad_id)
+                            reference = adReference
                         )
                     }
                 }

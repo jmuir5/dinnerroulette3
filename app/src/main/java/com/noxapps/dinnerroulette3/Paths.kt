@@ -13,5 +13,6 @@ sealed class Paths(val Path:String) {
     object DietPreset:Paths("DietPreset")
     object Recipe:Paths("Recipe")
     object Error:Paths("Error")
+    object Redeem:Paths("Redeem")
 
 }

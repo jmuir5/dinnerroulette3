@@ -19,19 +19,28 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import java.lang.Math.log
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
 import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.TimeUnit
 import kotlin.math.ln
 import kotlin.random.Random
+import kotlin.time.toKotlinDuration
 
 
-class NotificationService(private val context: Context){
+class NotificationService(private val context: Context) {
     val notificationContent = listOf(
         listOf(
             Pair("Not sure what to make?", "Generate a new recipe now!"),//full rulette
@@ -63,14 +72,14 @@ class NotificationService(private val context: Context){
     fun createReminderNotification() {
         //  No back-stack when launched
         val rand = Random(Date().time)
-        val rand1 = rand.nextInt()%4
-        val rand2 = rand.nextInt()%notificationContent[rand1].size
-        val destination = when(rand1){
-            0->"Home"
-            1->"SpecificRecipeInput"
-            2->"NewInput"
-            3->"Search"
-            else->"Home"
+        val rand1 = rand.nextInt() % 4
+        val rand2 = rand.nextInt() % notificationContent[rand1].size
+        val destination = when (rand1) {
+            0 -> "Home"
+            1 -> "SpecificRecipeInput"
+            2 -> "NewInput"
+            3 -> "Search"
+            else -> "Home"
         }
 
         val intent = Intent(
@@ -99,8 +108,10 @@ class NotificationService(private val context: Context){
                     Manifest.permission.POST_NOTIFICATIONS
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                ActivityCompat.requestPermissions(context as Activity,
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS), 0)
+                ActivityCompat.requestPermissions(
+                    context as Activity,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS), 0
+                )
                 // TODO: Consider calling
                 //    ActivityCompat#requestPermissions
                 // here to request the missing permissions, and then overriding
@@ -113,14 +124,16 @@ class NotificationService(private val context: Context){
             notify(1, builder.build())
         }
     }
+
     private fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "Daily Reminders"
             val descriptionText = "This channel sends daily reminders to add your transactions"
             val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel("chef_roulette_notification", name, importance).apply {
-                description = descriptionText
-            }
+            val channel =
+                NotificationChannel("chef_roulette_notification", name, importance).apply {
+                    description = descriptionText
+                }
             // Register the channel with the system
             val notificationManager: NotificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -129,7 +142,10 @@ class NotificationService(private val context: Context){
     }
 }
 
-class ReminderNotificationWorker(private val appContext: Context, workerParameters: WorkerParameters) : Worker(appContext, workerParameters) {
+class ReminderNotificationWorker(
+    private val appContext: Context,
+    workerParameters: WorkerParameters
+) : Worker(appContext, workerParameters) {
     override fun doWork(): Result {
         NotificationService(appContext).createReminderNotification()
         return Result.success()
@@ -141,23 +157,25 @@ class ReminderNotificationWorker(private val appContext: Context, workerParamete
          * @param minute the minute at which daily reminder notification should appear [0-59]
          */
         fun schedule(appContext: Context, hourOfDay: Int, minute: Int) {
-            val now = Calendar.getInstance()
-            val target = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, hourOfDay)
-                set(Calendar.MINUTE, minute)
-            }
+            val now = LocalDateTime.now()
+            val target = LocalDateTime.of(
+                now.toLocalDate().let {
+                    if (now.hour < hourOfDay) it
+                    else it.plusDays(1)
+                },
+                LocalTime.of(hourOfDay, minute)
+            )
+            val delta = Duration.between(now, target)
+            val delay = delta.toKotlinDuration().inWholeSeconds
 
-            if (target.before(now)) {
-                target.add(Calendar.DAY_OF_YEAR, 1)
-            }
-
-            val notificationRequest = PeriodicWorkRequestBuilder<ReminderNotificationWorker>(24, TimeUnit.HOURS)
+            val notificationRequest = OneTimeWorkRequestBuilder<ReminderNotificationWorker>()
                 .addTag("reminder_notification_worker_2")
-                .setInitialDelay(target.timeInMillis - System.currentTimeMillis(), TimeUnit.MILLISECONDS).build()
+                .setInitialDelay(delay, TimeUnit.SECONDS)
+                .build()
             WorkManager.getInstance(appContext)
-                .enqueueUniquePeriodicWork(
+                .enqueueUniqueWork(
                     "reminder_notification_work",
-                    ExistingPeriodicWorkPolicy.REPLACE,
+                    ExistingWorkPolicy.REPLACE,
                     notificationRequest
                 )
         }
