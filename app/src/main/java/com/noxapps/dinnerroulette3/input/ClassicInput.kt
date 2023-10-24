@@ -54,13 +54,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -580,19 +583,19 @@ fun NewInput(
         }
 
         if (cuisine.value) {
-            SingleDialog(cuisine, "Cuisine", cuisineText)
+            SingleDialog(cuisine, "Cuisine", "Select Cuisine", cuisineText)
         }
 
         if (addIngredientsOpen.value) {
-            MultiDialog(addIngredientsOpen, "Include Ingredients", ingredients)
+            MultiDialog(addIngredientsOpen, "Include Ingredients", "Ingredient", ingredients)
         }
 
         if (removeIngredientsOpen.value) {
-            MultiDialog(removeIngredientsOpen, "Exclude Ingredients", exclIngredients)
+            MultiDialog(removeIngredientsOpen, "Exclude Ingredients", "Ingredient",exclIngredients)
         }
 
         if (tagsOpen.value) {
-            MultiDialog(tagsOpen, "Descriptive Tags", tags)
+            MultiDialog(tagsOpen, "Descriptive Tags", "Tag", tags)
         }
 
         if (processing.value) {
@@ -775,6 +778,7 @@ fun NewInput(
 fun MultiDialog(
     stateValue: MutableState<Boolean>,
     title: String,
+    label: String,
     array: SnapshotStateList<String>
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -816,7 +820,7 @@ fun MultiDialog(
                         onValueChange = {
                             if (it.length <= maxChar) text = it
                         },
-                        label = { Text("add ingredients") },
+                        label = { Text(label) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(
@@ -833,7 +837,7 @@ fun MultiDialog(
                     modifier = Modifier
                         .padding(4.dp)
                         .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     Button(onClick = {
                         stateValue.value = false
@@ -875,10 +879,13 @@ fun MultiDialog(
 fun SingleDialog(
     stateValue: MutableState<Boolean>,
     title: String,
-    data: MutableState<String>
+    label: String,
+    data: MutableState<String>,
+    persistenceFlag:Boolean = false
 ) {
     val focusRequester = remember { FocusRequester() }
-    var text by remember { mutableStateOf("") }
+    var text = remember { mutableStateOf(TextFieldValue("")) }
+    if(persistenceFlag)text.value = TextFieldValue(data.value)
     AlertDialog(
         onDismissRequest = {
             stateValue.value = false
@@ -909,20 +916,28 @@ fun SingleDialog(
                     val maxChar = 17
                     TextField(
                         modifier = Modifier
-                            .focusRequester(focusRequester),
-                        value = text,
+                            .focusRequester(focusRequester)
+                            .onFocusChanged {  focusState ->
+                                if (focusState.isFocused) {
+                                    val text2 = text.value.text
+                                    text.value = text.value.copy(
+                                        selection = TextRange(0, text2.length)
+                                    )
+                                }
+                            },
+                        value = text.value,
                         onValueChange = {
-                            if (it.length <= maxChar) text = it
+                            if (it.text.length <= maxChar) text.value = it
                         },
-                        label = { Text("Select Cuisine") },
+                        //label = { Text(label) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(
                             onDone = {
-                                if (text.isNotEmpty()) {
-                                    data.value = text
+                                if (text.value.text.isNotEmpty()) {
+                                    data.value = text.value.text
                                     stateValue.value = false
-                                    text = ""
+                                    text.value = TextFieldValue("")
                                 }
 
                             }
@@ -933,20 +948,20 @@ fun SingleDialog(
                     modifier = Modifier
                         .padding(4.dp)
                         .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Button(onClick = {
                         stateValue.value = false
                         data.value = ""
-                        text = ""
+                        text.value = TextFieldValue("")
                     }) {
                         Text(text = "Clear")
                     }
                     Button(onClick = {
-                        if (text.isNotEmpty()) {
-                            data.value = text
+                        if (text.value.text.isNotEmpty()) {
+                            data.value = text.value.text
                             stateValue.value = false
-                            text = ""
+                            text.value = TextFieldValue("")
                         }
                     }) {
                         Text(text = "Save")

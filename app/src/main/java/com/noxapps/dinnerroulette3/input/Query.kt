@@ -49,7 +49,7 @@ class SettingsObject(
     val fahrenheit: Boolean,
     val allergens:List<String>,
     val skill:Int,
-    val dietPreset:Long,
+    var dietPreset:Long,
     val meatContent:Int,
     val budget:Int,
     var imageCredits:Int,

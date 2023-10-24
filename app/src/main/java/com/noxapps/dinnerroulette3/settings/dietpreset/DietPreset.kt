@@ -5,7 +5,7 @@ import io.objectbox.annotation.Entity
 import io.objectbox.annotation.Id
 
 @Entity
-public class DietPreset(
+class DietPreset(
     @Id
     var id:Long = 0,
     var name:String = "",
@@ -16,10 +16,41 @@ public class DietPreset(
     var descriptiveTags: MutableList<String> = mutableListOf()
 
 ) {
+    override operator fun equals(other: Any?)
+            = (other is DietPreset)
+            && id == other.id
+            && name == other.name
+            && meatContent == other.meatContent
+            && enabledMeat == other.enabledMeat
+            && enabledCarb == other.enabledCarb
+            && excludedIngredients == other.excludedIngredients
+            && descriptiveTags == other.descriptiveTags
 
+    /*override operator fun equals(other: Any?): Boolean {
+
+        return id == other.id && name == other.name && meatContent == other.meatContent &&
+                enabledMeat == other.enabledMeat && enabledCarb == other.enabledCarb &&
+                excludedIngredients == other.excludedIngredients && descriptiveTags == other.descriptiveTags
+    } ?: (b === null)
+
+     */
+    override fun toString(): String{
+        return "id: "+id.toString() +", name: "+name+", meatContent: "+meatContent.toString() +", " +
+                "disabled meats: "+enabledMeat.toString() +", disabled carbs: "+enabledCarb.toString() +", " +
+                "excluded ingredients: "+excludedIngredients.toString() +", tags: "+descriptiveTags.toString()
+    }
 }
 
 fun initiliseDietPreset(box: Box<DietPreset>){
+    box.put(
+        DietPreset(0,
+            "No Preset",
+            0,
+            mutableListOf(),
+            mutableListOf(),
+            mutableListOf(),
+            mutableListOf())
+    )
     box.put(
         DietPreset(0,
         "Coeliacs Disease",

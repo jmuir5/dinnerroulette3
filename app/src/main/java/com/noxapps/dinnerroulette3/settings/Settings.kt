@@ -39,12 +39,14 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavHostController
 import com.noxapps.dinnerroulette3.DrawerAndScaffold
+import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.input.MultiDialog
 import com.noxapps.dinnerroulette3.input.SettingsObject
 import com.noxapps.dinnerroulette3.input.StyledLazyRow
 import com.noxapps.dinnerroulette3.savedPreferences
+import com.noxapps.dinnerroulette3.settings.dietpreset.DietPreset
 //import com.noxapps.dinnerroulette3.ui.theme.ObfsuGrey
 //import com.noxapps.dinnerroulette3.ui.theme.PrimaryOrange
 //import com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange
@@ -167,6 +169,10 @@ fun Settings(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
+                            .clickable(onClick = {
+                                navController.navigate(Paths.DietPreset.Path)
+                            })
+                            .padding(0.dp, 8.dp)
                             .fillMaxWidth()
 
                     ) {
@@ -174,6 +180,19 @@ fun Settings(
                             text = "Diet Preset",
                             style = MaterialTheme.typography.titleMedium
                         )
+                        val presetLabel = if(dietId.value==0L){
+                            "Set Preset"
+                        } else
+                            ObjectBox.store.boxFor(DietPreset::class.java)[dietId.value].name
+                        Text(
+                            text = presetLabel,
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        )
+                        /*
                         Button(onClick = {
                             navController.navigate(Paths.DietPreset.Path)
                         }) {
@@ -181,6 +200,7 @@ fun Settings(
                                 text =  "->" 
                             )
                         }
+                         */
 
                     }
                     Row(                                                                //Budget
@@ -447,7 +467,7 @@ fun Settings(
             }
 
             if (allergensOpen.value) {
-                MultiDialog(allergensOpen, "Allergens And Intolerances", allergens)
+                MultiDialog(allergensOpen, "Allergens And Intolerances", "Add", allergens)
             }
         }
     }
