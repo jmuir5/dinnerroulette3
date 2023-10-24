@@ -14,6 +14,7 @@ import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -379,6 +380,8 @@ fun RecipeBody(
     thisRecipe: SavedRecipe
 ) {
     val parsedIngredients = thisRecipe.ingredients?.split("\n")
+    val parsedMethod = thisRecipe.method?.split("\n")
+    val parsedNotes = thisRecipe.notes?.split("\n")
     val adReference = if(BuildConfig.DEBUG){
         LocalContext.current.getString(R.string.test_scaffold_banner_ad_id)
     }
@@ -458,10 +461,26 @@ fun RecipeBody(
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary
         )
-        Text(
-            text = thisRecipe.method!!,
-            style = MaterialTheme.typography.bodyMedium
-        )
+        parsedMethod?.forEach() {
+            Row(modifier = Modifier
+                .padding(0.dp, 8.dp),
+
+                verticalAlignment = Alignment.CenterVertically) {
+                val strikeThroughState = remember { mutableStateOf(false) }
+                Text(
+                    text = it,
+                    modifier = Modifier
+                        .clickable { strikeThroughState.value = !strikeThroughState.value },
+                    style = if (strikeThroughState.value) {
+                        MaterialTheme.typography.bodyMedium.copy(
+                            textDecoration = TextDecoration.LineThrough,
+                            color = Color.Gray
+                        )
+                    } else MaterialTheme.typography.bodyMedium
+                )
+
+            }
+        }
         Spacer(modifier = Modifier.size(10.dp))
         Row(){
             Spacer(modifier = Modifier
@@ -478,12 +497,41 @@ fun RecipeBody(
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary
         )
-        Text(
-            text = thisRecipe.notes!!,
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Spacer(modifier = Modifier.size(100.dp))
+        parsedNotes?.forEach() {
+            if(it=="User Notes:"){
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(10.dp, 8.dp),) {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            else if(it.startsWith("-")) {
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(0.dp, 8.dp),) {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
 
+                }
+            }
+            else{
+                Row(verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                        .padding(0.dp, 8.dp),) {
+                    Text(
+                        text = "- $it",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.size(100.dp))
     }
 }
 
@@ -587,7 +635,7 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>, imag
         loadRewardedAd(context, mRewardedAd, TAG)
         loadAttempted=true
     }
-    var imageCredits = 0
+    var imageCredits by remember { mutableStateOf(0) }
 
     var loadedFlag by remember { mutableStateOf(false) }
 
@@ -606,7 +654,7 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>, imag
         loadedFlag = true
     }
 
-    var adFrameFlag = remember{ mutableStateOf(false) }
+    val adFrameFlag = remember{ mutableStateOf(false) }
 
 
     Box(modifier = Modifier
@@ -632,27 +680,49 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>, imag
                     color = MaterialTheme.colorScheme.primary
                 )
                 thisRecipe.imageDescription?.let{
-                    Text(
-                        text = "Image Generation",
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .padding(24.dp),
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                            .fillMaxWidth()
+                            .padding(24.dp, 5.dp)
+                    ){
+                        Text(text = "Image Generation:",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp, 5.dp)
+                    ) {
+                        Text(
+                            text = "Image Credits:",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text =  imageCredits.toString(),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                     Button(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(24.dp),
+                            .padding(24.dp, 5.dp),
                         onClick = {
                             if(imageCredits>0) {
                                 val loadedData = runBlocking { context.dataStore.data.first() }
+                                imageCredits-=1
                                 loadedData[savedPreferences]?.let {
                                     val retrievedData: SettingsObject = try {
-                                        Json.decodeFromString<SettingsObject>(it)
+                                        Json.decodeFromString(it)
                                     }catch(exception: Exception){
                                         SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
                                     }
-                                    retrievedData.imageCredits-=1
+                                    retrievedData.imageCredits=imageCredits
                                     scope.launch {
                                         context.dataStore.edit { settings ->
                                             settings[savedPreferences] = Json.encodeToString(retrievedData)
@@ -667,16 +737,16 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>, imag
                                 }
                             }
                         }) {
-                        Text(text = "Spend 1 Image credit")
+                        Text(text = "Use Image Credit")
                     }
                     Button(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(24.dp),
+                            .padding(24.dp, 5.dp),
                         onClick = {
                             adFrameFlag.value=true
                         }) {
-                        Text(text = "watch an ad to generate an image for your recipe")
+                        Text(text = "Watch an ad")
                     }
                 }
             }

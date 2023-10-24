@@ -78,7 +78,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.noxapps.dinnerroulette3.AdmobBanner
 import com.noxapps.dinnerroulette3.BuildConfig
-import com.noxapps.dinnerroulette3.DrawerAndScaffold
+import com.noxapps.dinnerroulette3.StandardScaffold
 import com.noxapps.dinnerroulette3.recipe.FreeFavouriteButton
 import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.R
@@ -93,7 +93,7 @@ fun SearchPage(
     viewModel.screenWidth = LocalConfiguration.current.screenWidthDp
 
 
-    DrawerAndScaffold(tabt = "View Recipes", navController = navController, adFlag = false) {
+    StandardScaffold(tabt = "View Recipes", navController = navController, adFlag = false) {
         Column {
             SearchBlock(recipeStateList, viewModel)
             RecipeList(recipeStateList.value, navController, viewModel)

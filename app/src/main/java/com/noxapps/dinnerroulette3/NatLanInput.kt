@@ -19,7 +19,7 @@ fun NatLanInput(
     viewModel: InputViewModel = InputViewModel(),
     navController: NavHostController
 ) {
-    DrawerAndScaffold(tabt = "NatLan Input", navController = navController) {
+    StandardScaffold(tabt = "NatLan Input", navController = navController) {
         Text("not yet implemented")
     }
 

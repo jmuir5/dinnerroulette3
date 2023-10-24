@@ -30,7 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.noxapps.dinnerroulette3.BuildConfig
-import com.noxapps.dinnerroulette3.DrawerAndScaffold
+import com.noxapps.dinnerroulette3.StandardScaffold
 import com.noxapps.dinnerroulette3.InterstitialAdDialogue
 import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.Paths
@@ -47,7 +47,7 @@ fun HomePage(
     viewModel: HomeViewModel = HomeViewModel(),
     navController: NavHostController,
 ) {
-    DrawerAndScaffold("Chef Roulette",navController) {
+    StandardScaffold("Chef Roulette",navController, homePageFlag = true) {
         val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
         val processing = remember { mutableStateOf(false) }
         val context = LocalContext.current

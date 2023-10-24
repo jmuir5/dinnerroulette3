@@ -38,7 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavHostController
-import com.noxapps.dinnerroulette3.DrawerAndScaffold
+import com.noxapps.dinnerroulette3.StandardScaffold
 import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.dataStore
@@ -63,7 +63,7 @@ import kotlinx.serialization.json.Json
 fun Settings(
     navController: NavHostController
 ) {
-    DrawerAndScaffold(tabt = "Settings", navController = navController) {
+    StandardScaffold(tabt = "Settings", navController = navController) {
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
 
@@ -372,6 +372,7 @@ fun Settings(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(0.dp, 10.dp)
 
                     ) {
                         Text(

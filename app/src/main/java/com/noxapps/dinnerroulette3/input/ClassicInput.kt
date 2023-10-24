@@ -69,7 +69,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.noxapps.dinnerroulette3.BuildConfig
-import com.noxapps.dinnerroulette3.DrawerAndScaffold
+import com.noxapps.dinnerroulette3.StandardScaffold
 import com.noxapps.dinnerroulette3.commons.Indicator
 import com.noxapps.dinnerroulette3.InterstitialAdDialogue
 import com.noxapps.dinnerroulette3.R
@@ -103,7 +103,7 @@ fun NewInput(
     navController: NavHostController
 ) {
 
-    DrawerAndScaffold(tabt = "Create Custom Recipe", navController = navController) {
+    StandardScaffold(tabt = "Create Custom Recipe", navController = navController) {
         var dd1Expanded by remember { mutableStateOf(false) }
         var dd2Expanded by remember { mutableStateOf(false) }
         var dd3Expanded by remember { mutableStateOf(false) }

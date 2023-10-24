@@ -5,11 +5,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -29,7 +27,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -38,7 +35,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.android.gms.ads.MobileAds
 import com.noxapps.dinnerroulette3.home.HomePage
 import com.noxapps.dinnerroulette3.ui.theme.*
 import io.objectbox.Box
@@ -60,7 +56,6 @@ import com.noxapps.dinnerroulette3.settings.dietpreset.initiliseDietPreset
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlin.coroutines.CoroutineContext
 
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "saveData")
@@ -130,271 +125,86 @@ class MainActivity : ComponentActivity() {
 /**
  * common drawer and scaffold for top bar used on the majority of pages
  */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DrawerAndScaffold(tabt:String, navController:NavHostController, adFlag:Boolean = true, content:@Composable () -> Unit){
-    val scope = rememberCoroutineScope()
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
+fun StandardScaffold(tabt:String, navController:NavHostController, adFlag:Boolean = true, homePageFlag:Boolean = false, content:@Composable () -> Unit){
+    val scrollBehaviour = exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    Scaffold(
+        topBar = {
+            TopAppBar(
 
-    val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
-    val items = recipeBox.all
-    var topAppBarText = remember{ mutableStateOf(tabt)}
-    val recents = lastFive(recipeBox)
-    val faves = faveFive(recipeBox)
-
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
-                BackHandler(
-                    enabled = drawerState.isOpen,
-                ) {
-                    scope.launch { drawerState.close() }
-                }
-                Column(modifier = Modifier
-                    .weight(2f)) {
-                    Spacer(Modifier.height(12.dp))
-                    NavigationDrawerItem(
-                        icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                        label = { Text("New Recipe") },
-                        selected = false,
-                        onClick = {
-                            navController.navigate(Paths.Home.Path) {
-                                popUpTo("Home") {
-                                    inclusive = true
-                                }
-                            }
-                            scope.launch { drawerState.close() }
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                title = {
+                    Text(
+                        text = tabt,//topAppBarText.value,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
-                    /*NavigationDrawerItem(
-                        icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                        label = { Text("New Recipie - Classic") },
-                        selected = false,
-                        onClick = {
-
-                            navController.navigate(Paths.NewInput.Path){
-                                popUpTo("Home")
+                },
+                scrollBehavior = scrollBehaviour,
+                navigationIcon = {
+                    if (homePageFlag){
+                        IconButton(colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                            onClick = {
+                                navController.navigate(Paths.Settings.Path)
                             }
-                            scope.launch { drawerState.close()}
-
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-                    NavigationDrawerItem(
-                        icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                        label = { Text("New Recipie - Request") },
-                        selected = false,
-                        onClick = {
-
-                            navController.navigate(Paths.SpecificRecipeInput.Path){
-                                popUpTo("Home")
-                            }
-                            scope.launch { drawerState.close()}
-
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )*/
-                    NavigationDrawerItem(
-                        icon = { Icon(Icons.Default.Search, contentDescription = null) },
-                        label = { Text("Browse / Search") },
-                        selected = false,
-                        onClick = {
-                            navController.navigate(Paths.Search.Path) {
-                                popUpTo("Home")
-                            }
-                            scope.launch { drawerState.close() }
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-                    Divider(
-                        color = MaterialTheme.colorScheme.tertiary,
-                        thickness = 1.dp,
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
-                Text("Favourites",
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier
-                        .padding(24.dp, 0.dp)
-                )
-                LazyColumn(
-                    modifier= Modifier
-                        .padding(horizontal = 8.dp)
-                        .weight(4f),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    if (faves.isEmpty()) {
-                        item() {
-                            Text("No favourite recipes. Make some recipes you love!")
-                        }
-                    } else {
-                        item() {
-                            NavigationDrawerItem(
-                                icon = { Icon(Icons.Default.Favorite, contentDescription = null) },
-                                label = { Text("Random Favourite Recipe") },
-                                selected = false,
-                                onClick = {
-                                    navController.navigate(
-                                        Paths.Recipe.Path + "/" + randomFavourite(
-                                            recipeBox
-                                        )
-                                    ) {
-                                        popUpTo("Home")
-                                    }
-                                    scope.launch { drawerState.close() }
-                                },
-                                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                            )
-                        }
-                        items(faves.size) { item ->
-                            Spacer(Modifier.height(1.dp))
-                            DrawerRecipeItem(
-                                input = recipeBox[faves[item]],
-                                navController = navController,
-                                scope = scope,
-                                drawerState = drawerState,
-                                icon = Icons.Default.Favorite
-                            )
+                        ) {
+                            Icon(Icons.Filled.Settings, contentDescription = "Settings")
                         }
                     }
-                }
-
-                Divider(
-                    color = MaterialTheme.colorScheme.tertiary,
-                    thickness = 1.dp,
-                    modifier = Modifier.padding(8.dp)
-                )
-                Text("Recent",
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier
-                        .padding(24.dp, 0.dp)
-                )
-
-                LazyColumn(
-                    modifier= Modifier
-                        .padding(horizontal = 8.dp)
-                        .weight(4f),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ){
-                    if(recents.isEmpty()){
-                        item(){
-                            Text("No recent recipes. Make something new!")
-                        }
-                    }
-                    else{
-                        item(){
-                            NavigationDrawerItem(
-                                icon = { Icon(Icons.Default.Article, contentDescription = null) },
-                                label = { Text("Random Previous Recipe") },
-                                selected = false,
-                                onClick = {
-                                    navController.navigate(Paths.Recipe.Path+"/"+randomSaved(recipeBox)){
-                                        popUpTo("Home")
-                                    }
-                                    scope.launch { drawerState.close()}
-                                },
-                                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                            )
-                        }
-                        items(recents.size){item->
-                            Spacer(Modifier.height(1.dp))
-                            DrawerRecipeItem(input = recipeBox[recents[item]],  navController = navController, scope = scope, drawerState = drawerState)
-                        }
-                    }
-
-                }
-                Column(modifier = Modifier
-                    .weight(1f)) {
-                    Divider(
-                        color = MaterialTheme.colorScheme.tertiary,
-                        thickness = 1.dp,
-                        modifier = Modifier.padding(8.dp)
-                    )
-                    NavigationDrawerItem(
-                        icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-                        label = { Text("Settings") },
-                        selected = false,
-                        onClick = {
-                            navController.navigate(Paths.Settings.Path) {
-                                popUpTo("Home")
-                            }
-                            scope.launch { drawerState.close() }
-
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-                }
-            }
-        }
-    ) {
-        val scrollBehaviour = exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-        Scaffold(
-            //modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = topAppBarText.value,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    scrollBehavior = scrollBehaviour,
-                    navigationIcon = {
+                    else {
                         IconButton(
                             colors = IconButtonDefaults.iconButtonColors(
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 contentColor = MaterialTheme.colorScheme.onPrimary
                             ),
                             onClick = {
-                                if (drawerState.isClosed) scope.launch { drawerState.open() }
-                                else scope.launch { drawerState.close() }
+                                navController.popBackStack()
                             }
                         ) {
-                            Icon(Icons.Filled.Menu, contentDescription = "Localized description")
+                            Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                         }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
                 )
-            },
-            content = { padding ->
-                Column (verticalArrangement = Arrangement.SpaceEvenly){
-                    Box(
-                        Modifier
-                            .padding(padding)
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        content()
-                    }
-                    if(adFlag){
-                        val adReference = if(BuildConfig.DEBUG){
-                            LocalContext.current.getString(R.string.test_scaffold_banner_ad_id)
-                        }
-                        else LocalContext.current.getString(R.string.scaffold_banner_ad_id)
-                        Row(){
-                            Spacer(modifier = Modifier
-                                .height(50.dp))
-                            AdmobBanner(modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                                reference = adReference
-                            )
-                        }
-                    }
-
+            )
+        },
+        content = { padding ->
+            Column (verticalArrangement = Arrangement.SpaceEvenly){
+                Box(
+                    Modifier
+                        .padding(padding)
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    content()
                 }
-            }
-        )
+                if(adFlag){
+                    val adReference = if(BuildConfig.DEBUG){
+                        LocalContext.current.getString(R.string.test_scaffold_banner_ad_id)
+                    }
+                    else LocalContext.current.getString(R.string.scaffold_banner_ad_id)
+                    Row(){
+                        Spacer(modifier = Modifier
+                            .height(50.dp))
+                        AdmobBanner(modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                            reference = adReference
+                        )
+                    }
+                }
 
-    }
+            }
+        }
+    )
 }
 
 

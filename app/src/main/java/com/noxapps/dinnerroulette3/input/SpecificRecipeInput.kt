@@ -42,7 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.noxapps.dinnerroulette3.BuildConfig
-import com.noxapps.dinnerroulette3.DrawerAndScaffold
+import com.noxapps.dinnerroulette3.StandardScaffold
 import com.noxapps.dinnerroulette3.InterstitialAdDialogue
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.loadInterstitialAd
@@ -52,7 +52,7 @@ fun SpecificRecipeInput(
     viewModel: InputViewModel = InputViewModel(),
     navController: NavHostController
 ) {
-    DrawerAndScaffold(tabt = "Request Recipe", navController = navController) {
+    StandardScaffold(tabt = "Request Recipe", navController = navController) {
         val focusRequester = remember { FocusRequester() }
         var promptText by remember { mutableStateOf("") }
         var processing = remember { mutableStateOf(false) }
