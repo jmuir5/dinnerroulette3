@@ -42,9 +42,9 @@ import com.noxapps.dinnerroulette3.StandardScaffold
 import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.dataStore
-import com.noxapps.dinnerroulette3.input.MultiDialog
+import com.noxapps.dinnerroulette3.commons.MultiDialog
 import com.noxapps.dinnerroulette3.input.SettingsObject
-import com.noxapps.dinnerroulette3.input.StyledLazyRow
+import com.noxapps.dinnerroulette3.commons.StyledLazyRow
 import com.noxapps.dinnerroulette3.savedPreferences
 import com.noxapps.dinnerroulette3.settings.dietpreset.DietPreset
 //import com.noxapps.dinnerroulette3.ui.theme.ObfsuGrey
@@ -380,7 +380,8 @@ fun Settings(
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
-                            text =  imageCredits.toString()
+                            text =  imageCredits.toString(),
+                            style = MaterialTheme.typography.titleMedium
                         )
                     }
                     Row(

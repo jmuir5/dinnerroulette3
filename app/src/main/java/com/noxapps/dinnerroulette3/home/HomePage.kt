@@ -36,7 +36,7 @@ import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.recipe.SavedRecipe
-import com.noxapps.dinnerroulette3.input.ProcessingDialog
+import com.noxapps.dinnerroulette3.commons.ProcessingDialog
 import com.noxapps.dinnerroulette3.loadInterstitialAd
 
 /**
@@ -52,8 +52,8 @@ fun HomePage(
         val processing = remember { mutableStateOf(false) }
         val context = LocalContext.current
 
-        val genState = remember { mutableStateOf(true) }
-        val savedState = remember { mutableStateOf(false) }
+        //val genState = remember { mutableStateOf(true) }
+        //val savedState = remember { mutableStateOf(false) }
         val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.roulette_table)
         val painter = remember{ BitmapPainter(image = bitmap.asImageBitmap())}
 
@@ -66,36 +66,6 @@ fun HomePage(
 
         loadInterstitialAd(context, viewModel.mInterstitialAd, "Home Page Interstitial", adReference)
 
-        /*mInterstitialAd.value?.fullScreenContentCallback = object: FullScreenContentCallback() {
-            override fun onAdClicked() {
-                // Called when a click is recorded for an ad.
-                Log.d(TAG, "Ad was clicked.")
-            }
-
-            override fun onAdDismissedFullScreenContent() {
-                // Called when ad is dismissed.
-                Log.d(TAG, "Ad dismissed fullscreen content.")
-                mInterstitialAd.value = null
-            }
-
-            //override fun onAdFailedToShowFullScreenContent(adError: AdError?) {
-                // Called when ad fails to show.
-            //    Log.e(TAG, "Ad failed to show fullscreen content.")
-            //    mInterstitialAd.value = null
-            //}
-
-            override fun onAdImpression() {
-                // Called when an impression is recorded for an ad.
-                Log.d(TAG, "Ad recorded an impression.")
-            }
-
-            override fun onAdShowedFullScreenContent() {
-                // Called when ad is shown.
-                Log.d(TAG, "Ad showed fullscreen content.")
-            }
-        }
-
-         */
 
 
         Column(

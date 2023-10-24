@@ -44,7 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.noxapps.dinnerroulette3.StandardScaffold
-import com.noxapps.dinnerroulette3.input.ProcessingDialog
+import com.noxapps.dinnerroulette3.commons.ProcessingDialog
 
 @Composable
 fun RedeemCode(

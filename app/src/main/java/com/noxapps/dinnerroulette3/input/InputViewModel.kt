@@ -14,7 +14,9 @@ import com.noxapps.dinnerroulette3.recipe.SavedRecipe
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.gpt.getResponse
 import com.noxapps.dinnerroulette3.gpt.parseResponse
+import com.noxapps.dinnerroulette3.settings.dietpreset.DietPreset
 import com.noxapps.dinnerroulette3.usedTokens
+import io.objectbox.Box
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -27,6 +29,27 @@ import kotlin.random.Random
 class InputViewModel: ViewModel() {
     init{}
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
+    val presetBox: Box<DietPreset> = ObjectBox.store.boxFor(DietPreset::class.java)
+
+    val meatContentItems = listOf("Select...", "Yes", "Optional", "Vegetarian", "Vegan")
+    val primaryMeatItems = listOf(
+        "Select...",
+        "Any",
+        "Beef",
+        "Chicken",
+        "Pork",
+        "Lamb",
+        "Shellfish",
+        "Salmon",
+        "White Fish"
+    )
+    val primaryCarbItems =
+        listOf("Select...", "Any", "Pasta", "Potato", "Rice", "Noodles", "Bread", "Other", "None")
+
+    val budgetItems = listOf("Select...","$","$$","$$$")
+
+
+
     val TAG1 = "Request Recipe Interstitial"
     val TAG2 = "Build Recipe Interstitial"
 
@@ -93,18 +116,47 @@ class InputViewModel: ViewModel() {
         return question
     }
 
+    fun presetRequest(promptText:String, presetId:Long):String{
+        val thisPreset = presetBox[presetId]
+        val constructedExclusions = thisPreset.enabledCarb + thisPreset.enabledMeat +
+                thisPreset.excludedIngredients
+
+        var request = "Give me a "
+        when(thisPreset.meatContent){
+            1 -> request+="Vegetarian "
+            2 -> request+="Vegan "
+            else->Unit
+        }
+        request += "recipe for $promptText. "
+        if (constructedExclusions.isNotEmpty()) {
+            request+= "Exclude the following ingredients: $constructedExclusions If an ingredient" +
+                    " is important, provide the best alternative you can. "
+        }
+        if (thisPreset.descriptiveTags.isNotEmpty()) {
+            request += "The recipe should fit the following descriptors: ${thisPreset.descriptiveTags}"
+        }
+        request+="[fin]"
+
+        return request
+    }
+
     /**
      * generate a recipe using chat gpt based on a specific recipe request.
      * pulls up a processing dialogue while waiting for a response from chat gpt then navigates to
      * the appropriate recipe page once its created.
      */
-    fun executeRequest(promptText:String, flag: MutableState<Boolean>, context:Context, navController:NavHostController){
-        var request = "Give me a recipe for $promptText"
+    fun executeRequest(promptText:String, flag: MutableState<Boolean>, presetId:Long, context:Context, navController:NavHostController){
+        var request = if (presetId <2){
+            "Give me a recipe for $promptText"
+        }
+        else{
+            presetRequest(promptText, presetId)
+        }
         Log.d("constructed question", request)
         flag.value = true
 
         getResponse(request, context, 1) {
-            var received: SavedRecipe
+            val received: SavedRecipe
             try {
                 received = SavedRecipe(QandA(Query(), it, parseResponse(it)))
                 Log.e("id before", received.id.toString())

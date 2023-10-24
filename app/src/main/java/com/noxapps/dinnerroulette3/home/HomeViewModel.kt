@@ -18,6 +18,7 @@ import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.gpt.getResponse
 import com.noxapps.dinnerroulette3.gpt.parseResponse
 import com.noxapps.dinnerroulette3.savedPreferences
+import com.noxapps.dinnerroulette3.settings.dietpreset.DietPreset
 import com.noxapps.dinnerroulette3.usedTokens
 import io.objectbox.Box
 import kotlinx.coroutines.MainScope
@@ -37,9 +38,18 @@ import kotlin.random.Random.Default.nextInt
 class HomeViewModel: ViewModel() {
 
     val recipeBox: Box<SavedRecipe> = ObjectBox.store.boxFor(SavedRecipe::class.java)
-    val TAG = "Home Page Interstitial"
+    val presetBox: Box<DietPreset> = ObjectBox.store.boxFor(DietPreset::class.java)
 
+    val TAG = "Home Page Interstitial"
     val mInterstitialAd:MutableState<InterstitialAd?> = mutableStateOf(null)
+
+    val blankPreset = DietPreset(0,
+        "New Preset",
+        0,
+        mutableListOf(),
+        mutableListOf(),
+        mutableListOf(),
+        mutableListOf())
 
 
     /**
@@ -56,9 +66,9 @@ class HomeViewModel: ViewModel() {
         flag.value = true
 
         getResponse(randQuestion, context, 1) {
-            var received = SavedRecipe()
+
             try {
-                received = SavedRecipe(QandA(randQuery, it, parseResponse(it)))
+                var received = SavedRecipe(QandA(randQuery, it, parseResponse(it)))
                 Log.e("id before", received.id.toString())
                 val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
                 recipeBox.put(received)
@@ -89,6 +99,26 @@ class HomeViewModel: ViewModel() {
      */
     fun getRandomQuery(seed:Int, context: Context): Query {
 
+        var meatContentIndex = 0
+        var budgetIndex = 0
+        var presetId = 0L
+        val loadedData = runBlocking { context.dataStore.data.first() }
+
+        loadedData[savedPreferences]?.let {
+            val retrievedData: SettingsObject = try {
+                Json.decodeFromString<SettingsObject>(it)
+            }catch(exception: Exception){
+                SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
+            }
+            meatContentIndex = retrievedData.meatContent
+            budgetIndex = if(retrievedData.budget>0) retrievedData.budget else seed%4
+            presetId = retrievedData.dietPreset
+        }
+
+        val activePreset = if (presetId==0L){
+            blankPreset
+        }else presetBox[presetId]
+
         val chinese = (0..10).map { "Chinese" }
         val indian = (0..10).map { "Indian" }
         val japanese = (0..8).map { "Japanese" }
@@ -115,23 +145,43 @@ class HomeViewModel: ViewModel() {
         val chilean = (0..4).map { "Chilean" }
         val caribbean = (0..8).map { "Caribbean" }
         val australian = (0..8).map { "Australian" }
+        val otherCuisine = listOf( "Filipino","Malaysian","Indonesian","Pakistani","Iranian","Afghan",
+            "SriLankan","Bangladeshi","Nepalese","Bhutanese","Mongolian","Tibetan",
+            "Cambodian","Turkish","Finnish","Swedish","Norwegian","Polish","Hungarian",
+            "Ethiopian", "South African","Cuban","Russian","Finnish", "Norwegian",
+            "Hungarian","Tibetan","Afghan","Bhutanese","Kuwaiti","SaudiArabian", "Emirati",
+            "Omani","Qatari","Bahraini","Jordanian","Iraqi","Palestinian","Yemeni")
+
         val cuisines = chinese + indian + japanese + thai + korean + vietnamese +italian+french+
                 spanish+greek+british+german+russian+lebanese+israeli+ egyptian+moroccan+
                 mexican+itamerican+brazilian+peruvian+argentinian+colombian +chilean+caribbean+
-                australian+
-                listOf( "Filipino","Malaysian","Indonesian","Pakistani","Iranian","Afghan",
-                    "SriLankan","Bangladeshi","Nepalese","Bhutanese","Mongolian","Tibetan",
-                    "Cambodian","Turkish","Finnish","Swedish","Norwegian","Polish","Hungarian", 
-                    "Ethiopian", "South African","Cuban","Russian","Finnish", "Norwegian",
-                    "Hungarian","Tibetan","Afghan","Bhutanese","Kuwaiti","SaudiArabian", "Emirati",
-                    "Omani","Qatari","Bahraini","Jordanian","Iraqi","Palestinian","Yemeni")
+                australian+otherCuisine
 
-        val protein = listOf("Chicken","Beef","Chicken","Beef","Chicken","Beef","Chicken","Beef",
-            "Chicken","Beef","Chicken","Beef","Chicken","Beef","Chicken","Beef","Chicken","Beef",
-            "Chicken","Beef","Pork","Pork","Pork","Pork","Pork","Pork","Pork","Pork","Lamb","Lamb",
-            "Lamb","Lamb","Lamb","Lamb","Seafood","Seafood","Seafood","Seafood","Shellfish",
-            "Shellfish","Salmon","Salmon","White Fish","White Fish","Eggs","Eggs","Legumes",
-            "Legumes")
+
+        val chicken = if(activePreset.enabledMeat.contains("Chicken")){listOf<String>()}
+            else (0..10).map { "Chicken" }
+        val beef =if(activePreset.enabledMeat.contains("Beef")){listOf<String>()}
+            else  (0..10).map { "Beef" }
+        val pork =if(activePreset.enabledMeat.contains("Pork")){listOf<String>()}
+            else  (0..8).map { "Pork" }
+        val lamb =if(activePreset.enabledMeat.contains("Lamb")){listOf<String>()}
+            else  (0..8).map { "Lamb" }
+        val whiteFish =if(activePreset.enabledMeat.contains("White Fish")){listOf<String>()}
+            else  (0..2).map { "White Fish" }
+        val salmon = if(activePreset.enabledMeat.contains("Salmon")){listOf<String>()}
+            else (0..2).map { "Salmon" }
+        val shellfish = if(activePreset.enabledMeat.contains("Shellfish")){listOf<String>()}
+            else (0..2).map { "Shellish" }
+        val seafood = if(activePreset.enabledMeat.contains("Seafood")){listOf<String>()}
+            else (0..2).map { "Seafood" }+shellfish+salmon+whiteFish
+        val egg = if(activePreset.enabledMeat.contains("Egg")){listOf<String>()}
+            else (0..2).map { "Egg" }
+        val legumes = if(activePreset.enabledMeat.contains("Legumes")){listOf<String>()}
+            else (0..2).map { "Legumes" }
+
+        val protein = chicken + beef + pork + lamb + seafood + egg + legumes
+
+
         val descriptors = listOf("Warm","Homestyle","Hearty","Nurturing","Comfort food","Homey",
             "Inviting","Wholesome","Rustic","Satisfying","Zesty","Hot","Piquant","Fiery","Spicy",
             "Bold","Tongue-tingling","Peppery","Flaming","Searing","Rich","Decadent","Luxurious",
@@ -139,20 +189,7 @@ class HomeViewModel: ViewModel() {
             "Eclectic","Daring","Exotic","Adventurous","Thrilling","Unconventional","Unexpected",
             "Novel","Innovative","Bold")
 
-        var meatContentIndex = 0
-        var budgetIndex = 0
-        val loadedData = runBlocking { context.dataStore.data.first() }
 
-        loadedData[savedPreferences]?.let {
-            val retrievedData: SettingsObject = try {
-                Json.decodeFromString<SettingsObject>(it)
-            }catch(exception: Exception){
-                SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
-            }
-            meatContentIndex = retrievedData.meatContent
-            budgetIndex = if(retrievedData.budget>0) retrievedData.budget
-                else seed%4
-        }
 
         var vegFlag = "Yes"
         when(meatContentIndex){
@@ -177,12 +214,12 @@ class HomeViewModel: ViewModel() {
 
         return Query(
             vegFlag,
-            protein[seed%protein.size],
+            if(protein.isEmpty())"" else protein[seed%protein.size],
             "Any",
             cuisines[seed%cuisines.size],
             mutableListOf(),
-            mutableListOf(),
-            mutableListOf(descriptors[seed%descriptors.size]),
+            (activePreset.excludedIngredients+activePreset.enabledCarb+activePreset.enabledMeat).toMutableList(),
+            (mutableListOf(descriptors[seed%descriptors.size])+activePreset.descriptiveTags).toMutableList(),
             budgetIndex
         )
     }
@@ -199,11 +236,12 @@ class HomeViewModel: ViewModel() {
         }
 
         question += "dish that could be described as "
-        question += query.descriptiveTags[0]
+        question += query.descriptiveTags.toString()
+        question += ". do not include the following ingredients: " +query.excludedIngredients
         question += when(query.budget){
-            1-> " and costs less than $20. Do not mention this cost anywhere in the recipe.[fin]"
-            2-> " and costs between $15 and $40. Do not mention this cost anywhere in the recipe.[fin]"
-            3-> " and costs more than $50. Do not mention this cost anywhere in the recipe.[fin]"
+            1-> ". The recipe should cost less than $20. Do not mention this cost anywhere in the recipe.[fin]"
+            2-> ". The recipe should cost between $15 and $40. Do not mention this cost anywhere in the recipe.[fin]"
+            3-> ". The recipe should cost more than $50. Do not mention this cost anywhere in the recipe.[fin]"
             else -> ".[fin]"
         }
         return question

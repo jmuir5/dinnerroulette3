@@ -1,9 +1,14 @@
 package com.noxapps.dinnerroulette3.input
 
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -44,8 +49,19 @@ import androidx.navigation.NavHostController
 import com.noxapps.dinnerroulette3.BuildConfig
 import com.noxapps.dinnerroulette3.StandardScaffold
 import com.noxapps.dinnerroulette3.InterstitialAdDialogue
+import com.noxapps.dinnerroulette3.ObjectBox
+import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.R
+import com.noxapps.dinnerroulette3.commons.DietSelectDialog
+import com.noxapps.dinnerroulette3.commons.ProcessingDialog
+import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.loadInterstitialAd
+import com.noxapps.dinnerroulette3.savedPreferences
+import com.noxapps.dinnerroulette3.settings.dietpreset.DietPreset
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 @Composable
 fun SpecificRecipeInput(
@@ -64,13 +80,31 @@ fun SpecificRecipeInput(
         val painter = remember{ BitmapPainter(image = bitmap.asImageBitmap()) }
         val buttonSize = (LocalConfiguration.current.screenWidthDp/2.5).dp
 
-        val stopperFlag by remember { mutableStateOf(false) }
+        val presetId = remember{mutableStateOf(0L)}
+        val presetSelectFlag = remember { mutableStateOf(false) }
+        var loadedFlag by remember { mutableStateOf(false) }
 
-        val adFrameFlag = remember { mutableStateOf(false) }
+        if (!loadedFlag) {
+            val loadedData = runBlocking { context.dataStore.data.first() }
+            loadedData[savedPreferences]?.let {
+                val retrievedData = try {
+                    Json.decodeFromString<SettingsObject>(it)
+                } catch (exception: Exception) {
+                    SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
+                }
+
+                presetId.value = retrievedData.dietPreset
+            }
+            loadedFlag = true
+        }
 
 
         val primaryOrange = MaterialTheme.colorScheme.primary
 
+
+
+
+        val adFrameFlag = remember { mutableStateOf(false) }
         val adReference = if(BuildConfig.DEBUG){
             LocalContext.current.getString(R.string.test_roulette_interstitial_ad_id)
         }
@@ -128,7 +162,7 @@ fun SpecificRecipeInput(
                         else {
                             errorState = 0
                             if(viewModel.recipeBox.all.size<2){
-                                viewModel.executeRequest(promptText, processing, context, navController)
+                                viewModel.executeRequest(promptText, processing,  presetId.value, context, navController)
                             }
                             else {
                                 adFrameFlag.value = true
@@ -137,6 +171,35 @@ fun SpecificRecipeInput(
                     }
                 )
             )
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp, 10.dp)
+                    .clickable(onClick = {
+                        presetSelectFlag.value=true
+                    })
+
+            ) {
+                Text(
+                    text = "Active Preset:",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                val presetLabel = if(presetId.value==0L){
+                    "No Preset"
+                } else
+                    ObjectBox.store.boxFor(DietPreset::class.java)[presetId.value].name
+                Text(
+                    text = presetLabel,
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                )
+            }
+
             Box(
                 Modifier
                     .padding(24.dp)
@@ -155,13 +218,12 @@ fun SpecificRecipeInput(
                     modifier = Modifier
                         .width(buttonSize)
                         .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height),
-                    enabled = !stopperFlag,
                     onClick = {
                         if (promptText.length < 3) errorState = 1
                         else {
                             errorState = 0
                             if(viewModel.recipeBox.all.size<2){
-                                viewModel.executeRequest(promptText, processing, context, navController)
+                                viewModel.executeRequest(promptText, processing, presetId.value, context, navController)
                             }
                             else {
                                 adFrameFlag.value = true
@@ -186,13 +248,23 @@ fun SpecificRecipeInput(
         if (processing.value) {
             ProcessingDialog()
         }
+        if(presetSelectFlag.value){
+            DietSelectDialog(
+                stateValue = presetSelectFlag,
+                options = viewModel.presetBox.all,
+                title = "SelectPreset",
+                selected = presetId,
+                resetFlag = remember{ mutableStateOf(false) },
+                editableFlag = false
+            )
+        }
         if(adFrameFlag.value){
             InterstitialAdDialogue(
                 mInterstitialAd = viewModel.mInterstitialAd,
                 context = context,
                 displayFlag = adFrameFlag,
                 function = {
-                    viewModel.executeRequest(promptText, processing, context, navController)
+                    viewModel.executeRequest(promptText, processing,  presetId.value,context, navController)
                 }
             )
         }

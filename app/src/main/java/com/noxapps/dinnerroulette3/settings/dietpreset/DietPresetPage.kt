@@ -1,6 +1,5 @@
 package com.noxapps.dinnerroulette3.settings.dietpreset
 
-import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -9,22 +8,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Article
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Button
@@ -44,7 +36,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,26 +47,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavHostController
 import com.noxapps.dinnerroulette3.ObjectBox
-import com.noxapps.dinnerroulette3.search.CusTitButton
+import com.noxapps.dinnerroulette3.commons.DietSelectDialog
 import com.noxapps.dinnerroulette3.dataStore
-import com.noxapps.dinnerroulette3.input.MultiDialog
+import com.noxapps.dinnerroulette3.commons.MultiDialog
 import com.noxapps.dinnerroulette3.input.SettingsObject
-import com.noxapps.dinnerroulette3.input.SingleDialog
-import com.noxapps.dinnerroulette3.input.StyledLazyRow
+import com.noxapps.dinnerroulette3.commons.SingleDialog
+import com.noxapps.dinnerroulette3.commons.StyledLazyRow
+import com.noxapps.dinnerroulette3.commons.TITLazyRow
 import com.noxapps.dinnerroulette3.savedPreferences
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -134,7 +123,6 @@ fun DietPresetPage(
 
 
     if (!loadedFlag) {
-        Log.d("debug_SP", "loading saved preferences")
         val loadedData = runBlocking { context.dataStore.data.first() }
         loadedData[savedPreferences]?.let {
             retrievedData = try {
@@ -142,10 +130,8 @@ fun DietPresetPage(
             } catch (exception: Exception) {
                 SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
             }
-            Log.d("debug_SP", "Loaded saved preferences, saved to view model")
 
             newPreset.value = retrievedData.dietPreset
-            Log.d("debug_SP", retrievedData.toString())
         }
         loadedFlag = true
     }
@@ -527,148 +513,6 @@ fun DietPresetPage(
         excluded protien sources
         excluded carbohydrates
          */
-    }
-}
-
-
-
-@Composable
-fun TITLazyRow(
-    values: List<String>,
-    states:MutableList<MutableState<Boolean>>,
-    icons:Pair<ImageVector, ImageVector>,
-    falsePadding: Dp = 0.dp
-){
-    if (values.size!= states.size) {
-        states.clear()
-        values.forEach{ _ ->
-            states.add(mutableStateOf(true))
-        }
-    }
-
-    LazyRow(modifier = Modifier
-        .fillMaxWidth()
-    ) {
-        if(values.isNotEmpty()) {
-            item() {
-                Spacer(modifier = Modifier.size(falsePadding))
-            }
-            values.forEachIndexed() { index, value ->
-                item() {
-                    CusTitButton(
-                        text =value,
-                        value = states[index].value,
-                        onClick = {
-                            states[index].value = !states[index].value
-                        },
-                        iconInit = icons.first,//Icons.Filled.FavoriteBorder,
-                        iconChecked = icons.second
-                    )
-                    Spacer(modifier = Modifier.size(4.dp))
-                }
-            }
-            item() {
-                Spacer(modifier = Modifier.size(falsePadding))
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DietSelectDialog(
-    stateValue: MutableState<Boolean>,
-    options:List<DietPreset>,
-    title: String,
-    selected: MutableState<Long>,
-    resetFlag:MutableState<Boolean>
-) {
-    AlertDialog(
-        onDismissRequest = {
-            stateValue.value = false
-        }
-    ) {
-        Surface(
-            modifier = Modifier
-                .wrapContentSize(Alignment.Center)
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(15.dp)
-                )
-            ,
-            shape = MaterialTheme.shapes.large,
-            tonalElevation = AlertDialogDefaults.TonalElevation
-
-        ) {
-            Column(
-                modifier= Modifier
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(title,
-                    style = MaterialTheme.typography.titleLarge)
-                Row() {
-                    LazyColumn(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(175.dp),){
-                        item(){
-                            Button(modifier = Modifier.fillMaxWidth(),
-                                onClick = {
-                                    resetFlag.value=true
-                                    stateValue.value = false
-                                }) {
-                                Row (modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Add,
-                                        contentDescription = "New Preset"
-                                    )
-
-                                    Text("New Preset")
-                                    Spacer(modifier = Modifier.size(1.dp))
-                                }
-                            }
-                        }
-                        options.forEach {
-                            item(){
-                                Button(modifier = Modifier.fillMaxWidth(),
-                                    onClick = {
-                                        selected.value = it.id
-                                        stateValue.value=false
-                                    }) {
-                                    Row (modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween){
-                                        Icon(
-                                            imageVector = Icons.Filled.Article,
-                                            contentDescription = it.name
-                                        )
-                                        Text(it.name)
-                                        Spacer(modifier = Modifier.size(1.dp))
-                                    }
-                                }
-                                Spacer(modifier = Modifier.size(2.dp))
-                            }
-                        }
-                    }
-                }
-                Row(
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Button(onClick = {
-                        stateValue.value = false
-                    }) {
-                        Text(text = "Cancel")
-                    }
-                }
-
-            }
-
-        }
     }
 }
 

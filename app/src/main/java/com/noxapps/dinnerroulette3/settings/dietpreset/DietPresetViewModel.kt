@@ -27,9 +27,12 @@ class DietPresetViewModel: ViewModel() {
         "Chicken",
         "Pork",
         "Lamb",
-        "Shellfish",
+        "Seafood",
         "Salmon",
-        "White Fish"
+        "White Fish",
+        "Shellfish",
+        "Egg",
+        "Legumes"
     )
     val primaryCarbItems = listOf("Pasta", "Potato", "Rice", "Noodles", "Bread", "Other")
 
