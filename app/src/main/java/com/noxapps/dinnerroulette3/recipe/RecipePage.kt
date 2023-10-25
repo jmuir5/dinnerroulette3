@@ -2,15 +2,6 @@ package com.noxapps.dinnerroulette3.recipe
 
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
-import android.util.Log
-import androidx.compose.animation.animateColor
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDp
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,16 +21,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
@@ -84,7 +71,7 @@ import com.noxapps.dinnerroulette3.commons.Indicator
 import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.RewardedAdFrame
-import com.noxapps.dinnerroulette3.code1State
+import com.noxapps.dinnerroulette3.commons.FavouriteButton
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.gpt.getImage
 import com.noxapps.dinnerroulette3.gpt.saveImage
@@ -253,125 +240,6 @@ fun Recipe(
             RecipeBody(thisRecipe = thisRecipe)
 
         }
-    }
-}
-
-@SuppressLint("UnusedTransitionTargetStateParameter")
-@Composable
-fun FavouriteButton(id:Long, modifier:Modifier = Modifier){
-    val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
-    val thisRecipe = recipeBox[id]
-    val checkedState = remember { mutableStateOf(thisRecipe.favourite) }
-    FloatingActionButton(
-
-        onClick = {
-            checkedState.value =!checkedState.value
-            thisRecipe.favourite =!thisRecipe.favourite
-            recipeBox.put(thisRecipe)
-        }
-
-    ) {
-        IconToggleButton(
-            checked = checkedState.value,
-            onCheckedChange = {
-                checkedState.value =!checkedState.value
-                thisRecipe.favourite =!thisRecipe.favourite
-                recipeBox.put(thisRecipe)
-            },
-            modifier = Modifier
-                //.background(PrimaryOrange)
-                .padding(10.dp)
-        ) {
-            val transition = updateTransition(checkedState.value)
-            val tint by transition.animateColor(label = "iconColor") { isChecked ->
-                if (isChecked) Color.Red else Color.Black
-            }
-            val size by transition.animateDp(
-                transitionSpec = {
-                    // on below line we are specifying transition
-                    if (false isTransitioningTo true) {
-                        // on below line we are specifying key frames
-                        keyframes {
-                            // on below line we are specifying animation duration
-                            durationMillis = 250
-                            // on below line we are specifying animations.
-                            30.dp at 0 with LinearOutSlowInEasing // for 0-15 ms
-                            35.dp at 15 with FastOutLinearInEasing // for 15-75 ms
-                            40.dp at 75 // ms
-                            35.dp at 150 // ms
-                        }
-                    } else {
-                        spring(stiffness = Spring.StiffnessVeryLow)
-                    }
-                },
-                label = "Size"
-            ) { 30.dp }
-            Icon(
-                // on below line we are specifying icon for our image vector.
-                imageVector = if (checkedState.value) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                contentDescription = "Icon",
-                // on below line we are specifying
-                // tint for our icon.
-                tint = tint,
-                // on below line we are specifying
-                // size for our icon.
-                modifier = Modifier.size(size)
-            )
-        }
-    }
-}
-
-@SuppressLint("UnusedTransitionTargetStateParameter")
-@Composable
-fun FreeFavouriteButton(id:Long, modifier:Modifier = Modifier) {
-    val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
-    val thisRecipe = recipeBox[id]
-    val checkedState = remember { mutableStateOf(thisRecipe.favourite) }
-    IconToggleButton(
-        checked = checkedState.value,
-        onCheckedChange = {
-            checkedState.value = !checkedState.value
-            thisRecipe.favourite = !thisRecipe.favourite
-            recipeBox.put(thisRecipe)
-        },
-        modifier = modifier
-
-    ) {
-        val transition = updateTransition(checkedState.value)
-        val tint by transition.animateColor(label = "iconColor") { isChecked ->
-            if (isChecked) Color.Red else Color.White
-        }
-        val size by transition.animateDp(
-            transitionSpec = {
-                // on below line we are specifying transition
-                if (false isTransitioningTo true) {
-                    // on below line we are specifying key frames
-                    keyframes {
-                        // on below line we are specifying animation duration
-                        durationMillis = 250
-                        // on below line we are specifying animations.
-                        30.dp at 0 with LinearOutSlowInEasing // for 0-15 ms
-                        35.dp at 15 with FastOutLinearInEasing // for 15-75 ms
-                        40.dp at 75 // ms
-                        35.dp at 150 // ms
-                    }
-                } else {
-                    spring(stiffness = Spring.StiffnessVeryLow)
-                }
-            },
-            label = "Size"
-        ) { 30.dp }
-        Icon(
-            // on below line we are specifying icon for our image vector.
-            imageVector = if (checkedState.value) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-            contentDescription = "Icon",
-            // on below line we are specifying
-            // tint for our icon.
-            tint = tint,
-            // on below line we are specifying
-            // size for our icon.
-            modifier = Modifier.size(size)
-        )
     }
 }
 
@@ -708,51 +576,70 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>, imag
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
-                    Button(
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(24.dp, 5.dp),
-                        onClick = {
-                            if(imageCredits>0) {
-                                val loadedData = runBlocking { context.dataStore.data.first() }
-                                imageCredits-=1
-                                loadedData[savedPreferences]?.let {
-                                    val retrievedData: SettingsObject = try {
-                                        Json.decodeFromString(it)
-                                    }catch(exception: Exception){
-                                        SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
+                            .padding(24.dp, 5.dp)
+                    ) {
+
+                        Button(
+                            modifier = Modifier
+                                .padding(5.dp, 5.dp)
+                                .weight(5F),
+                            onClick = {
+                                adFrameFlag.value = true
+                            }) {
+                            Text(text = "Watch an ad")
+                        }
+                        Button(
+                            modifier = Modifier
+                                .padding(5.dp, 5.dp)
+                                .weight(5F),
+                            onClick = {
+                                if (imageCredits > 0) {
+                                    val loadedData = runBlocking { context.dataStore.data.first() }
+                                    imageCredits -= 1
+                                    loadedData[savedPreferences]?.let {
+                                        val retrievedData: SettingsObject = try {
+                                            Json.decodeFromString(it)
+                                        } catch (exception: Exception) {
+                                            SettingsObject(
+                                                imperial = false,
+                                                fahrenheit = false,
+                                                allergens = listOf(),
+                                                skill = 0,
+                                                dietPreset = 0,
+                                                meatContent = 0,
+                                                budget = 0,
+                                                imageCredits = 2
+                                            )
+                                        }
+                                        retrievedData.imageCredits = imageCredits
+                                        scope.launch {
+                                            context.dataStore.edit { settings ->
+                                                settings[savedPreferences] =
+                                                    Json.encodeToString(retrievedData)
+                                            }
+                                        }
                                     }
-                                    retrievedData.imageCredits=imageCredits
-                                    scope.launch {
-                                        context.dataStore.edit { settings ->
-                                            settings[savedPreferences] = Json.encodeToString(retrievedData)
+                                    imageFlag.value = true
+                                    getImage(it, context) {
+                                        saveImage(context, thisRecipe, it.data[0].url) { it2 ->
+                                            imageFlag2.value = it2
                                         }
                                     }
                                 }
-                                imageFlag.value = true
-                                getImage(it, context) {
-                                    saveImage(context, thisRecipe, it.data[0].url) { it2 ->
-                                        imageFlag2.value = it2
-                                    }
-                                }
-                            }
-                        }) {
-                        Text(text = "Use Image Credit")
-                    }
-                    Button(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp, 5.dp),
-                        onClick = {
-                            adFrameFlag.value=true
-                        }) {
-                        Text(text = "Watch an ad")
+                            }) {
+                            Text(text = "Use Image Credit")
+                        }
                     }
                 }
             }
         }
     }
-    if(adFrameFlag.value)
+    if(adFrameFlag.value) {
         RewardedAdFrame(
             mRewardedAd = mRewardedAd,
             context = context,
@@ -761,5 +648,6 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>, imag
             thisRecipe = thisRecipe,
             displayFlag = adFrameFlag
         )
+    }
 }
 

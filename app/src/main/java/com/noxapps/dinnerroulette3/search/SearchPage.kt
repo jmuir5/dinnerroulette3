@@ -48,6 +48,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -79,7 +80,7 @@ import androidx.navigation.NavHostController
 import com.noxapps.dinnerroulette3.AdmobBanner
 import com.noxapps.dinnerroulette3.BuildConfig
 import com.noxapps.dinnerroulette3.StandardScaffold
-import com.noxapps.dinnerroulette3.recipe.FreeFavouriteButton
+import com.noxapps.dinnerroulette3.commons.FreeFavouriteButton
 import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.recipe.SavedRecipe
@@ -89,14 +90,22 @@ fun SearchPage(
     navController: NavHostController,
     viewModel: SearchViewModel = SearchViewModel()
 ) {
-    val recipeStateList = remember{mutableStateOf(viewModel.allRecipes.reversed())}
+    val recipeStateList = remember{mutableStateListOf<SavedRecipe>()}
+    val searchList = remember{mutableStateOf(viewModel.allRecipes.reversed())}
     viewModel.screenWidth = LocalConfiguration.current.screenWidthDp
+    if(searchList.value!= recipeStateList){
+        recipeStateList.clear()
+        searchList.value.forEach{
+            recipeStateList.add(it)
+        }
+    }
+
 
 
     StandardScaffold(tabt = "View Recipes", navController = navController, adFlag = false) {
         Column {
-            SearchBlock(recipeStateList, viewModel)
-            RecipeList(recipeStateList.value, navController, viewModel)
+            SearchBlock(searchList, viewModel)
+            RecipeList(recipeStateList, navController, viewModel)
         }
     }
 
@@ -377,12 +386,12 @@ fun RecipeList(recipesList:List<SavedRecipe>, navController: NavHostController, 
 
                 ){
                     RecipeCard(recipe = recipesList[i], navController = navController, viewModel)
-                    if(i+1<recipesList.size-1){
+                    if(i+1<recipesList.size){
                         RecipeCard(recipe = recipesList[i+1], navController = navController, viewModel)
                     }
                     else Spacer(modifier = Modifier
                         .width((viewModel.screenWidth / viewModel.tilesPerRow).dp))
-                    if(i+2<recipesList.size-1){
+                    if(i+2<recipesList.size){
                         RecipeCard(recipe = recipesList[i+2], navController = navController, viewModel)
                     }
                     else Spacer(modifier = Modifier
@@ -420,7 +429,6 @@ fun RecipeCard(recipe: SavedRecipe, navController: NavHostController, viewModel:
 
     ){
         Box(
-
         ){
             Image(
                 painter = BitmapPainter(
