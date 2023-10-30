@@ -83,6 +83,7 @@ import com.noxapps.dinnerroulette3.StandardScaffold
 import com.noxapps.dinnerroulette3.commons.FreeFavouriteButton
 import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.R
+import com.noxapps.dinnerroulette3.commons.getAdFlag
 import com.noxapps.dinnerroulette3.recipe.SavedRecipe
 
 @Composable
@@ -376,6 +377,7 @@ fun RecipeList(recipesList:List<SavedRecipe>, navController: NavHostController, 
         LocalContext.current.getString(R.string.test_scaffold_banner_ad_id)
     }
     else LocalContext.current.getString(R.string.scaffold_banner_ad_id)
+    val adFlag = getAdFlag(LocalContext.current)
     LazyColumn{
         for (i in recipesList.indices step(3)){
             counter+=1
@@ -398,7 +400,7 @@ fun RecipeList(recipesList:List<SavedRecipe>, navController: NavHostController, 
                         .width((viewModel.screenWidth / viewModel.tilesPerRow).dp))
                 }
             }
-            if(counter%2==0){
+            if(counter%2==0&&adFlag){
                 item(){
                     Row(){
                         Spacer(modifier = Modifier

@@ -34,7 +34,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.android.billingclient.api.BillingClient
+import com.android.billingclient.api.ConsumeParams
+import com.android.billingclient.api.ConsumeResponseListener
+import com.android.billingclient.api.PurchasesResponseListener
+import com.android.billingclient.api.QueryPurchasesParams
+import com.android.billingclient.api.queryPurchaseHistory
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.noxapps.dinnerroulette3.billing.BillingWrapper
+import com.noxapps.dinnerroulette3.billing.PurchasesPage
 import com.noxapps.dinnerroulette3.home.HomePage
 import com.noxapps.dinnerroulette3.ui.theme.*
 import io.objectbox.Box
@@ -56,6 +64,7 @@ import com.noxapps.dinnerroulette3.settings.dietpreset.initiliseDietPreset
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.coroutines.CoroutineContext
 
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "saveData")
@@ -63,11 +72,15 @@ val savedPreferences = stringPreferencesKey("savedPreferences")
 val code1State = booleanPreferencesKey("code1State")
 val usedTokens = intPreferencesKey("usedTokens")
 val firstRun = booleanPreferencesKey("firstRun")
+val imageCredits = intPreferencesKey("imageCredits")
+val adFlag = booleanPreferencesKey("adFlag")
+
 
 /**
  * main activity file
  */
 class MainActivity : ComponentActivity() {
+
 
     companion object {
         private const val TAG = "MainActivity"
@@ -78,12 +91,41 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "init - before")
         val presetBox = ObjectBox.store.boxFor(DietPreset::class.java)
         if(presetBox.isEmpty) initiliseDietPreset(presetBox)
-
-        Log.d("objextbox crash test", "init - after")
-
+        val billingClient = BillingWrapper(this, CoroutineScope(Dispatchers.IO)).billingClient
+        val scope = CoroutineScope(Dispatchers.IO)
+        val context = this
+        scope.launch {
+            context.dataStore.edit { settings ->
+                //Log.d("debug-credits add ",(credits+add).toString())
+                settings[imageCredits] = 2
+            }
+        }
 
 
         ReminderNotificationWorker.schedule(this, 16, 0)
+        /*val params = QueryPurchasesParams.newBuilder()
+            .setProductType(BillingClient.ProductType.INAPP)
+            .build()
+        val listner = PurchasesResponseListener(){result, purchases->
+            Log.d("debug-billing purchases", result.toString())
+
+            Log.d("debug-billing purchases size", purchases.size.toString())
+            for(purchase in purchases){
+                val consumeParams =
+                    ConsumeParams.newBuilder()
+                        .setPurchaseToken(purchase.purchaseToken)
+                        .build()
+                val consumeResponseListener = ConsumeResponseListener(){billingResult, string->
+                    Log.d("debug-billing consumeResponse1", billingResult.toString())
+                    Log.d("debug-billing consumeResponse2", string)
+                }
+
+                billingClient.consumeAsync(consumeParams, consumeResponseListener)
+                //Log.d("debug-billing consume", consumeResult.toString())
+            }
+
+        }
+        billingClient.queryPurchasesAsync(params, listner)*/
 
         //normalising code
         /*val recipeBox: Box<SavedRecipe> = ObjectBox.store.boxFor(SavedRecipe::class.java)
@@ -113,7 +155,7 @@ class MainActivity : ComponentActivity() {
                         initialiseDataStore(context, rememberCoroutineScope())
                     }
                     val navController = rememberNavController()
-                    NavMain(navController)
+                    NavMain(navController, billingClient)
 
                 }
             }
@@ -250,8 +292,9 @@ fun DefaultPreview() {
  */
 
 @Composable
-fun NavMain(navController: NavHostController){//, realm: Realm) {
+fun NavMain(navController: NavHostController, billingClient: BillingClient){
     val uri = "chefroulette://noximilionapplications.com"
+
     NavHost(navController = navController, startDestination = Paths.Home.Path) {
         composable(Paths.Home.Path) { HomePage(navController = navController) }
         composable(Paths.NewInput.Path) { NewInput(navController = navController) }
@@ -261,6 +304,7 @@ fun NavMain(navController: NavHostController){//, realm: Realm) {
         composable(Paths.DietPreset.Path){ DietPresetPage(navController = navController) }
         composable(Paths.Search.Path) { SearchPage(navController = navController) }
         composable(Paths.Redeem.Path) { RedeemCode(navController = navController) }
+        composable(Paths.Billing.Path){PurchasesPage(billingClient = billingClient, navController = navController)}
         composable(Paths.Recipe.Path+"/{recipeId}",
             arguments = listOf(
                 navArgument("recipeId") { type = NavType.LongType })) {
@@ -379,6 +423,8 @@ fun initialiseDataStore(context:Context, scope:CoroutineScope){
         context.dataStore.edit { settings ->
             settings[savedPreferences] = Json.encodeToString(defaultSettings)
             settings[code1State] = false
+            settings[imageCredits] = 2
+            settings[adFlag]=true
             settings[firstRun] = true
         }
         Log.d("datastore", "Init successfull")

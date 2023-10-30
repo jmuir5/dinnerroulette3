@@ -1,6 +1,7 @@
 package com.noxapps.dinnerroulette3
 
 import android.app.Application
+import com.android.billingclient.api.BillingClient
 import com.google.android.gms.ads.MobileAds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,5 +16,6 @@ class App: Application() {
         super.onCreate()
         ObjectBox.init(this)
         MobileAds.initialize(this@App)
+
     }
 }

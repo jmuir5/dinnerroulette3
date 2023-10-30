@@ -47,11 +47,11 @@ class ParsedResponse(
 class SettingsObject(
     val imperial: Boolean,
     val fahrenheit: Boolean,
-    val allergens:List<String>,
+    val allergens:List<String>,//remove
     val skill:Int,
     var dietPreset:Long,
-    val meatContent:Int,
+    val meatContent:Int,//remove
     val budget:Int,
-    var imageCredits:Int,
+    var imageCredits:Int,//remove
 
     )

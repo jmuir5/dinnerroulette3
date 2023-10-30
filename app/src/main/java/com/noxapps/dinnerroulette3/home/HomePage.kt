@@ -37,6 +37,7 @@ import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.recipe.SavedRecipe
 import com.noxapps.dinnerroulette3.commons.ProcessingDialog
+import com.noxapps.dinnerroulette3.commons.getAdFlag
 import com.noxapps.dinnerroulette3.loadInterstitialAd
 
 /**
@@ -47,10 +48,12 @@ fun HomePage(
     viewModel: HomeViewModel = HomeViewModel(),
     navController: NavHostController,
 ) {
-    StandardScaffold("Chef Roulette",navController, homePageFlag = true) {
+    val context = LocalContext.current
+    val adFlag = getAdFlag(context)
+    StandardScaffold("Chef Roulette",navController, homePageFlag = true, adFlag = adFlag) {
         val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
         val processing = remember { mutableStateOf(false) }
-        val context = LocalContext.current
+
 
         //val genState = remember { mutableStateOf(true) }
         //val savedState = remember { mutableStateOf(false) }
@@ -94,7 +97,7 @@ fun HomePage(
                             .fillMaxWidth()
                             .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height),
                         onClick = {
-                            if(recipeBox.all.size<2){
+                            if(recipeBox.all.size<2||!adFlag){
                                 viewModel.executeRandom(processing, context, navController)
                             }
                             else {

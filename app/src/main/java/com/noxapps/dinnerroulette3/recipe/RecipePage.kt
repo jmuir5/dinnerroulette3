@@ -72,6 +72,7 @@ import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.RewardedAdFrame
 import com.noxapps.dinnerroulette3.commons.FavouriteButton
+import com.noxapps.dinnerroulette3.commons.getAdFlag
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.gpt.getImage
 import com.noxapps.dinnerroulette3.gpt.saveImage
@@ -250,10 +251,13 @@ fun RecipeBody(
     val parsedIngredients = thisRecipe.ingredients?.split("\n")
     val parsedMethod = thisRecipe.method?.split("\n")
     val parsedNotes = thisRecipe.notes?.split("\n")
+
+    val context = LocalContext.current
+    val adflag = getAdFlag(context)
     val adReference = if(BuildConfig.DEBUG){
-        LocalContext.current.getString(R.string.test_scaffold_banner_ad_id)
+        context.getString(R.string.test_scaffold_banner_ad_id)
     }
-    else LocalContext.current.getString(R.string.scaffold_banner_ad_id)
+    else context.getString(R.string.scaffold_banner_ad_id)
     Column(
         modifier = Modifier
             .padding(24.dp)
@@ -317,11 +321,13 @@ fun RecipeBody(
         Row(){
             Spacer(modifier = Modifier
                 .height(50.dp))
-            AdmobBanner(modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-                reference = adReference
-            )
+            if (adflag){
+                AdmobBanner(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                    reference = adReference
+                )
+            }
         }
         Spacer(modifier = Modifier.size(10.dp))
         Text(
@@ -353,11 +359,13 @@ fun RecipeBody(
         Row(){
             Spacer(modifier = Modifier
                 .height(50.dp))
-            AdmobBanner(modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-                reference = adReference
-            )
+            if (adflag){
+                AdmobBanner(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                    reference = adReference
+                )
+            }
         }
         Spacer(modifier = Modifier.size(10.dp))
         Text(

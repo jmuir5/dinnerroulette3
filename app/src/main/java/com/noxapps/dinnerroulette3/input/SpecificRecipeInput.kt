@@ -54,6 +54,7 @@ import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.commons.DietSelectDialog
 import com.noxapps.dinnerroulette3.commons.ProcessingDialog
+import com.noxapps.dinnerroulette3.commons.getAdFlag
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.loadInterstitialAd
 import com.noxapps.dinnerroulette3.savedPreferences
@@ -68,12 +69,14 @@ fun SpecificRecipeInput(
     viewModel: InputViewModel = InputViewModel(),
     navController: NavHostController
 ) {
-    StandardScaffold(tabt = "Request Recipe", navController = navController) {
+    val context = LocalContext.current
+    val adFlag = getAdFlag(context)
+
+    StandardScaffold(tabt = "Create Custom Recipe", navController = navController, adFlag = adFlag) {
         val focusRequester = remember { FocusRequester() }
         var promptText by remember { mutableStateOf("") }
         var processing = remember { mutableStateOf(false) }
         val placeholder by remember { mutableStateOf(viewModel.randomDishName()) }
-        val context = LocalContext.current
         var errorState by remember { mutableStateOf(0) }
 
         val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.roulette_table)
@@ -100,9 +103,6 @@ fun SpecificRecipeInput(
 
 
         val primaryOrange = MaterialTheme.colorScheme.primary
-
-
-
 
         val adFrameFlag = remember { mutableStateOf(false) }
         val adReference = if(BuildConfig.DEBUG){
@@ -161,7 +161,7 @@ fun SpecificRecipeInput(
                         if (promptText.length < 3) errorState = 1
                         else {
                             errorState = 0
-                            if(viewModel.recipeBox.all.size<2){
+                            if(viewModel.recipeBox.all.size<2 ||!adFlag){
                                 viewModel.executeRequest(promptText, processing,  presetId.value, context, navController)
                             }
                             else {
@@ -222,7 +222,7 @@ fun SpecificRecipeInput(
                         if (promptText.length < 3) errorState = 1
                         else {
                             errorState = 0
-                            if(viewModel.recipeBox.all.size<2){
+                            if(viewModel.recipeBox.all.size<2 ||!adFlag){
                                 viewModel.executeRequest(promptText, processing, presetId.value, context, navController)
                             }
                             else {

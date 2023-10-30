@@ -14,5 +14,6 @@ sealed class Paths(val Path:String) {
     object Recipe:Paths("Recipe")
     object Error:Paths("Error")
     object Redeem:Paths("Redeem")
+    object Billing:Paths("Billing")
 
 }

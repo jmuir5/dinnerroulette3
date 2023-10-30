@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.code1State
 import com.noxapps.dinnerroulette3.dataStore
+import com.noxapps.dinnerroulette3.gpt.getImage
 import com.noxapps.dinnerroulette3.input.SettingsObject
 import com.noxapps.dinnerroulette3.savedPreferences
 import io.objectbox.Box
@@ -114,6 +115,12 @@ class RedeemViewModel: ViewModel() {
 
 
         }
+        /*else if(code=="token"){
+            val prompt = "create a realistic 3d render of a slightly tilted towards the camera gold coin featuring a generic icon representing images embossed in the center. place the coin on a circular gradient background that transitions smoothly from pale orange around the edges of the image to 0xFFFF861A in the center behind the coin."
+            getImage(prompt, context){}
+        }
+
+         */
 
 
         else{

@@ -45,6 +45,7 @@ import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.commons.MultiDialog
 import com.noxapps.dinnerroulette3.input.SettingsObject
 import com.noxapps.dinnerroulette3.commons.StyledLazyRow
+import com.noxapps.dinnerroulette3.commons.getImageCredits
 import com.noxapps.dinnerroulette3.savedPreferences
 import com.noxapps.dinnerroulette3.settings.dietpreset.DietPreset
 //import com.noxapps.dinnerroulette3.ui.theme.ObfsuGrey
@@ -113,9 +114,9 @@ fun Settings(
                 dietId.value = retrievedData.dietPreset
                 meatContentIndex = retrievedData.meatContent
                 budgetIndex = retrievedData.budget
-                imageCredits = retrievedData.imageCredits
-
             }
+
+            imageCredits = getImageCredits(context)
             loadedFlag = true
         }
 
@@ -392,7 +393,7 @@ fun Settings(
 
                     ) {
                         Button(onClick = {
-                            navController.navigate(Paths.Redeem.Path)
+                            navController.navigate(Paths.Billing.Path)
                         }) {
                             Text(
                                 text =  "Purchase Image Credits"

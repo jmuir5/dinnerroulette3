@@ -59,6 +59,7 @@ import com.noxapps.dinnerroulette3.commons.MultiDialog
 import com.noxapps.dinnerroulette3.commons.ProcessingDialog
 import com.noxapps.dinnerroulette3.commons.SingleDialog
 import com.noxapps.dinnerroulette3.commons.StyledLazyRow
+import com.noxapps.dinnerroulette3.commons.getAdFlag
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.loadInterstitialAd
 import com.noxapps.dinnerroulette3.savedPreferences
@@ -86,8 +87,10 @@ fun NewInput(
     viewModel: InputViewModel = InputViewModel(),
     navController: NavHostController
 ) {
+    val context = LocalContext.current
+    val adflag = getAdFlag(context)
 
-    StandardScaffold(tabt = "Create Custom Recipe", navController = navController) {
+    StandardScaffold(tabt = "Create Custom Recipe", navController = navController, adFlag = adflag) {
         var dd1Expanded by remember { mutableStateOf(false) }
         var dd2Expanded by remember { mutableStateOf(false) }
         var dd3Expanded by remember { mutableStateOf(false) }
@@ -114,7 +117,7 @@ fun NewInput(
 
         val meatExpanded = remember { derivedStateOf { meatContentIndex==1 } }
         val carbExpanded = remember { derivedStateOf { meatContentIndex > 0 }}
-        val additionalExpanded = remember { derivedStateOf { primaryCarbIndex>1 }}
+        val additionalExpanded = remember { derivedStateOf { primaryCarbIndex>0 }}
 
 
         val cuisine = remember { mutableStateOf(false) }
@@ -125,7 +128,7 @@ fun NewInput(
 
         val processing = remember { mutableStateOf(false) }
 
-        val context = LocalContext.current
+
 
         val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.roulette_table)
         val painter = remember{ BitmapPainter(image = bitmap.asImageBitmap()) }
@@ -516,7 +519,7 @@ fun NewInput(
                                     .width(buttonSize)
                                     .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height),
                                 onClick = {
-                                    if(viewModel.recipeBox.all.size<2){
+                                    if(viewModel.recipeBox.all.size<2 || !adflag){
                                         val query = Query(
                                             viewModel.meatContentItems[meatContentIndex],
                                             enabledMeat[primaryMeatIndex],

@@ -51,7 +51,7 @@ fun RedeemCode(
     viewModel: RedeemViewModel = RedeemViewModel(),
     navController: NavHostController
 ) {
-    StandardScaffold(tabt = "Request Recipe", navController = navController) {
+    StandardScaffold(tabt = "Request Recipe", navController = navController, adFlag = false) {
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
 
