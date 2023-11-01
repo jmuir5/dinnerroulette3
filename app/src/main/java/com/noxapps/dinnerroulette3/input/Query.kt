@@ -1,7 +1,6 @@
 package com.noxapps.dinnerroulette3.input
 
 import com.noxapps.dinnerroulette3.gpt.GptResponse
-import kotlinx.serialization.Serializable
 
 
 /**
@@ -43,15 +42,3 @@ class ParsedResponse(
 
 
 
-@Serializable
-class SettingsObject(
-    val imperial: Boolean,
-    val fahrenheit: Boolean,
-    val allergens:List<String>,//remove
-    val skill:Int,
-    var dietPreset:Long,
-    val meatContent:Int,//remove
-    val budget:Int,
-    var imageCredits:Int,//remove
-
-    )

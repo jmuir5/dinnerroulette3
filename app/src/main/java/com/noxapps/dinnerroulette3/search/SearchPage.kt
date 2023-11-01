@@ -379,29 +379,20 @@ fun RecipeList(recipesList:List<SavedRecipe>, navController: NavHostController, 
     else LocalContext.current.getString(R.string.scaffold_banner_ad_id)
     val adFlag = getAdFlag(LocalContext.current)
     LazyColumn{
-        for (i in recipesList.indices step(3)){
-            counter+=1
+        if (recipesList.isEmpty()){
             item(){
-                Row(modifier = Modifier
-                    .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-
-                ){
-                    RecipeCard(recipe = recipesList[i], navController = navController, viewModel)
-                    if(i+1<recipesList.size){
-                        RecipeCard(recipe = recipesList[i+1], navController = navController, viewModel)
-                    }
-                    else Spacer(modifier = Modifier
-                        .width((viewModel.screenWidth / viewModel.tilesPerRow).dp))
-                    if(i+2<recipesList.size){
-                        RecipeCard(recipe = recipesList[i+2], navController = navController, viewModel)
-                    }
-                    else Spacer(modifier = Modifier
-                        .width((viewModel.screenWidth / viewModel.tilesPerRow).dp))
+                Row(
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("Theres nothing here, try making some new recipes",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center)
                 }
-            }
-            if(counter%2==0&&adFlag){
-                item(){
+                if(adFlag){
                     Row(){
                         Spacer(modifier = Modifier
                             .height(50.dp))
@@ -410,6 +401,45 @@ fun RecipeList(recipesList:List<SavedRecipe>, navController: NavHostController, 
                             .height(50.dp),
                             reference = adReference
                         )
+                    }
+
+                }
+            }
+        }
+
+        else{
+            for (i in recipesList.indices step(3)){
+                counter+=1
+                item(){
+                    Row(modifier = Modifier
+                        .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+
+                    ){
+                        RecipeCard(recipe = recipesList[i], navController = navController, viewModel)
+                        if(i+1<recipesList.size){
+                            RecipeCard(recipe = recipesList[i+1], navController = navController, viewModel)
+                        }
+                        else Spacer(modifier = Modifier
+                            .width((viewModel.screenWidth / viewModel.tilesPerRow).dp))
+                        if(i+2<recipesList.size){
+                            RecipeCard(recipe = recipesList[i+2], navController = navController, viewModel)
+                        }
+                        else Spacer(modifier = Modifier
+                            .width((viewModel.screenWidth / viewModel.tilesPerRow).dp))
+                    }
+                }
+                if(counter%2==0&&adFlag){
+                    item(){
+                        Row(){
+                            Spacer(modifier = Modifier
+                                .height(50.dp))
+                            AdmobBanner(modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                                reference = adReference
+                            )
+                        }
                     }
                 }
             }

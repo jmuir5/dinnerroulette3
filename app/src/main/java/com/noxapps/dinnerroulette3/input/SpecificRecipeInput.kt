@@ -1,14 +1,12 @@
 package com.noxapps.dinnerroulette3.input
 
 import android.graphics.BitmapFactory
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -50,7 +48,6 @@ import com.noxapps.dinnerroulette3.BuildConfig
 import com.noxapps.dinnerroulette3.StandardScaffold
 import com.noxapps.dinnerroulette3.InterstitialAdDialogue
 import com.noxapps.dinnerroulette3.ObjectBox
-import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.commons.DietSelectDialog
 import com.noxapps.dinnerroulette3.commons.ProcessingDialog
@@ -58,6 +55,7 @@ import com.noxapps.dinnerroulette3.commons.getAdFlag
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.loadInterstitialAd
 import com.noxapps.dinnerroulette3.savedPreferences
+import com.noxapps.dinnerroulette3.settings.SettingsObject
 import com.noxapps.dinnerroulette3.settings.dietpreset.DietPreset
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -93,7 +91,7 @@ fun SpecificRecipeInput(
                 val retrievedData = try {
                     Json.decodeFromString<SettingsObject>(it)
                 } catch (exception: Exception) {
-                    SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
+                    SettingsObject(false, false, 0, 0, 0)
                 }
 
                 presetId.value = retrievedData.dietPreset
@@ -246,7 +244,7 @@ fun SpecificRecipeInput(
             }
         }
         if (processing.value) {
-            ProcessingDialog()
+            ProcessingDialog("Currently generating your recipe for $promptText")
         }
         if(presetSelectFlag.value){
             DietSelectDialog(

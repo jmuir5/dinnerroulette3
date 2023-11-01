@@ -185,27 +185,28 @@ fun RewardedAdFrame(
 ){
     var i by remember{mutableStateOf(0)}
     val scope = rememberCoroutineScope()
+    if (mRewardedAd.value!= null) {
+        i=5
+    }
 
-    if(i<5){
-        if (mRewardedAd.value!= null) {
-            i=5
-
-        }
-        else{
-            loadRewardedAd(context, mRewardedAd, "recipe Image Rewarded")
-            LaunchedEffect(true) {
-                for (j in 0..5) {
-                    withContext(Dispatchers.IO) {
-                        Thread.sleep(1000)
-                    }
-                    MainScope().launch { i += 1 }
-                    if (mRewardedAd.value!= null) {
-                        i=5
-                        break
-                    }
+    if(i<5) {
+        loadRewardedAd(context, mRewardedAd, "recipe Image Rewarded")
+        LaunchedEffect(true) {
+            for (j in 0..5) {
+                withContext(Dispatchers.IO) {
+                    Thread.sleep(1000)
                 }
+                MainScope().launch { i += 1 }
+
+                if (mRewardedAd.value != null) {
+                    i = 5
+                    break
+                }
+
+
             }
         }
+
         AlertDialog(
             onDismissRequest = {
 
@@ -223,10 +224,9 @@ fun RewardedAdFrame(
                 tonalElevation = AlertDialogDefaults.TonalElevation
             ) {
                 Column(
-                    modifier= Modifier
+                    modifier = Modifier
                         .background(MaterialTheme.colorScheme.background)
-                        .padding(10.dp)
-                    ,
+                        .padding(10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Row(
@@ -235,13 +235,17 @@ fun RewardedAdFrame(
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Text("Please Wait",
-                            style = MaterialTheme.typography.titleLarge)
+                        Text(
+                            "Please Wait",
+                            style = MaterialTheme.typography.titleLarge
+                        )
                     }
-                    Row(modifier = Modifier
-                        .padding(4.dp)
-                        .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center) {
+                    Row(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
                         Indicator()
                     }
                     Row(
@@ -250,79 +254,79 @@ fun RewardedAdFrame(
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Text("Attempting to Load Ad ($i)")
+                        Text("Attempting to Load Ad (${i+1})")
                     }
                 }
             }
         }
     }
-    else {
-        if (mRewardedAd.value != null) {
-            mRewardedAd.value?.let { ad ->
-                ad.show(context as Activity, OnUserEarnedRewardListener { rewardItem ->
-                    // Handle the reward.
-                    displayFlag.value = false
-                    imageFlag.value = true
-                    getImage(thisRecipe.imageDescription!!, context) {
-                        saveImage(context, thisRecipe, it.data[0].url) { it2 ->
-                            imageFlag2.value = it2
-                        }
-                    }
-                })
-            } ?: run {
-                Log.d("rewarded ad", "The rewarded ad wasn't ready yet.")
-            }
-        } else {
-            AlertDialog(
-                onDismissRequest = {
-                    displayFlag.value = false
-                }
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .wrapContentSize(Alignment.Center)
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(15.dp)
-                        ),
-                    shape = MaterialTheme.shapes.large,
-                    tonalElevation = AlertDialogDefaults.TonalElevation
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .background(MaterialTheme.colorScheme.background)
-                            .padding(10.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                "Ad Failed",
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                        }
-                        Row(
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text("unable to load Advertisement, please try again later")
-                        }
-                        Button(onClick = { displayFlag.value = false }) {
-                            Text(text = "Return")
 
-                        }
+    else if (mRewardedAd.value != null) {
+        mRewardedAd.value?.let { ad ->
+            ad.show(context as Activity, OnUserEarnedRewardListener { rewardItem ->
+                // Handle the reward.
+                displayFlag.value = false
+                imageFlag.value = true
+                getImage(thisRecipe.imageDescription!!, context) {
+                    saveImage(context, thisRecipe, it.data[0].url) { it2 ->
+                        imageFlag2.value = it2
+                    }
+                }
+            })
+        } ?: run {
+            Log.d("rewarded ad", "The rewarded ad wasn't ready yet.")
+        }
+    } else {
+        AlertDialog(
+            onDismissRequest = {
+                displayFlag.value = false
+            }
+        ) {
+            Surface(
+                modifier = Modifier
+                    .wrapContentSize(Alignment.Center)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(15.dp)
+                    ),
+                shape = MaterialTheme.shapes.large,
+                tonalElevation = AlertDialogDefaults.TonalElevation
+            ) {
+                Column(
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.background)
+                        .padding(10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            "Ad Failed",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
+                    Row(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text("unable to load Advertisement, please try again later")
+                    }
+                    Button(onClick = { displayFlag.value = false }) {
+                        Text(text = "Return")
+
                     }
                 }
             }
         }
     }
+
 
 }
 
@@ -337,28 +341,28 @@ fun InterstitialAdDialogue(
     var i by remember{mutableStateOf(0)}
     val scope = rememberCoroutineScope()
 
+    if (mInterstitialAd.value!= null) {
+        mInterstitialAd.value!!.show(context as Activity)
+        i=5
+    }
+
     if (i<5){
-        if (mInterstitialAd.value!= null) {
-            mInterstitialAd.value!!.show(context as Activity)
-            i=5
-        }
-        else{
-            LaunchedEffect(true){
-                scope.launch{
-                    for (j in 0..5) {
-                        withContext(Dispatchers.IO) {
-                            Thread.sleep(1000)
-                        }
+        LaunchedEffect(true){
+            scope.launch{
+                for (j in 0..5) {
+                    withContext(Dispatchers.IO) {
+                        Thread.sleep(1000)
                         MainScope().launch { i += 1 }
-                        if (mInterstitialAd.value!= null) {
-                            mInterstitialAd.value!!.show(context as Activity)
-                            i=5
-                            break
-                        }
+                    }
+                    if (mInterstitialAd.value!= null) {
+                        mInterstitialAd.value!!.show(context as Activity)
+                        i=5
+                        break
                     }
                 }
             }
         }
+
         AlertDialog(
             onDismissRequest = {
 
@@ -410,10 +414,10 @@ fun InterstitialAdDialogue(
         }
     }
     else {
-
         function()
         displayFlag.value = false
     }
+
 
 
 }

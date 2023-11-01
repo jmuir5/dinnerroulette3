@@ -162,7 +162,7 @@ fun HomePage(
             }
         }
         if (processing.value) {
-            ProcessingDialog()
+            ProcessingDialog("Currently generating your random recipe")
         }
         if(adFrameFlag.value){
             InterstitialAdDialogue(

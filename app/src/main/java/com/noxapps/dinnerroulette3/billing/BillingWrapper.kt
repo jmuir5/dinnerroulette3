@@ -2,6 +2,7 @@ package com.noxapps.dinnerroulette3.billing
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.LaunchedEffect
 import androidx.datastore.preferences.core.edit
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.AcknowledgePurchaseResponseListener
@@ -10,37 +11,33 @@ import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.ConsumeParams
 import com.android.billingclient.api.ConsumeResponseListener
+import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesResponseListener
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryPurchasesParams
 import com.noxapps.dinnerroulette3.adFlag
+import com.noxapps.dinnerroulette3.commons.Indicator
+import com.noxapps.dinnerroulette3.commons.ProcessingDialog
 import com.noxapps.dinnerroulette3.commons.addImageCredits
+import com.noxapps.dinnerroulette3.commons.getPurchaseFlag
+import com.noxapps.dinnerroulette3.commons.setPurchaseFlag
 import com.noxapps.dinnerroulette3.dataStore
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class BillingWrapper(context: Context, scope: CoroutineScope) {
 
     private val purchasesUpdatedListener =
-        PurchasesUpdatedListener() { billingResult, purchases ->
+        PurchasesUpdatedListener{ billingResult, purchases ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
-                Log.d("debug-Billing","successfull purchase")
-                Log.d("debug-Billing size",purchases.size.toString())
+                setPurchaseFlag(context, 0)
+                //Log.d("debug-Billing","successfull purchase")
+                //Log.d("debug-Billing size",purchases.size.toString())
 
                 for (purchase in purchases) {
-                    /*val consumeParams =
-                        ConsumeParams.newBuilder()
-                            .setPurchaseToken(purchase.purchaseToken)
-                            .build()
-                    val consumeResponseListener = ConsumeResponseListener(){billingResult, string->
-                        Log.d("debug-billing consumeResponse1", billingResult.toString())
-                        Log.d("debug-billing consumeResponse2", string)
-                    }
-                    scope.launch {
-                        val consumeResult = billingClient.consumeAsync(consumeParams, consumeResponseListener)
-                        Log.d("debug-billing consume", consumeResult.toString())
-                    }*/
-                    Log.d("debug-Billing",purchase.products.toString())
+                    //Log.d("debug-Billing",purchase.products.toString())
                     if (!purchase.isAcknowledged) {
                         if (purchase.purchaseState == 1) {
                             val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
@@ -48,7 +45,7 @@ class BillingWrapper(context: Context, scope: CoroutineScope) {
                                 .build()
                             val acknowledgePurchaseResponseListener =
                                 AcknowledgePurchaseResponseListener() {
-                                    Log.d("purchase acknowledged", "purchase acknowledged")
+                                    //Log.d("purchase acknowledged", "purchase acknowledged")
                                 }
                             billingClient.acknowledgePurchase(
                                 acknowledgePurchaseParams,
@@ -57,26 +54,20 @@ class BillingWrapper(context: Context, scope: CoroutineScope) {
 
                             purchase.products.forEach(){
                                 if(it!="ad_removal"){
-                                    val consumeParams =
-                                        ConsumeParams.newBuilder()
-                                            .setPurchaseToken(purchase.purchaseToken)
-                                            .build()
-                                    val consumeResponseListener = ConsumeResponseListener(){billingResult, string->
-                                        Log.d("debug-billing consumeResponse1", billingResult.toString())
-                                        Log.d("debug-billing consumeResponse2", string)
+                                    scope.launch{
+                                        consumeProduct(purchase)
                                     }
 
-                                    billingClient.consumeAsync(consumeParams, consumeResponseListener)
 
                                 }
 
                                 when(it){
-                                    "ic_1"->addImageCredits(context, 1)
-                                    "ic_5"->addImageCredits(context, 5)
-                                    "ic_10"->addImageCredits(context, 10)
-                                    "ic_20"->addImageCredits(context, 20)
-                                    "ic_50"->addImageCredits(context, 50)
-                                    "ic_100"-> addImageCredits(context, 100)
+                                    "ic_1"->addImageCredits(context, 5)
+                                    "ic_5"->addImageCredits(context, 25)
+                                    "ic_10"->addImageCredits(context, 50)
+                                    "ic_20"->addImageCredits(context, 100)
+                                    "ic_50"->addImageCredits(context, 250)
+                                    "ic_100"-> addImageCredits(context, 500)
                                     "ad_removal"->{
                                         scope.launch {
                                             context.dataStore.edit { settings ->
@@ -94,11 +85,13 @@ class BillingWrapper(context: Context, scope: CoroutineScope) {
 
                 }
             } else if (billingResult.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
-                Log.d("debug-Billing","purchase cancelled")
+                setPurchaseFlag(context, 1)
+                //Log.d("debug-Billing","purchase cancelled"
 
                 // Handle an error caused by a user cancelling the purchase flow.
             } else {
-                Log.d("debug-Billing","failed purchase")
+                setPurchaseFlag(context, 1)
+                //Log.d("debug-Billing","failed purchase")
 
                 // Handle any other error codes.
             }
@@ -155,6 +148,26 @@ class BillingWrapper(context: Context, scope: CoroutineScope) {
 
     val billingClient = initBilling(context)
 
+
+    suspend fun consumeProduct(purchase:Purchase, scope : CoroutineScope = CoroutineScope(Dispatchers.IO)){
+        withContext(Dispatchers.IO) {
+            Thread.sleep(1000)
+        }
+        val consumeParams =
+            ConsumeParams.newBuilder()
+                .setPurchaseToken(purchase.purchaseToken)
+                .build()
+        val consumeResponseListener = ConsumeResponseListener(){billingResult, string->
+            Log.d("debug-billing consumeResponse1", billingResult.toString())
+            if (billingResult.responseCode != BillingClient.BillingResponseCode.OK){
+                scope.launch {
+                    consumeProduct(purchase)
+                }
+            }
+        }
+
+        billingClient.consumeAsync(consumeParams, consumeResponseListener)
+    }
 
 
 }

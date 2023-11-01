@@ -35,14 +35,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.android.billingclient.api.BillingClient
-import com.android.billingclient.api.ConsumeParams
-import com.android.billingclient.api.ConsumeResponseListener
-import com.android.billingclient.api.PurchasesResponseListener
-import com.android.billingclient.api.QueryPurchasesParams
-import com.android.billingclient.api.queryPurchaseHistory
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.noxapps.dinnerroulette3.billing.BillingWrapper
 import com.noxapps.dinnerroulette3.billing.PurchasesPage
+import com.noxapps.dinnerroulette3.commons.setPurchaseFlag
 import com.noxapps.dinnerroulette3.home.HomePage
 import com.noxapps.dinnerroulette3.ui.theme.*
 import io.objectbox.Box
@@ -50,7 +46,7 @@ import io.objectbox.BoxStore
 import kotlinx.coroutines.*
 import kotlin.random.Random
 import com.noxapps.dinnerroulette3.input.NewInput
-import com.noxapps.dinnerroulette3.input.SettingsObject
+import com.noxapps.dinnerroulette3.settings.SettingsObject
 import com.noxapps.dinnerroulette3.input.SpecificRecipeInput
 import com.noxapps.dinnerroulette3.recipe.Recipe
 import com.noxapps.dinnerroulette3.recipe.SavedRecipe
@@ -62,9 +58,9 @@ import com.noxapps.dinnerroulette3.settings.dietpreset.DietPreset
 import com.noxapps.dinnerroulette3.settings.dietpreset.DietPresetPage
 import com.noxapps.dinnerroulette3.settings.dietpreset.initiliseDietPreset
 import kotlinx.coroutines.flow.first
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlin.coroutines.CoroutineContext
 
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "saveData")
@@ -74,6 +70,7 @@ val usedTokens = intPreferencesKey("usedTokens")
 val firstRun = booleanPreferencesKey("firstRun")
 val imageCredits = intPreferencesKey("imageCredits")
 val adFlag = booleanPreferencesKey("adFlag")
+val purchaseFlag = intPreferencesKey("purchaseFlag")
 
 
 /**
@@ -92,14 +89,15 @@ class MainActivity : ComponentActivity() {
         val presetBox = ObjectBox.store.boxFor(DietPreset::class.java)
         if(presetBox.isEmpty) initiliseDietPreset(presetBox)
         val billingClient = BillingWrapper(this, CoroutineScope(Dispatchers.IO)).billingClient
-        val scope = CoroutineScope(Dispatchers.IO)
+        /*val scope = CoroutineScope(Dispatchers.IO)
         val context = this
         scope.launch {
             context.dataStore.edit { settings ->
                 //Log.d("debug-credits add ",(credits+add).toString())
                 settings[imageCredits] = 2
             }
-        }
+        }*/
+        setPurchaseFlag(this, -1)
 
 
         ReminderNotificationWorker.schedule(this, 16, 0)
@@ -147,16 +145,11 @@ class MainActivity : ComponentActivity() {
                     //color = com.noxapps.dinnerroulette3.ui.theme.SurfaceOrange//MaterialTheme.colorScheme.background
                 ) {
                     val context = LocalContext.current
-                    val loadedData = runBlocking { context.dataStore.data.first() }
-                    Log.d("datastore", "checking")
-                    if (loadedData[firstRun] == null) {
-                        Log.d("datastore", "Init required")
 
-                        initialiseDataStore(context, rememberCoroutineScope())
-                    }
+                    initialiseDataStore(context, rememberCoroutineScope())
+
                     val navController = rememberNavController()
                     NavMain(navController, billingClient)
-
                 }
             }
         }
@@ -417,15 +410,36 @@ fun randomFavourite(box:Box<SavedRecipe>):Long{
 
 fun initialiseDataStore(context:Context, scope:CoroutineScope){
     Log.d("datastore", "Init started")
+    val loadedData = runBlocking { context.dataStore.data.first() }
 
-    val defaultSettings = SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
+    val defaultSettings = SettingsObject(false, false, 0, 0, 0)
     scope.launch {
         context.dataStore.edit { settings ->
-            settings[savedPreferences] = Json.encodeToString(defaultSettings)
-            settings[code1State] = false
-            settings[imageCredits] = 2
-            settings[adFlag]=true
-            settings[firstRun] = true
+            if (loadedData[savedPreferences] == null) {
+                settings[savedPreferences] = Json.encodeToString(defaultSettings)
+            }
+            loadedData[savedPreferences]?.let {
+                try {
+                    Json.decodeFromString<SettingsObject>(it)
+                } catch (exception: Exception) {
+                    settings[savedPreferences] = Json.encodeToString(defaultSettings)
+                }
+            }
+            if (loadedData[code1State] == null) {
+                settings[code1State] = false
+            }
+            if (loadedData[imageCredits] == null) {
+                settings[imageCredits] = 2
+            }
+            if (loadedData[adFlag] == null) {
+                settings[adFlag] = true
+            }
+            if (loadedData[purchaseFlag] == null) {
+                settings[purchaseFlag] = -1
+            }
+            if (loadedData[firstRun] == null) {
+                settings[firstRun] = true
+            }
         }
         Log.d("datastore", "Init successfull")
     }

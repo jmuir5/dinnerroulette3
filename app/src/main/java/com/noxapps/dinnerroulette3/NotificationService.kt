@@ -43,15 +43,15 @@ import kotlin.time.toKotlinDuration
 class NotificationService(private val context: Context) {
     val notificationContent = listOf(
         listOf(
-            Pair("Not sure what to make?", "Generate a new recipe now!"),//full rulette
+            Pair("Not sure what to make?", "Generate a new recipe now with Chef Roulette!"),//full rulette
             Pair("Whats for dinner?", "Play Chef Roulette and find out!"),
             Pair("Need some inspiration?", "Play Chef Roulette and get inspired!"),
-            Pair("time for something different?", "Get a brand new recipe today")
+            Pair("Time for something different?", "Get a brand new recipe today with Chef Roulette")
         ),
         listOf(
-            Pair("Something on your mind?", "Get a recipe now!"), //specific request
-            Pair("Got a craving?", "Get a recipe with Chef Roulette"),
-            Pair("Craving something specific?", "Get a recipe with Chef Roulette"),
+            Pair("Something on your mind?", "Get the recipe now with Chef Roulette!"), //specific request
+            Pair("Got a craving?", "Get the recipe with Chef Roulette"),
+            Pair("Craving something specific?", "Get the recipe with Chef Roulette"),
             Pair("Not sure how to make something?", "Get the recipe with Chef Roulette")
         ),
         listOf(
@@ -61,10 +61,10 @@ class NotificationService(private val context: Context) {
             Pair("Customise ", "Build a recipe with Chef Roulette")
         ),
         listOf(
-            Pair("browse", "browse"),//browse
-            Pair("browse", "browse"),
-            Pair("browse", "browse"),
-            Pair("browse", "browse"),
+            Pair("Not sure what to make?", "Get some inspiration from the past with Chef Roulette"),//browse
+            Pair("Not Sure what to make?", "Try these old favourites again with Chef Roulette"),
+            Pair("Feel like something familiar?", "Get some inspiration from the past with Chef Roulette"),
+            Pair("\"I want... again \"", "Try these old favourites again with Chef Roulette"),
         )
     )
 

@@ -169,7 +169,7 @@ fun RedeemCode(
             }
         }
         if (processing.value) {
-            ProcessingDialog()
+            ProcessingDialog("Checking Code")
         }
         if (genTextDialogue.value){
             GenericTextDialogue(genTextDialogue, dialogueTitle.value, dialogueBody.value)

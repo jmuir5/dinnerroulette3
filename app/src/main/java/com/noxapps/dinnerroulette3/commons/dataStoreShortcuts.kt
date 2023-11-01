@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import com.noxapps.dinnerroulette3.adFlag
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.imageCredits
+import com.noxapps.dinnerroulette3.purchaseFlag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -57,4 +58,24 @@ fun addImageCredits(context: Context, add:Int, scope: CoroutineScope = Coroutine
         }
     }
 
+}
+
+fun getPurchaseFlag(context: Context):Int {
+    val loadedData = runBlocking { context.dataStore.data.first() }
+    loadedData[purchaseFlag]?.let { flag ->
+        return try {
+            flag
+        } catch (exception: Exception) {
+            -1
+        }
+    }
+    return -1
+}
+
+fun setPurchaseFlag(context: Context, value:Int, scope: CoroutineScope = CoroutineScope(Dispatchers.IO)) {
+    scope.launch {
+        context.dataStore.edit { settings ->
+            settings[purchaseFlag] = value
+        }
+    }
 }

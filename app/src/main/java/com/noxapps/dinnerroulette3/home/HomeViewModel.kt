@@ -13,7 +13,7 @@ import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.input.QandA
 import com.noxapps.dinnerroulette3.input.Query
 import com.noxapps.dinnerroulette3.recipe.SavedRecipe
-import com.noxapps.dinnerroulette3.input.SettingsObject
+import com.noxapps.dinnerroulette3.settings.SettingsObject
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.gpt.getResponse
 import com.noxapps.dinnerroulette3.gpt.parseResponse
@@ -108,9 +108,9 @@ class HomeViewModel: ViewModel() {
             val retrievedData: SettingsObject = try {
                 Json.decodeFromString<SettingsObject>(it)
             }catch(exception: Exception){
-                SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
+                SettingsObject(false, false, 0, 0, 0)
             }
-            meatContentIndex = retrievedData.meatContent
+
             budgetIndex = if(retrievedData.budget>0) retrievedData.budget else seed%4
             presetId = retrievedData.dietPreset
         }
@@ -192,7 +192,7 @@ class HomeViewModel: ViewModel() {
 
 
         var vegFlag = "Yes"
-        when(meatContentIndex){
+        when(activePreset.meatContent){
             0->{
                 if(Random(Date().time).nextInt(50)==0) {
                 vegFlag="Vegan"
@@ -201,14 +201,13 @@ class HomeViewModel: ViewModel() {
                     vegFlag="Vegetarian"
                 }
             }
-            1->Unit
-            2->{
+            1->{
                 vegFlag="Vegetarian"
                 if(Random(Date().time).nextInt(10)==0) {
                     vegFlag="Vegan"
                 }
             }
-            3->vegFlag="Vegan"
+            2->vegFlag="Vegan"
         }
 
 

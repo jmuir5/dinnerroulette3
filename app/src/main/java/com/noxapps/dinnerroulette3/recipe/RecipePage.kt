@@ -62,7 +62,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavHostController
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.noxapps.dinnerroulette3.AdmobBanner
@@ -71,19 +70,20 @@ import com.noxapps.dinnerroulette3.commons.Indicator
 import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.RewardedAdFrame
+import com.noxapps.dinnerroulette3.commons.AdOrShopDialogue
 import com.noxapps.dinnerroulette3.commons.FavouriteButton
+import com.noxapps.dinnerroulette3.commons.addImageCredits
 import com.noxapps.dinnerroulette3.commons.getAdFlag
+import com.noxapps.dinnerroulette3.commons.getImageCredits
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.gpt.getImage
 import com.noxapps.dinnerroulette3.gpt.saveImage
-import com.noxapps.dinnerroulette3.input.SettingsObject
+import com.noxapps.dinnerroulette3.settings.SettingsObject
 import com.noxapps.dinnerroulette3.loadRewardedAd
 import com.noxapps.dinnerroulette3.savedPreferences
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
@@ -94,7 +94,6 @@ import java.io.File
 fun Recipe(
     recipeId:Long,
     navController: NavHostController
-
 ) {
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
     var thisRecipe = recipeBox[recipeId]
@@ -237,7 +236,7 @@ fun Recipe(
             modifier = variableModifier
         )
         {
-            TitleCardFull(thisRecipe = thisRecipe, imageFlag = imageFlag, imageFlag2 = imageFlag2)
+            TitleCardFull(thisRecipe = thisRecipe, imageFlag = imageFlag, imageFlag2 = imageFlag2, navController = navController)
             RecipeBody(thisRecipe = thisRecipe)
 
         }
@@ -253,7 +252,7 @@ fun RecipeBody(
     val parsedNotes = thisRecipe.notes?.split("\n")
 
     val context = LocalContext.current
-    val adflag = getAdFlag(context)
+    val adFlag = getAdFlag(context)
     val adReference = if(BuildConfig.DEBUG){
         context.getString(R.string.test_scaffold_banner_ad_id)
     }
@@ -267,14 +266,19 @@ fun RecipeBody(
             style = MaterialTheme.typography.titleLarge
         )
         Spacer(modifier = Modifier.size(10.dp))
-        Row(){
-            Spacer(modifier = Modifier
-                .height(50.dp))
-            AdmobBanner(modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-                reference = adReference
-            )
+        if (adFlag) {
+            Row() {
+                Spacer(
+                    modifier = Modifier
+                        .height(50.dp)
+                )
+                AdmobBanner(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    reference = adReference
+                )
+            }
         }
         Spacer(modifier = Modifier.size(10.dp))
         Text(
@@ -283,10 +287,9 @@ fun RecipeBody(
             color = MaterialTheme.colorScheme.primary
         )
         parsedIngredients?.forEach() {
-            if(it.isEmpty()){
-                Spacer(modifier=Modifier.size(10.dp))
-            }
-            else if(it.startsWith("-")) {
+            if (it.isEmpty()) {
+                Spacer(modifier = Modifier.size(10.dp))
+            } else if (it.startsWith("-")) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     val checkedState = remember { mutableStateOf(false) }
                     Checkbox(
@@ -309,22 +312,26 @@ fun RecipeBody(
                     )
 
                 }
-            }
-            else{
-                Text(text = it,
+            } else {
+                Text(
+                    text = it,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
         }
         Spacer(modifier = Modifier.size(10.dp))
-        Row(){
-            Spacer(modifier = Modifier
-                .height(50.dp))
-            if (adflag){
-                AdmobBanner(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
+        if (adFlag) {
+            Row() {
+                Spacer(
+                    modifier = Modifier
+                        .height(50.dp)
+                )
+
+                AdmobBanner(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
                     reference = adReference
                 )
             }
@@ -336,33 +343,41 @@ fun RecipeBody(
             color = MaterialTheme.colorScheme.primary
         )
         parsedMethod?.forEach() {
-            Row(modifier = Modifier
-                .padding(0.dp, 8.dp),
-
-                verticalAlignment = Alignment.CenterVertically) {
-                val strikeThroughState = remember { mutableStateOf(false) }
-                Text(
-                    text = it,
+            if(it.isNotEmpty()) {
+                Row(
                     modifier = Modifier
-                        .clickable { strikeThroughState.value = !strikeThroughState.value },
-                    style = if (strikeThroughState.value) {
-                        MaterialTheme.typography.bodyMedium.copy(
-                            textDecoration = TextDecoration.LineThrough,
-                            color = Color.Gray
-                        )
-                    } else MaterialTheme.typography.bodyMedium
-                )
+                        .padding(0.dp, 8.dp),
 
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val strikeThroughState = remember { mutableStateOf(false) }
+                    Text(
+                        text = it,
+                        modifier = Modifier
+                            .clickable { strikeThroughState.value = !strikeThroughState.value },
+                        style = if (strikeThroughState.value) {
+                            MaterialTheme.typography.bodyMedium.copy(
+                                textDecoration = TextDecoration.LineThrough,
+                                color = Color.Gray
+                            )
+                        } else MaterialTheme.typography.bodyMedium
+                    )
+
+                }
             }
         }
         Spacer(modifier = Modifier.size(10.dp))
-        Row(){
-            Spacer(modifier = Modifier
-                .height(50.dp))
-            if (adflag){
-                AdmobBanner(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
+        if (adFlag) {
+            Row() {
+                Spacer(
+                    modifier = Modifier
+                        .height(50.dp)
+                )
+
+                AdmobBanner(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
                     reference = adReference
                 )
             }
@@ -497,7 +512,12 @@ fun TitleCardLoading(thisRecipe: SavedRecipe, imageHeight:Dp) {
 }
 
 @Composable
-fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>, imageFlag2:MutableState<Boolean>){
+fun TitleCardFull(
+    thisRecipe: SavedRecipe,
+    imageFlag:MutableState<Boolean>,
+    imageFlag2:MutableState<Boolean>,
+    navController: NavHostController
+){
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val context = LocalContext.current
@@ -511,24 +531,9 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>, imag
         loadRewardedAd(context, mRewardedAd, TAG)
         loadAttempted=true
     }
-    var imageCredits by remember { mutableStateOf(0) }
+    var imageCredits by remember { mutableStateOf(getImageCredits(context)) }
 
-    var loadedFlag by remember { mutableStateOf(false) }
-
-    if (!loadedFlag) {
-        val loadedData = runBlocking { context.dataStore.data.first() }
-
-        loadedData[savedPreferences]?.let {
-            val retrievedData: SettingsObject = try {
-                Json.decodeFromString<SettingsObject>(it)
-            }catch(exception: Exception){
-                SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
-            }
-            imageCredits = retrievedData.imageCredits
-
-        }
-        loadedFlag = true
-    }
+    val shopPrompt = remember{ mutableStateOf(false) }
 
     val adFrameFlag = remember{ mutableStateOf(false) }
 
@@ -607,38 +612,15 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>, imag
                                 .weight(5F),
                             onClick = {
                                 if (imageCredits > 0) {
-                                    val loadedData = runBlocking { context.dataStore.data.first() }
-                                    imageCredits -= 1
-                                    loadedData[savedPreferences]?.let {
-                                        val retrievedData: SettingsObject = try {
-                                            Json.decodeFromString(it)
-                                        } catch (exception: Exception) {
-                                            SettingsObject(
-                                                imperial = false,
-                                                fahrenheit = false,
-                                                allergens = listOf(),
-                                                skill = 0,
-                                                dietPreset = 0,
-                                                meatContent = 0,
-                                                budget = 0,
-                                                imageCredits = 2
-                                            )
-                                        }
-                                        retrievedData.imageCredits = imageCredits
-                                        scope.launch {
-                                            context.dataStore.edit { settings ->
-                                                settings[savedPreferences] =
-                                                    Json.encodeToString(retrievedData)
-                                            }
-                                        }
-                                    }
+                                    addImageCredits(context, -1)
                                     imageFlag.value = true
                                     getImage(it, context) {
                                         saveImage(context, thisRecipe, it.data[0].url) { it2 ->
                                             imageFlag2.value = it2
                                         }
                                     }
-                                }
+                                }else shopPrompt.value=true
+
                             }) {
                             Text(text = "Use Image Credit")
                         }
@@ -656,6 +638,9 @@ fun TitleCardFull(thisRecipe: SavedRecipe, imageFlag:MutableState<Boolean>, imag
             thisRecipe = thisRecipe,
             displayFlag = adFrameFlag
         )
+    }
+    if(shopPrompt.value){
+        AdOrShopDialogue(thisState = shopPrompt, adState = adFrameFlag, navController = navController)
     }
 }
 

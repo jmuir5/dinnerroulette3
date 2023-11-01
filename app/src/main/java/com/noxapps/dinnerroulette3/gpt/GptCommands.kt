@@ -9,8 +9,9 @@ import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.recipe.SavedRecipe
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.input.ParsedResponse
-import com.noxapps.dinnerroulette3.input.SettingsObject
+import com.noxapps.dinnerroulette3.settings.SettingsObject
 import com.noxapps.dinnerroulette3.savedPreferences
+import com.noxapps.dinnerroulette3.settings.dietpreset.DietPreset
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -178,9 +179,8 @@ fun parseResponse(gptResponse: GptResponse): ParsedResponse {
 fun generatePrompt(context: Context, flag: Int): String {
     var imperial = false
     var fahrenheit = false
-//    val allergens = mutableListOf<String>()
     var skill = 0
-    var diet = 0L
+
     var meatContent = 0
     val loadedData = runBlocking { context.dataStore.data.first() }
     val retrievedData: SettingsObject = try {
@@ -189,45 +189,35 @@ fun generatePrompt(context: Context, flag: Int): String {
         SettingsObject(
             imperial = false,
             fahrenheit = false,
-            allergens = listOf(),
             skill = 0,
             dietPreset = 0,
-            meatContent = 0,
             budget = 0,
-            imageCredits = 2
         )
     }
     imperial = retrievedData.imperial
     fahrenheit = retrievedData.fahrenheit
     skill = retrievedData.skill
-    val allergens = retrievedData.allergens.toSet()
-    diet = retrievedData.dietPreset
-    meatContent = retrievedData.meatContent
 
-    var skillText = "a beginner"
+
+
+    var skillText = ""
     when (skill) {
-        1 -> skillText = "an intermediate"
-        2 -> skillText = "an expert"
+        1-> skillText = "a beginner"
+        2 -> skillText = "an intermediate"
+        3 -> skillText = "an expert"
     }
 
-    var allergenText = ""
-    if (allergens.size > 0) {
-        allergenText = " who is algergic to or intolerant of the following: "
-        allergens.forEach { allergenText += "$it, " }
-        allergenText += "."
-    }
+
     var unit1Text = "metric"
     if (imperial) unit1Text = "imperial"
 
     var unit2Text = "celsius"
     if (fahrenheit) unit2Text = "fahrenheit"
 
-    var dietText = ""
-    //if (diet.isNotEmpty()) dietText = "The recipe should be suitable for a $diet diet"
 
     val prompt = when (flag) {
-        1 -> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText. $dietText The prompt will end with [fin], indicating the intended end of the prompt. include a recommendation for an appropriate carbohydrate component or accompaniment in the description. you are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
-        else -> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook$allergenText. $dietText The prompt will end with [fin], indicating the intended end of the prompt. the prompt will include a primary protein and a primary carbohydrate. for example, if the prompt requests a 'chinese lamb dish', lamb is the primary protein. if the prompt includes additional sources of protein or carbohydrate include them both, but make the primary protein or carbohydrate more prominent. be sure to give the recipe an appropriate name. You are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
+        1 -> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook. The prompt will end with [fin], indicating the intended end of the prompt. include a recommendation for an appropriate carbohydrate component or accompaniment in the description. you are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
+        else -> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook. The prompt will end with [fin], indicating the intended end of the prompt. the prompt will include a primary protein and a primary carbohydrate. for example, if the prompt requests a 'chinese lamb dish', lamb is the primary protein. if the prompt includes additional sources of protein or carbohydrate include them both, but make the primary protein or carbohydrate more prominent. be sure to give the recipe an appropriate name. You are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
 
     }
 

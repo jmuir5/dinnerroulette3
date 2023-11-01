@@ -60,7 +60,7 @@ import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.commons.DietSelectDialog
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.commons.MultiDialog
-import com.noxapps.dinnerroulette3.input.SettingsObject
+import com.noxapps.dinnerroulette3.settings.SettingsObject
 import com.noxapps.dinnerroulette3.commons.SingleDialog
 import com.noxapps.dinnerroulette3.commons.StyledLazyRow
 import com.noxapps.dinnerroulette3.commons.TITLazyRow
@@ -117,7 +117,7 @@ fun DietPresetPage(
 
     var retrievedData by remember {
         mutableStateOf(
-            SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
+            SettingsObject(false, false, 0, 0, 0)
         )
     }
 
@@ -128,7 +128,7 @@ fun DietPresetPage(
             retrievedData = try {
                 Json.decodeFromString<SettingsObject>(it)
             } catch (exception: Exception) {
-                SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
+                SettingsObject(false, false,  0, 0, 0)
             }
 
             newPreset.value = retrievedData.dietPreset

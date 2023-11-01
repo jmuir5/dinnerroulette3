@@ -5,16 +5,10 @@ import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.outlined.NoFood
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import com.noxapps.dinnerroulette3.ObjectBox
-import com.noxapps.dinnerroulette3.dataStore
-import com.noxapps.dinnerroulette3.input.SettingsObject
+import com.noxapps.dinnerroulette3.settings.SettingsObject
 import io.objectbox.Box
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 
 class DietPresetViewModel: ViewModel() {
 
@@ -42,7 +36,7 @@ class DietPresetViewModel: ViewModel() {
 
 
 
-    lateinit var retrievedData:SettingsObject
+    lateinit var retrievedData: SettingsObject
 
 
     val blankPreset = DietPreset(0,

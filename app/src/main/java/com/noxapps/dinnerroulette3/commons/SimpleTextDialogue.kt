@@ -11,30 +11,25 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
-/**
- * customised alert dialogue featuring text to inform the user that the app is processing something
- * and a visual indicator to shot that the process is still running. intentionally designed to be
- * uninterruptable.
- *
- * todo:
- * text style
- * make background white / change based on current ui paradigm
- */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProcessingDialog(text:String){
+fun SimpleTextDialogue(title:String?, body:String, state: MutableState<Boolean>) {
     AlertDialog(
         onDismissRequest = {
-
+            state.value=false
         }
     ) {
         Surface(
@@ -54,16 +49,18 @@ fun ProcessingDialog(text:String){
                     .padding(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        "Please Wait",
-                        style = MaterialTheme.typography.titleLarge
-                    )
+                title?.let() {
+                    Row(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(it,
+                            style = MaterialTheme.typography.titleLarge,
+                            textAlign = TextAlign.Center
+                            )
+                    }
                 }
                 Row(
                     modifier = Modifier
@@ -71,17 +68,19 @@ fun ProcessingDialog(text:String){
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Indicator()
+                    Text(body,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center)
                 }
-                Row(
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(text)
+                Row() {
+                    Button(onClick = {
+                        state.value = false
+                    }) {
+                        Text(text = "OK")
+                    }
                 }
             }
+
         }
     }
 }

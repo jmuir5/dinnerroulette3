@@ -1,10 +1,7 @@
 package com.noxapps.dinnerroulette3.input
 
 import android.graphics.BitmapFactory
-import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,19 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -54,7 +45,6 @@ import com.noxapps.dinnerroulette3.BuildConfig
 import com.noxapps.dinnerroulette3.StandardScaffold
 import com.noxapps.dinnerroulette3.InterstitialAdDialogue
 import com.noxapps.dinnerroulette3.R
-import com.noxapps.dinnerroulette3.UserStore
 import com.noxapps.dinnerroulette3.commons.MultiDialog
 import com.noxapps.dinnerroulette3.commons.ProcessingDialog
 import com.noxapps.dinnerroulette3.commons.SingleDialog
@@ -63,7 +53,7 @@ import com.noxapps.dinnerroulette3.commons.getAdFlag
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.loadInterstitialAd
 import com.noxapps.dinnerroulette3.savedPreferences
-import com.noxapps.dinnerroulette3.usedTokens
+import com.noxapps.dinnerroulette3.settings.SettingsObject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
@@ -81,7 +71,6 @@ import kotlinx.serialization.json.Json
  * unsure of the potential reprecussions.
  */
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewInput(
     viewModel: InputViewModel = InputViewModel(),
@@ -94,9 +83,6 @@ fun NewInput(
         var dd1Expanded by remember { mutableStateOf(false) }
         var dd2Expanded by remember { mutableStateOf(false) }
         var dd3Expanded by remember { mutableStateOf(false) }
-
-
-
 
         val enabledMeat = remember { mutableStateListOf<String>() }
         val enabledCarb = remember { mutableStateListOf<String>() }
@@ -146,9 +132,9 @@ fun NewInput(
             val loadedData = runBlocking { context.dataStore.data.first() }
             loadedData[savedPreferences]?.let {
                 val retrievedData: SettingsObject = try {
-                    Json.decodeFromString<SettingsObject>(it)
+                    Json.decodeFromString(it)
                 }catch(exception: Exception){
-                    SettingsObject(false, false, listOf(), 0, 0, 0, 0, 2)
+                    SettingsObject(false, false, 0, 0, 0)
                 }
 
                 budgetIndex = retrievedData.budget
@@ -575,7 +561,7 @@ fun NewInput(
         }
 
         if (processing.value) {
-            ProcessingDialog()
+            ProcessingDialog("Currently generating your custom recipe")
         }
 
         if(adFrameFlag.value){
