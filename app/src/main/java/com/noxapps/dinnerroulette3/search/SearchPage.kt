@@ -1,5 +1,6 @@
 package com.noxapps.dinnerroulette3.search
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -52,6 +53,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -93,6 +95,7 @@ fun SearchPage(
 ) {
     val recipeStateList = remember{mutableStateListOf<SavedRecipe>()}
     val searchList = remember{mutableStateOf(viewModel.allRecipes.reversed())}
+
     viewModel.screenWidth = LocalConfiguration.current.screenWidthDp
     if(searchList.value!= recipeStateList){
         recipeStateList.clear()
@@ -370,15 +373,91 @@ fun SearchBlock(recipesList:MutableState<List<SavedRecipe>>, viewModel: SearchVi
     }
 }
 
+
 @Composable
-fun RecipeList(recipesList:List<SavedRecipe>, navController: NavHostController, viewModel: SearchViewModel){
+fun RecipeList(recipesList: List<SavedRecipe>,
+               navController: NavHostController,
+               viewModel: SearchViewModel
+){
+
+
     var counter = 0
     val adReference = if(BuildConfig.DEBUG){
         LocalContext.current.getString(R.string.test_scaffold_banner_ad_id)
     }
     else LocalContext.current.getString(R.string.scaffold_banner_ad_id)
     val adFlag = getAdFlag(LocalContext.current)
-    LazyColumn{
+
+    Column(){
+        if (recipesList.isEmpty()){
+            Row(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text("Theres nothing here, try making some new recipes",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center)
+            }
+            if(adFlag){
+                Row(){
+                    Spacer(modifier = Modifier
+                        .height(50.dp))
+                    AdmobBanner(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                        reference = adReference
+                    )
+                }
+
+            }
+
+        }
+        else {
+            for (i in recipesList.indices step(3)){
+                counter+=1
+
+                Row(modifier = Modifier
+                    .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+
+                ){
+                    RecipeCard(recipe = recipesList[i], navController = navController, viewModel)
+                    if(i+1<recipesList.size){
+                        RecipeCard(recipe = recipesList[i+1], navController = navController, viewModel)
+                    }
+                    else {
+                        Spacer(modifier = Modifier
+                            .width((viewModel.screenWidth / viewModel.tilesPerRow).dp))
+                    }
+                    if(i+2<recipesList.size){
+                        RecipeCard(recipe = recipesList[i+2], navController = navController, viewModel)
+                    }
+                    else {
+                        Spacer(modifier = Modifier
+                            .width((viewModel.screenWidth / viewModel.tilesPerRow).dp))
+                    }
+                }
+
+
+                if(counter%2==0&&adFlag){
+                    Row(){
+                        Spacer(modifier = Modifier
+                            .height(50.dp))
+                        AdmobBanner(modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                            reference = adReference
+                        )
+                    }
+                }
+            }
+        }
+    }
+    /*
+    LazyColumn {
         if (recipesList.isEmpty()){
             item(){
                 Row(
@@ -407,7 +486,7 @@ fun RecipeList(recipesList:List<SavedRecipe>, navController: NavHostController, 
             }
         }
 
-        else{
+        else {
             for (i in recipesList.indices step(3)){
                 counter+=1
                 item(){
@@ -420,15 +499,20 @@ fun RecipeList(recipesList:List<SavedRecipe>, navController: NavHostController, 
                         if(i+1<recipesList.size){
                             RecipeCard(recipe = recipesList[i+1], navController = navController, viewModel)
                         }
-                        else Spacer(modifier = Modifier
-                            .width((viewModel.screenWidth / viewModel.tilesPerRow).dp))
+                        else {
+                            Spacer(modifier = Modifier
+                                .width((viewModel.screenWidth / viewModel.tilesPerRow).dp))
+                        }
                         if(i+2<recipesList.size){
                             RecipeCard(recipe = recipesList[i+2], navController = navController, viewModel)
                         }
-                        else Spacer(modifier = Modifier
-                            .width((viewModel.screenWidth / viewModel.tilesPerRow).dp))
+                        else {
+                            Spacer(modifier = Modifier
+                                .width((viewModel.screenWidth / viewModel.tilesPerRow).dp))
+                        }
                     }
                 }
+
                 if(counter%2==0&&adFlag){
                     item(){
                         Row(){
@@ -444,7 +528,10 @@ fun RecipeList(recipesList:List<SavedRecipe>, navController: NavHostController, 
                 }
             }
         }
+
     }
+    */
+
 }
 
 @Composable

@@ -70,16 +70,14 @@ import okhttp3.internal.immutableListOf
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PurchasesPage(
-    viewModel: PurchasesViewModel = PurchasesViewModel(),
     billingClient: BillingClient,
     navController: NavHostController,
+    viewModel: PurchasesViewModel = PurchasesViewModel(billingClient),
 ) {
     StandardScaffold(tabt = "Shop", navController = navController, adFlag = false) {
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
         val loadedFlag = remember { mutableStateOf(false) }
-        val adRemoval = remember { mutableStateListOf<ProductDetails>() }
-        val productList = remember{mutableStateListOf<ProductDetails>()}
 
 
         val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.image_credit)
@@ -94,7 +92,7 @@ fun PurchasesPage(
         var purchaseTitle by remember{ mutableStateOf("dummyProduct") }
 
         val processingFlag = remember{mutableStateOf(false)}
-        val processingFlag2 = remember{ derivedStateOf { productList.isEmpty() }}
+        val processingFlag2 = remember{ derivedStateOf { viewModel.productList.isEmpty() }}
 
         val successFlag = remember{mutableStateOf(false)}
         val failureFlag = remember{mutableStateOf(false)}
@@ -113,62 +111,73 @@ fun PurchasesPage(
 
          */
 
-        LaunchedEffect(!loadedFlag.value){
-            Thread.sleep(100)
+        /*LaunchedEffect(!loadedFlag.value){
+            loadedFlag.value = true
+            Thread.sleep(1000)
             MainScope().launch {
-                getProducts(
+                viewModel.getProducts(
                     inputList = viewModel.productList,
                     billingClient = billingClient,
                     mainList = productList,
                     secondaryList = adRemoval
                 )
-                loadedFlag.value = true
             }
+        }*/
 
-        }
-        if(loadedFlag.value) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                //.padding(24.dp, 0.dp)
-            ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+            //.padding(24.dp, 0.dp)
+        ) {
+            item() {
+                Text(
+                    text = "Image Credits:",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(24.dp, 10.dp)
+                )
+            }
+            if (viewModel.productList.isNotEmpty()) {
+                viewModel.productList.forEach() {
+                    item() {
+                        ProductCard(it, painter, purchaseCardSource, purchaseCardFlag)
+                    }
+                }
+            }
+            if (getAdFlag(context)) {
                 item() {
                     Text(
-                        text = "Image Credits:",
+                        text = "Other:",
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(24.dp, 10.dp)
                     )
                 }
-                if (productList.isNotEmpty()) {
-                    productList.forEach() {
-                        item() {
-                            ProductCard(it, painter, purchaseCardSource, purchaseCardFlag)
-                        }
-                    }
-                }
-                if (getAdFlag(context)) {
+                viewModel.adRemoval.forEach() {
                     item() {
-                        Text(
-                            text = "Other:",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(24.dp, 10.dp)
-                        )
+                        ProductCard(it, adsPainter, purchaseCardSource, purchaseCardFlag)
                     }
-                    adRemoval.forEach() {
-                        item() {
-                            ProductCard(it, painter, purchaseCardSource, purchaseCardFlag)
-                        }
-                    }
-                }
-                item() {
-                    Spacer(modifier = Modifier.size(24.dp))
                 }
             }
+            item() {
+                Spacer(modifier = Modifier.size(24.dp))
+            }
         }
+
         if(purchaseCardFlag.value){
-            productList.forEach{
+            viewModel.productList.forEach{
+                if(purchaseCardSource.value == it.productId){
+                    purchaseTitle = it.name
+                    PurchaseDialogue(
+                        billingClient,
+                        it,
+                        painter,
+                        purchaseCardFlag,
+                        processingFlag
+                    )
+                }
+            }
+            viewModel.adRemoval.forEach(){
                 if(purchaseCardSource.value == it.productId){
                     purchaseTitle = it.name
                     PurchaseDialogue(billingClient, it, adsPainter, purchaseCardFlag, processingFlag)
@@ -276,33 +285,5 @@ fun ProductCard(
                 text = product.description,
                 style = MaterialTheme.typography.bodyMedium)
         }
-    }
-}
-
-fun getProducts(
-    inputList: List<QueryProductDetailsParams.Product>,
-    billingClient: BillingClient,
-    mainList: SnapshotStateList<ProductDetails>,
-    secondaryList: SnapshotStateList<ProductDetails>
-
-){
-    mainList.clear()
-    secondaryList.clear()
-    val queryProductDetailsParams = QueryProductDetailsParams
-        .newBuilder()
-        .setProductList(
-            inputList
-        )
-        .build()
-    billingClient.queryProductDetailsAsync(queryProductDetailsParams) { billingResult, productDetailsList ->
-
-        productDetailsList.forEach {
-            if(it.productId=="ad_removal")
-                secondaryList.add(it)
-            else{
-                mainList.add(it)
-            }
-        }
-        mainList.sortBy { it.oneTimePurchaseOfferDetails!!.priceAmountMicros }
     }
 }

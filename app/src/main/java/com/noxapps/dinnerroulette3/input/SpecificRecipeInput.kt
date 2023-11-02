@@ -48,6 +48,7 @@ import com.noxapps.dinnerroulette3.BuildConfig
 import com.noxapps.dinnerroulette3.StandardScaffold
 import com.noxapps.dinnerroulette3.InterstitialAdDialogue
 import com.noxapps.dinnerroulette3.ObjectBox
+import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.commons.DietSelectDialog
 import com.noxapps.dinnerroulette3.commons.ProcessingDialog
@@ -158,12 +159,17 @@ fun SpecificRecipeInput(
                     onDone = {
                         if (promptText.length < 3) errorState = 1
                         else {
-                            errorState = 0
-                            if(viewModel.recipeBox.all.size<2 ||!adFlag){
-                                viewModel.executeRequest(promptText, processing,  presetId.value, context, navController)
+                            try {
+                                errorState = 0
+                                if(viewModel.recipeBox.all.size<2 ||!adFlag){
+                                    viewModel.executeRequest(promptText, processing, presetId.value, context, navController)
+                                }
+                                else {
+                                    adFrameFlag.value = true
+                                }
                             }
-                            else {
-                                adFrameFlag.value = true
+                            catch (e:Exception){
+                                navController.navigate(Paths.Error.Path+"/${e}")
                             }
                         }
                     }
@@ -219,13 +225,19 @@ fun SpecificRecipeInput(
                     onClick = {
                         if (promptText.length < 3) errorState = 1
                         else {
-                            errorState = 0
-                            if(viewModel.recipeBox.all.size<2 ||!adFlag){
-                                viewModel.executeRequest(promptText, processing, presetId.value, context, navController)
+                            try {
+                                errorState = 0
+                                if(viewModel.recipeBox.all.size<2 ||!adFlag){
+                                    viewModel.executeRequest(promptText, processing, presetId.value, context, navController)
+                                }
+                                else {
+                                    adFrameFlag.value = true
+                                }
                             }
-                            else {
-                                adFrameFlag.value = true
+                            catch (e:Exception){
+                                navController.navigate(Paths.Error.Path+"/${e}")
                             }
+
                         }
                     },
                     colors = ButtonDefaults.textButtonColors(

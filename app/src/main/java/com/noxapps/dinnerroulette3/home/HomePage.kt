@@ -97,11 +97,16 @@ fun HomePage(
                             .fillMaxWidth()
                             .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height),
                         onClick = {
-                            if(recipeBox.all.size<2||!adFlag){
-                                viewModel.executeRandom(processing, context, navController)
+                            try {
+                                if(recipeBox.all.size<2||!adFlag){
+                                    viewModel.executeRandom(processing, context, navController)
+                                }
+                                else {
+                                    adFrameFlag.value = true
+                                }
                             }
-                            else {
-                                adFrameFlag.value = true
+                            catch (e:Exception){
+                                navController.navigate(Paths.Error.Path+"/${e}")
                             }
                         },
                         colors = ButtonDefaults.textButtonColors(

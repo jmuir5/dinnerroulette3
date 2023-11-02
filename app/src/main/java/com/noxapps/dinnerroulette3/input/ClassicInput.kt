@@ -44,13 +44,17 @@ import androidx.navigation.NavHostController
 import com.noxapps.dinnerroulette3.BuildConfig
 import com.noxapps.dinnerroulette3.StandardScaffold
 import com.noxapps.dinnerroulette3.InterstitialAdDialogue
+import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.commons.MultiDialog
 import com.noxapps.dinnerroulette3.commons.ProcessingDialog
 import com.noxapps.dinnerroulette3.commons.SingleDialog
 import com.noxapps.dinnerroulette3.commons.StyledLazyRow
+import com.noxapps.dinnerroulette3.commons.addImageCredits
 import com.noxapps.dinnerroulette3.commons.getAdFlag
 import com.noxapps.dinnerroulette3.dataStore
+import com.noxapps.dinnerroulette3.gpt.getImage
+import com.noxapps.dinnerroulette3.gpt.saveImage
 import com.noxapps.dinnerroulette3.loadInterstitialAd
 import com.noxapps.dinnerroulette3.savedPreferences
 import com.noxapps.dinnerroulette3.settings.SettingsObject
@@ -515,12 +519,18 @@ fun NewInput(
                                             exclIngredients,
                                             tags
                                         )
-                                        viewModel.executeClassic(
-                                            query,
-                                            processing,
-                                            context,
-                                            navController
-                                        )
+                                        try {
+                                            viewModel.executeClassic(
+                                                query,
+                                                processing,
+                                                context,
+                                                navController
+                                            )
+                                        }
+                                        catch (e:Exception){
+                                            navController.navigate(Paths.Error.Path+"/${e}")
+                                        }
+
                                     }
                                     else {
                                         adFrameFlag.value = true

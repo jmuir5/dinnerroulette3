@@ -68,6 +68,7 @@ import com.noxapps.dinnerroulette3.AdmobBanner
 import com.noxapps.dinnerroulette3.BuildConfig
 import com.noxapps.dinnerroulette3.commons.Indicator
 import com.noxapps.dinnerroulette3.ObjectBox
+import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.RewardedAdFrame
 import com.noxapps.dinnerroulette3.commons.AdOrShopDialogue
@@ -614,10 +615,16 @@ fun TitleCardFull(
                                 if (imageCredits > 0) {
                                     addImageCredits(context, -1)
                                     imageFlag.value = true
-                                    getImage(it, context) {
-                                        saveImage(context, thisRecipe, it.data[0].url) { it2 ->
-                                            imageFlag2.value = it2
+                                    try {
+                                        getImage(it, context) {
+                                            saveImage(context, thisRecipe, it.data[0].url) { it2 ->
+                                                imageFlag2.value = it2
+                                            }
                                         }
+                                    }
+                                    catch (e:Exception){
+                                        addImageCredits(context, 1)
+                                        navController.navigate(Paths.Error.Path+"/${e}")
                                     }
                                 }else shopPrompt.value=true
 
