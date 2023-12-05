@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,10 +21,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Favorite
@@ -388,7 +391,9 @@ fun RecipeList(recipesList: List<SavedRecipe>,
     else LocalContext.current.getString(R.string.scaffold_banner_ad_id)
     val adFlag = getAdFlag(LocalContext.current)
 
-    Column(){
+    Column(modifier = Modifier
+        .verticalScroll(rememberScrollState())
+    ){
         if (recipesList.isEmpty()){
             Row(
                 modifier = Modifier
@@ -456,7 +461,7 @@ fun RecipeList(recipesList: List<SavedRecipe>,
             }
         }
     }
-    /*
+    /* broke due to update timing? idk kept throwing index out of boudnds errors
     LazyColumn {
         if (recipesList.isEmpty()){
             item(){

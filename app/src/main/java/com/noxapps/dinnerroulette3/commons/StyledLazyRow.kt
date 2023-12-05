@@ -2,6 +2,8 @@ package com.noxapps.dinnerroulette3.commons
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -24,16 +27,17 @@ import com.noxapps.dinnerroulette3.ui.theme.md_theme_light_secondaryContainer
 
 @Composable
 fun StyledLazyRow(array: SnapshotStateList<String>, staticHeight:Boolean = false, falsePadding: Dp = 0.dp){
-    LazyRow(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
     ) {
         if (array.isNotEmpty()) {
-            item() {
+            //item() {
                 Spacer(modifier = Modifier.size(falsePadding))
-            }
+            //}
             array.forEach() { s ->
-                item() {
+                //item() {
                     Box(modifier = Modifier
                         .clip(RoundedCornerShape(5.dp))
                         .background(md_theme_light_secondaryContainer)
@@ -51,15 +55,15 @@ fun StyledLazyRow(array: SnapshotStateList<String>, staticHeight:Boolean = false
                         }
                     }
                     Spacer(modifier = Modifier.size(2.dp))
-                }
+                //}
             }
-            item() {
+            //item() {
                 Spacer(modifier = Modifier.size(falsePadding))
-            }
+            //}
         }
         if (staticHeight) {
             if (array.isEmpty()) {
-                item {
+                //item {
                     Box(
                         modifier = Modifier
                             .padding(3.dp)
@@ -68,7 +72,7 @@ fun StyledLazyRow(array: SnapshotStateList<String>, staticHeight:Boolean = false
                             Text(" ")
                         }
                     }
-                }
+                //}
             }
         }
 

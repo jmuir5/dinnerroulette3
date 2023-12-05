@@ -13,7 +13,8 @@ class GptResponse(
     val created:Int,
     val model:String,
     val choices:List<GptChoices>,
-    val usage: GptUsage
+    val usage: GptUsage,
+    val system_fingerprint:String?
 )
 
 @Serializable

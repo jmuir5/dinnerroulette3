@@ -86,6 +86,7 @@ val defaultQandA = QandA(
         GptChoices(0,
             GptMessage("0", "0"),"finish")
     ),
-        GptUsage(1, 1, 2) ),
+        GptUsage(1, 1, 2),
+        null),
     ParsedResponse("1","2", "3", "4", "5", "")
 )
