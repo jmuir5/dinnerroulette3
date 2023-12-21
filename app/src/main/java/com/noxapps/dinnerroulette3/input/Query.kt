@@ -10,14 +10,15 @@ import com.noxapps.dinnerroulette3.gpt.GptResponse
  */
 
 class Query(
-    var meatContent:String = "",
-    var primaryMeat:String = "",
-    var primaryCarb:String = "",
-    var cuisine:String="",
-    var additionalIngredients:MutableList<String> = mutableListOf(),
-    var excludedIngredients:MutableList<String> = mutableListOf(),
-    var descriptiveTags:MutableList<String> = mutableListOf(),
-    var budget:Int=0
+    var meatContent: String = "",
+    var primaryMeat: String = "",
+    var primaryCarb: String = "",
+    var cuisine: String = "",
+    var servingsizes: Pair<Int, Int> = Pair(0,0),
+    var additionalIngredients: MutableList<String> = mutableListOf(),
+    var excludedIngredients: MutableList<String> = mutableListOf(),
+    var descriptiveTags: MutableList<String> = mutableListOf(),
+    var budget: Int = 0
 ) {
     operator fun set(i: Int, value: String) {
 

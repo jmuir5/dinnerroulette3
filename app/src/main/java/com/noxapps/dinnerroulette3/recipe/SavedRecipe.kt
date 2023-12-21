@@ -81,7 +81,16 @@ public class SavedRecipe(
 }
 
 val defaultQandA = QandA(
-    Query("Optional", "Any", "Any", "(Optional)", mutableListOf<String>(), mutableListOf<String>(), mutableListOf<String>()),
+    Query(
+        "Optional",
+        "Any",
+        "Any",
+        "(Optional)",
+        Pair(0, 0),
+        mutableListOf<String>(),
+        mutableListOf<String>(),
+        mutableListOf<String>()
+    ),
     GptResponse("default", "default response", 0,"default", listOf(
         GptChoices(0,
             GptMessage("0", "0"),"finish")

@@ -102,6 +102,16 @@ class InputViewModel: ViewModel() {
             question += "fits the following descriptors: "
             input.descriptiveTags.forEach { s -> question += "$s, " }
         }
+        if(input.servingsizes!=Pair(0,0)){
+            question+=". The recipe must make enough to serve"
+            if (input.servingsizes.first>0) {
+                question+= input.servingsizes.first.toString()+" adults"
+                if (input.servingsizes.second>0) question+=" and"
+            }
+            if (input.servingsizes.second>0) {
+                question+= input.servingsizes.second.toString()+" children"
+            }
+        }
         question += when(input.budget){
             1-> ". This dish should cost less than $20. Do not mention this cost anywhere in the recipe."
             2-> ". This dish should cost between $15 and $40. Do not mention this cost anywhere in the recipe."

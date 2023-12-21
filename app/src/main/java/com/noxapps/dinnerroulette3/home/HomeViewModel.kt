@@ -216,6 +216,7 @@ class HomeViewModel: ViewModel() {
             if(protein.isEmpty())"" else protein[seed%protein.size],
             "Any",
             cuisines[seed%cuisines.size],
+            Pair(0,0),
             mutableListOf(),
             (activePreset.excludedIngredients+activePreset.enabledCarb+activePreset.enabledMeat).toMutableList(),
             (mutableListOf(descriptors[seed%descriptors.size])+activePreset.descriptiveTags).toMutableList(),

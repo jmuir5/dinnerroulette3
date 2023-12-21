@@ -54,6 +54,7 @@ import com.noxapps.dinnerroulette3.commons.PrimaryItemSelector
 import com.noxapps.dinnerroulette3.commons.ProcessingDialog
 import com.noxapps.dinnerroulette3.commons.SingleDialog
 import com.noxapps.dinnerroulette3.commons.StyledLazyRow
+import com.noxapps.dinnerroulette3.commons.TwinCounterDialog
 import com.noxapps.dinnerroulette3.commons.getAdFlag
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.loadInterstitialAd
@@ -92,10 +93,9 @@ fun NewInput(
         val enabledMeat = remember { mutableStateListOf<String>() }
         val enabledCarb = remember { mutableStateListOf<String>() }
 
-        var text by remember { mutableStateOf("") }
-
         val cuisineText = remember { mutableStateOf("") }
-
+        val adultServings = remember{ mutableIntStateOf(0) }
+        val childServings = remember{ mutableIntStateOf(0) }
         val ingredients = remember { mutableStateListOf<String>() }
         val exclIngredients = remember { mutableStateListOf<String>() }
         val tags = remember { mutableStateListOf<String>() }
@@ -113,16 +113,14 @@ fun NewInput(
         val meatText = remember{ mutableStateOf("") }
         val carbText = remember{ mutableStateOf("") }
 
-
-        val cuisine = remember { mutableStateOf(false) }
+        val cuisineOpen = remember { mutableStateOf(false) }
+        val servingSizeOpen = remember { mutableStateOf(false) }
         val addIngredientsOpen = remember { mutableStateOf(false) }
         val removeIngredientsOpen = remember { mutableStateOf(false) }
         val tagsOpen = remember { mutableStateOf(false) }
         val budgetOpen = remember { mutableStateOf(false) }
 
         val processing = remember { mutableStateOf(false) }
-
-
 
         val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.roulette_table)
         val painter = remember{ BitmapPainter(image = bitmap.asImageBitmap()) }
@@ -274,12 +272,33 @@ fun NewInput(
                                 style = MaterialTheme.typography.titleMedium
                             )
                             Button(onClick = {
-                                cuisine.value = true
+                                cuisineOpen.value = true
                             }) {
                                 Text(
                                     text =
                                     if (cuisineText.value.isEmpty()) "Edit"
                                     else cuisineText.value
+                                )
+                            }
+
+                        }
+                        Row(                                                              //servings
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(0.dp, 8.dp)
+                        ) {
+                            Text(
+                                text = "Servings:",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Button(onClick = {
+                                servingSizeOpen.value = true
+                            }) {
+                                Text(
+                                    text = if(adultServings.intValue+childServings.intValue ==0)"Default"
+                                    else adultServings.intValue.toString()+"/"+childServings.intValue.toString()
                                 )
                             }
 
@@ -430,6 +449,7 @@ fun NewInput(
                                             meatText.value,
                                             carbText.value,
                                             cuisineText.value,
+                                            Pair(adultServings.intValue, childServings.intValue),
                                             ingredients,
                                             exclIngredients,
                                             tags
@@ -469,8 +489,19 @@ fun NewInput(
             }
         }
 
-        if (cuisine.value) {
-            SingleDialog(cuisine, "Cuisine", "Select Cuisine", cuisineText)
+        if (cuisineOpen.value) {
+            SingleDialog(cuisineOpen, "Cuisine", "Select Cuisine", cuisineText)
+        }
+
+        if (servingSizeOpen.value) {
+            TwinCounterDialog(
+                stateValue = servingSizeOpen,
+                title = "Serves",
+                label1 = "Adults:",
+                data1 = adultServings,
+                label2 = "Children:",
+                data2 = childServings
+            )
         }
 
         if (addIngredientsOpen.value) {
@@ -500,6 +531,7 @@ fun NewInput(
                         meatText.value,
                         carbText.value,
                         cuisineText.value,
+                        Pair(adultServings.intValue, childServings.intValue),
                         ingredients,
                         exclIngredients,
                         tags,
