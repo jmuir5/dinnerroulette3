@@ -12,6 +12,7 @@ import com.noxapps.dinnerroulette3.input.ParsedResponse
 import com.noxapps.dinnerroulette3.settings.SettingsObject
 import com.noxapps.dinnerroulette3.savedPreferences
 import com.noxapps.dinnerroulette3.settings.dietpreset.DietPreset
+import io.objectbox.Box
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -180,6 +181,7 @@ fun generatePrompt(context: Context, flag: Int): String {
     var imperial = false
     var fahrenheit = false
     var skill = 0
+    var appliances = listOf<String>()
 
     var meatContent = 0
     val loadedData = runBlocking { context.dataStore.data.first() }
@@ -197,6 +199,7 @@ fun generatePrompt(context: Context, flag: Int): String {
     imperial = retrievedData.imperial
     fahrenheit = retrievedData.fahrenheit
     skill = retrievedData.skill
+    appliances =  ObjectBox.store.boxFor(DietPreset::class.java)[retrievedData.dietPreset].availableAppliances
 
 
 
@@ -214,10 +217,18 @@ fun generatePrompt(context: Context, flag: Int): String {
     var unit2Text = "celsius"
     if (fahrenheit) unit2Text = "fahrenheit"
 
+    var applianceText = ""
+    if (appliances.isNotEmpty()){
+        applianceText = "the user has the following appliances available to them: Knives, Chopping boards,"
+        appliances.forEach(){
+            applianceText+= "$it, "
+        }
+        applianceText += ". "
+    }
 
     val prompt = when (flag) {
-        1 -> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook. The prompt will end with [fin], indicating the intended end of the prompt. include a recommendation for an appropriate carbohydrate component or accompaniment in the description. you are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
-        else -> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook. The prompt will end with [fin], indicating the intended end of the prompt. the prompt will include a primary protein and a primary carbohydrate. for example, if the prompt requests a 'chinese lamb dish', lamb is the primary protein. if the prompt includes additional sources of protein or carbohydrate include them both, but make the primary protein or carbohydrate more prominent. be sure to give the recipe an appropriate name. You are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
+        1 -> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook. $applianceText The prompt will end with [fin], indicating the intended end of the prompt. include a recommendation for an appropriate carbohydrate component or accompaniment in the description. you are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
+        else -> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook. $applianceText The prompt will end with [fin], indicating the intended end of the prompt. the prompt will include a primary protein and a primary carbohydrate. for example, if the prompt requests a 'chinese lamb dish', lamb is the primary protein. if the prompt includes additional sources of protein or carbohydrate include them both, but make the primary protein or carbohydrate more prominent. be sure to give the recipe an appropriate name. You are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
 
     }
 

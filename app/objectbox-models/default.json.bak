@@ -91,9 +91,53 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "2:5311853622830536945",
+      "lastPropertyId": "7:1100855671340617378",
+      "name": "DietPreset",
+      "properties": [
+        {
+          "id": "1:1863966707011570632",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2054868438111736679",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:3310266039541895222",
+          "name": "meatContent",
+          "type": 5
+        },
+        {
+          "id": "4:7607646689126467342",
+          "name": "enabledMeat",
+          "type": 30
+        },
+        {
+          "id": "5:46716493177014400",
+          "name": "enabledCarb",
+          "type": 30
+        },
+        {
+          "id": "6:3077305578649550859",
+          "name": "excludedIngredients",
+          "type": 30
+        },
+        {
+          "id": "7:1100855671340617378",
+          "name": "descriptiveTags",
+          "type": 30
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "1:2831632003414104063",
+  "lastEntityId": "2:5311853622830536945",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

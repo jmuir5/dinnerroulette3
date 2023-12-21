@@ -174,38 +174,7 @@ fun PrimaryItemSelector(
                         icons = icons
                     )
                 }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .padding(0.dp, 8.dp)
-                ) {
-                    Button(
-                        modifier = Modifier
-                            .padding(5.dp, 5.dp)
-                            .weight(5F),
-                        onClick = {
-                            TITStateList.forEach {
-                                it.value = true
-                            }
-                        }) {
-                        Text(
-                            text = "Select All"
-                        )
-                    }
-                    Button(
-                        modifier = Modifier
-                            .padding(5.dp, 5.dp)
-                            .weight(5F),
-                        onClick = {
-                            TITStateList.forEach {
-                                it.value = false
-                            }
-                        }) {
-                        Text(
-                            text = "Deselect All"
-                        )
-                    }
-                }
+                TITControlButtons(TITStateList = TITStateList)
             }
         }
         if (otherExpanded.value) {

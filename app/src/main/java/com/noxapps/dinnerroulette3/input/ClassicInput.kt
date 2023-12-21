@@ -181,7 +181,7 @@ fun NewInput(
                 .fillMaxSize()
                 .wrapContentSize(Alignment.TopStart)
         ) {
-            Column() {
+            Column {
                 Column(modifier = Modifier
                     .padding(24.dp, 24.dp, 24.dp, 0.dp)) {
                     Row(

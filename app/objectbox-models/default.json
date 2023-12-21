@@ -94,7 +94,7 @@
     },
     {
       "id": "2:5311853622830536945",
-      "lastPropertyId": "7:1100855671340617378",
+      "lastPropertyId": "8:2286056260166289377",
       "name": "DietPreset",
       "properties": [
         {
@@ -131,6 +131,11 @@
         {
           "id": "7:1100855671340617378",
           "name": "descriptiveTags",
+          "type": 30
+        },
+        {
+          "id": "8:2286056260166289377",
+          "name": "availableAppliances",
           "type": 30
         }
       ],

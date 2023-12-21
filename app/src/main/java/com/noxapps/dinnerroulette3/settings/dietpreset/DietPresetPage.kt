@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,10 +13,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
@@ -60,9 +64,11 @@ import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.commons.DietSelectDialog
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.commons.MultiDialog
+import com.noxapps.dinnerroulette3.commons.ScrollBarWrapper
 import com.noxapps.dinnerroulette3.settings.SettingsObject
 import com.noxapps.dinnerroulette3.commons.SingleDialog
 import com.noxapps.dinnerroulette3.commons.StyledLazyRow
+import com.noxapps.dinnerroulette3.commons.TITControlButtons
 import com.noxapps.dinnerroulette3.commons.TITLazyRow
 import com.noxapps.dinnerroulette3.savedPreferences
 import kotlinx.coroutines.flow.first
@@ -89,12 +95,17 @@ fun DietPresetPage(
     var meatContentIndex by remember { mutableStateOf(viewModel.blankPreset.meatContent) }
     val primaryMeatValues = remember {
         mutableStateOf(
-            (0..viewModel.primaryMeatItems.size).map { mutableStateOf(true) }.toMutableList()
+            (0 .. viewModel.primaryMeatItems.size+1).map { mutableStateOf(true) }.toMutableList()
         )
     }
     val primaryCarbValues = remember {
         mutableStateOf(
-            (0..viewModel.primaryCarbItems.size).map { mutableStateOf(true) }.toMutableList()
+            (0 .. viewModel.primaryCarbItems.size+1).map { mutableStateOf(true) }.toMutableList()
+        )
+    }
+    val appliancesValues = remember {
+        mutableStateOf(
+            (0..viewModel.appliances.size).map { mutableStateOf(true) }.toMutableList()
         )
     }
     val exclIngredients = remember { mutableStateListOf<String>() }
@@ -151,6 +162,10 @@ fun DietPresetPage(
         (0..viewModel.primaryCarbItems.size).forEach {
             primaryCarbValues.value.add(mutableStateOf(true))
         }
+        appliancesValues.value.clear()
+        (0..viewModel.appliances.size).forEach {
+            appliancesValues.value.add(mutableStateOf(true))
+        }
         exclIngredients.clear()
         tags.clear()
 
@@ -164,16 +179,21 @@ fun DietPresetPage(
         presetName.value = viewModel.presetBox[newPreset.value].name
         newName.value = viewModel.presetBox[newPreset.value].name
         meatContentIndex = viewModel.presetBox[newPreset.value].meatContent
-
         viewModel.convertToBools(
             viewModel.presetBox[newPreset.value].enabledMeat,
             primaryMeatValues,
             viewModel.primaryMeatItems
         )
+
         viewModel.convertToBools(
             viewModel.presetBox[newPreset.value].enabledCarb,
             primaryCarbValues,
             viewModel.primaryCarbItems
+        )
+        viewModel.convertToBools(
+            viewModel.presetBox[newPreset.value].availableAppliances,
+            appliancesValues,
+            viewModel.appliances
         )
 
 
@@ -224,7 +244,7 @@ fun DietPresetPage(
                              navController.popBackStack()
                          }
                      ) {
-                         Icon(Icons.Filled.ArrowBack, contentDescription = "back")
+                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "back")
                      }
                  },
                  colors = TopAppBarDefaults.topAppBarColors(
@@ -241,174 +261,199 @@ fun DietPresetPage(
                 .padding(it)
         ) {
 
-            Column {
-                Column(
-                    modifier = Modifier
-                        .padding(24.dp, 24.dp, 24.dp, 0.dp)
-                ) {
-                    Row(                                                                  //tags
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(0.dp, 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Preset:",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Button(onClick = {
-                            presetSelectionOpen.value = true
-                        }) {
-                            Text(text = "Change")
-                        }
-                    }
-                    Row(                                                                  //tags
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(0.dp, 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Preset Name:",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Button(onClick = {
-                            editNameOpen.value = true
-                        }) {
-                            Text(text = "Edit")
-                        }
-                    }
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .clickable(onClick = {
-                                meatContentExpanded = true
-                            })
-                            .padding(0.dp, 8.dp)
-                    ) {
-                        Text(
-                            text = "Want To Include Meat?",
-                            style = MaterialTheme.typography.titleMedium
+            Column{
+                ScrollBarWrapper(content = {
+                    Column(
 
-                        )
-                        DropdownMenu(
-                            expanded = meatContentExpanded,
-                            onDismissRequest = { meatContentExpanded = false },
+                    ) {
+                        Column(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp, 4.dp),
-
+                                .padding(24.dp, 24.dp, 24.dp, 0.dp)
+                        ) {
+                            Row(                                                                  //tags
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(0.dp, 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                            viewModel.meatContentItems.forEachIndexed() { index, s ->
-                                DropdownMenuItem(
-                                    onClick = {
-                                        meatContentIndex = index
-                                        meatContentExpanded = false
-                                    }, text = {
-                                        Text(
-                                            text = s,
-                                            textAlign = TextAlign.End,
+                                Text(
+                                    text = "Preset:",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Button(onClick = {
+                                    presetSelectionOpen.value = true
+                                }) {
+                                    Text(text = "Change")
+                                }
+                            }
+                            Row(                                                                  //tags
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(0.dp, 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Preset Name:",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Button(onClick = {
+                                    editNameOpen.value = true
+                                }) {
+                                    Text(text = "Edit")
+                                }
+                            }
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier
+                                    .clickable(onClick = {
+                                        meatContentExpanded = true
+                                    })
+                                    .padding(0.dp, 8.dp)
+                            ) {
+                                Text(
+                                    text = "Want To Include Meat?",
+                                    style = MaterialTheme.typography.titleMedium
+
+                                )
+                                DropdownMenu(
+                                    expanded = meatContentExpanded,
+                                    onDismissRequest = { meatContentExpanded = false },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(24.dp, 4.dp),
+
+                                    ) {
+                                    viewModel.meatContentItems.forEachIndexed() { index, s ->
+                                        DropdownMenuItem(
+                                            onClick = {
+                                                meatContentIndex = index
+                                                meatContentExpanded = false
+                                            }, text = {
+                                                Text(
+                                                    text = s,
+                                                    textAlign = TextAlign.End,
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                )
+                                            },
                                             modifier = Modifier
+                                                .padding(0.dp, 4.dp)
                                                 .fillMaxWidth()
                                         )
-                                    },
+                                    }
+                                }
+                                Text(
+                                    text = viewModel.meatContentItems[meatContentIndex],
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    textAlign = TextAlign.End,
                                     modifier = Modifier
-                                        .padding(0.dp, 4.dp)
                                         .fillMaxWidth()
                                 )
                             }
+
+                        }
+                        if (meatContentIndex == 0) {
+                            Text(
+                                text = "Enabled Meat Items:",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier
+                                    .padding(24.dp, 24.dp, 24.dp, 0.dp)
+                            )
+                            TITLazyRow(
+                                values = viewModel.primaryMeatItems,
+                                states = primaryMeatValues.value,
+                                icons = viewModel.primaryMeatIcons,
+                                24.dp
+                            )
+                            TITControlButtons(TITStateList = primaryMeatValues.value)
                         }
                         Text(
-                            text = viewModel.meatContentItems[meatContentIndex],
-                            color = MaterialTheme.colorScheme.primary,
+                            text = "Enabled Carbohydrate Items:",
                             style = MaterialTheme.typography.titleMedium,
-                            textAlign = TextAlign.End,
                             modifier = Modifier
-                                .fillMaxWidth()
+                                .padding(24.dp, 24.dp, 24.dp, 0.dp)
                         )
-                    }
+                        TITLazyRow(
+                            values = viewModel.primaryCarbItems,
+                            states = primaryCarbValues.value,
+                            icons = viewModel.primaryCarbIcons,
+                            24.dp
+                        )
+                        TITControlButtons(TITStateList = primaryCarbValues.value)
 
-                }
-                if (meatContentIndex == 0) {
-                    Text(
-                        text = "Enabled Meat Items:",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier
-                            .padding(24.dp, 24.dp, 24.dp, 0.dp)
-                    )
-                    TITLazyRow(
-                        values = viewModel.primaryMeatItems,
-                        states = primaryMeatValues.value,
-                        icons = viewModel.primaryMeatIcons,
-                        24.dp
-                    )
-                }
-                Text(
-                    text = "Enabled Carbohydrate Items:",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier
-                        .padding(24.dp, 24.dp, 24.dp, 0.dp)
-                )
-                TITLazyRow(
-                    values = viewModel.primaryCarbItems,
-                    states = primaryCarbValues.value,
-                    icons = viewModel.primaryCarbIcons,
-                    24.dp
-                )
-
-                Column( //excl ingredients
-                    modifier = Modifier
-                        .padding(24.dp, 0.dp, 24.dp, 0.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(0.dp, 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
                         Text(
-                            text = "Excluded Ingredients:",
-                            style = MaterialTheme.typography.titleMedium
+                            text = "Available appliances:",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier
+                                .padding(24.dp, 24.dp, 24.dp, 0.dp)
                         )
-                        Button(onClick = {
-                            removeIngredientsOpen.value = true
-                        }) {
-                            Text(text = "Edit")
+                        TITLazyRow(
+                            values = viewModel.appliances,
+                            states = appliancesValues.value,
+                            icons = viewModel.primaryMeatIcons,
+                            24.dp
+                        )
+                        TITControlButtons(TITStateList = appliancesValues.value)
+
+                        Column( //excl ingredients
+                            modifier = Modifier
+                                .padding(24.dp, 0.dp, 24.dp, 0.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(0.dp, 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Excluded Ingredients:",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Button(onClick = {
+                                    removeIngredientsOpen.value = true
+                                }) {
+                                    Text(text = "Edit")
+                                }
+
+                            }
                         }
+                        StyledLazyRow(array = exclIngredients, true, 24.dp)
+                        Column(
+                            modifier = Modifier
+                                .padding(24.dp, 0.dp, 24.dp, 0.dp)
+                        ) {
+                            Row(                                                                  //tags
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(0.dp, 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Descriptive Tags:",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Button(onClick = {
+                                    tagsOpen.value = true
+                                }) {
+                                    Text(text = "Edit")
+                                }
+                            }
+                        }
+                        StyledLazyRow(array = tags, true, 24.dp)
+
 
                     }
-                }
-                StyledLazyRow(array = exclIngredients, true, 24.dp)
-                Column(
-                    modifier = Modifier
-                        .padding(24.dp, 0.dp, 24.dp, 0.dp)
-                ) {
-                    Row(                                                                  //tags
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(0.dp, 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Descriptive Tags:",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Button(onClick = {
-                            tagsOpen.value = true
-                        }) {
-                            Text(text = "Edit")
-                        }
-                    }
-                }
-                StyledLazyRow(array = tags, true, 24.dp)
+                }, modifier = Modifier
+                    .weight(1f))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(0.dp, 8.dp),
+                        .padding(0.dp, 2.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -422,18 +467,18 @@ fun DietPresetPage(
                             retrievedData.dietPreset = currentPreset.value
                             scope.launch {
                                 context.dataStore.edit { settings ->
-                                    settings[savedPreferences] = Json.encodeToString(retrievedData)
+                                    settings[savedPreferences] =
+                                        Json.encodeToString(retrievedData)
                                 }
                             }
                             navController.popBackStack()
 
 
-
                         },
                         enabled = if (currentPreset.value < 8L) false
-                                else {
-                                    constructed != viewModel.presetBox[currentPreset.value]
-                                }
+                        else {
+                            constructed != viewModel.presetBox[currentPreset.value]
+                        }
 
                     )
                     {
@@ -443,12 +488,11 @@ fun DietPresetPage(
 
                     Button(
                         onClick = {
-                            if(currentPreset.value ==0L){
-                                if (constructed.name == viewModel.blankPreset.name){
+                            if (currentPreset.value == 0L) {
+                                if (constructed.name == viewModel.blankPreset.name) {
                                     saveAsNameOpen.value = true
                                 }
-                            }
-                            else {
+                            } else {
                                 if (constructed.name == viewModel.presetBox[currentPreset.value].name) {
                                     saveAsNameOpen.value = true
                                 }
@@ -467,19 +511,16 @@ fun DietPresetPage(
                             }
 
                         },
-                        enabled = if (currentPreset.value ==0L){
-                                    constructed != viewModel.blankPreset
-                                }
-                                else {
-                                    constructed != viewModel.presetBox[currentPreset.value]
-                                }
+                        enabled = if (currentPreset.value == 0L) {
+                            constructed != viewModel.blankPreset
+                        } else {
+                            constructed != viewModel.presetBox[currentPreset.value]
+                        }
 
                     ) {
                         Text(text = "Save as new")
                     }
                 }
-
-                //todo save button, save to objectbox, save id to shared preferences
             }
             if (presetSelectionOpen.value) {
                 DietSelectDialog(presetSelectionOpen, viewModel.presetBox.all, "Select Preset", newPreset, resetFlag)

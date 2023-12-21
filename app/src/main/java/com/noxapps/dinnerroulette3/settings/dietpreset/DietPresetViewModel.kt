@@ -1,5 +1,6 @@
 package com.noxapps.dinnerroulette3.settings.dietpreset
 
+import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.outlined.NoFood
@@ -30,6 +31,18 @@ class DietPresetViewModel: ViewModel() {
     )
     val primaryCarbItems = listOf("Pasta", "Potato", "Rice", "Noodles", "Bread", "Other")
 
+    val appliances = listOf(
+        "Oven",
+        "Cooktop",
+        "BBQ",
+        "Slow Cooker",
+        "Food Processor",
+        "Deep-Fryer",
+        "Blender",
+        "Toaster",
+        "Rice Cooker"
+    )
+
     val primaryMeatIcons = Pair(Icons.Outlined.NoFood, Icons.Filled.Fastfood)//todo custom icons?
 
     val primaryCarbIcons = Pair(Icons.Outlined.NoFood, Icons.Filled.Fastfood)//todo custom icons?
@@ -50,15 +63,20 @@ class DietPresetViewModel: ViewModel() {
     fun convertToStrings(
         data: MutableState<MutableList<MutableState<Boolean>>>,
         output:MutableList<String>,
-        names:List<String>){
+        names:List<String>
+    ){
+        Log.d("data size = ", data.value.size.toString())
         names.forEachIndexed { index, it ->
+            Log.d("index = ", index.toString())
+            Log.d("it = ", it)
             if (!data.value[index].value) output.add(it)
         }
     }
     fun convertToBools(
         data: MutableList<String>,
         output:MutableState<MutableList<MutableState<Boolean>>>,
-        names:List<String>){
+        names:List<String>
+    ){
         output.value.clear()
         names.forEach {
             if (data.contains(it)) {

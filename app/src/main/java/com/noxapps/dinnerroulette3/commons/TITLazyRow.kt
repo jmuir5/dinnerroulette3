@@ -1,9 +1,14 @@
 package com.noxapps.dinnerroulette3.commons
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +57,42 @@ fun TITLazyRow(
             item() {
                 Spacer(modifier = Modifier.size(falsePadding))
             }
+        }
+    }
+}
+
+@Composable
+fun TITControlButtons(TITStateList:MutableList<MutableState<Boolean>>){
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .padding(0.dp, 8.dp)
+    ) {
+        Button(
+            modifier = Modifier
+                .padding(15.dp, 5.dp)
+                .weight(5F),
+            onClick = {
+                TITStateList.forEach {
+                    it.value = true
+                }
+            }) {
+            Text(
+                text = "Select All"
+            )
+        }
+        Button(
+            modifier = Modifier
+                .padding(30.dp, 5.dp)
+                .weight(5F),
+            onClick = {
+                TITStateList.forEach {
+                    it.value = false
+                }
+            }) {
+            Text(
+                text = "Deselect All"
+            )
         }
     }
 }

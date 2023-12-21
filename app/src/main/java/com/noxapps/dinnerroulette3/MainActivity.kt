@@ -68,6 +68,7 @@ val savedPreferences = stringPreferencesKey("savedPreferences")
 val code1State = booleanPreferencesKey("code1State")
 val usedTokens = intPreferencesKey("usedTokens")
 val firstRun = booleanPreferencesKey("firstRun")
+val reloadPresets = booleanPreferencesKey("reloadPresets")
 val imageCredits = intPreferencesKey("imageCredits")
 val adFlag = booleanPreferencesKey("adFlag")
 val purchaseFlag = intPreferencesKey("purchaseFlag")
@@ -87,6 +88,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "init - before")
         val presetBox = ObjectBox.store.boxFor(DietPreset::class.java)
+
         if(presetBox.isEmpty) initiliseDietPreset(presetBox)
         val billingClient = BillingWrapper(this, CoroutineScope(Dispatchers.IO)).billingClient
         /*val scope = CoroutineScope(Dispatchers.IO)
@@ -439,6 +441,25 @@ fun initialiseDataStore(context:Context, scope:CoroutineScope){
             }
             if (loadedData[firstRun] == null) {
                 settings[firstRun] = true
+            }
+            Log.d("init", "reloading presets")
+            val presetBox = ObjectBox.store.boxFor(DietPreset::class.java)
+           val updatedSettings = loadedData[savedPreferences]?.let {
+                try {
+                    Json.decodeFromString<SettingsObject>(it)
+                } catch (exception: Exception) {
+                    settings[savedPreferences] = Json.encodeToString(defaultSettings)
+                }
+            }
+            if (updatedSettings is SettingsObject) {
+                updatedSettings.dietPreset = 0
+                settings[savedPreferences] = Json.encodeToString(updatedSettings)
+            }
+
+            initiliseDietPreset(presetBox)
+            settings[reloadPresets]=true
+            if (loadedData[reloadPresets]==null){
+
             }
         }
         Log.d("datastore", "Init successfull")
