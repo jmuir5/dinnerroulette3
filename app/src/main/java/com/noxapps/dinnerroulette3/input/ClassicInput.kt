@@ -15,16 +15,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fastfood
+import androidx.compose.material.icons.outlined.NoFood
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,14 +50,12 @@ import com.noxapps.dinnerroulette3.InterstitialAdDialogue
 import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.commons.MultiDialog
+import com.noxapps.dinnerroulette3.commons.PrimaryItemSelector
 import com.noxapps.dinnerroulette3.commons.ProcessingDialog
 import com.noxapps.dinnerroulette3.commons.SingleDialog
 import com.noxapps.dinnerroulette3.commons.StyledLazyRow
-import com.noxapps.dinnerroulette3.commons.addImageCredits
 import com.noxapps.dinnerroulette3.commons.getAdFlag
 import com.noxapps.dinnerroulette3.dataStore
-import com.noxapps.dinnerroulette3.gpt.getImage
-import com.noxapps.dinnerroulette3.gpt.saveImage
 import com.noxapps.dinnerroulette3.loadInterstitialAd
 import com.noxapps.dinnerroulette3.savedPreferences
 import com.noxapps.dinnerroulette3.settings.SettingsObject
@@ -101,13 +102,16 @@ fun NewInput(
 
 
         var meatContentIndex by remember { mutableStateOf(0) }
-        var primaryMeatIndex by remember { mutableStateOf(0) }
-        var primaryCarbIndex by remember { mutableStateOf(0) }
+        var primaryMeatIndex = remember { mutableIntStateOf(0) }
+        var primaryCarbIndex = remember { mutableIntStateOf(0) }
         var budgetIndex by remember {mutableStateOf(0)}
 
         val meatExpanded = remember { derivedStateOf { meatContentIndex==1 } }
         val carbExpanded = remember { derivedStateOf { meatContentIndex > 0 }}
-        val additionalExpanded = remember { derivedStateOf { primaryCarbIndex>0 }}
+        val additionalExpanded = remember { derivedStateOf { primaryCarbIndex.intValue>0 }}
+
+        val meatText = remember{ mutableStateOf("") }
+        val carbText = remember{ mutableStateOf("") }
 
 
         val cuisine = remember { mutableStateOf(false) }
@@ -235,111 +239,22 @@ fun NewInput(
                         )
                     }
                     if (meatExpanded.value) {
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier
-                                .clickable(onClick = {
-                                    dd2Expanded = true
-                                })
-                                .padding(0.dp, 8.dp)
-                        ) {
-                            Text(
-                                text = "What Primary Meat?",
-                                style = MaterialTheme.typography.titleMedium
-
-                            )
-                            DropdownMenu(
-                                expanded = dd2Expanded,
-                                onDismissRequest = { dd2Expanded = false },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(24.dp, 4.dp),
-                            ) {
-                                enabledMeat.forEachIndexed() { index, s ->
-                                    if (index != 0) {
-                                        DropdownMenuItem(
-                                            modifier = Modifier
-                                                .padding(0.dp, 4.dp)
-                                                .fillMaxWidth(),
-                                            onClick = {
-
-                                                primaryMeatIndex = index
-                                                dd2Expanded = false
-
-                                            }, text = {
-                                                Text(
-                                                    text = s,
-                                                    textAlign = TextAlign.End,
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                )
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                            Text(
-                                text = enabledMeat[primaryMeatIndex],
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.titleMedium,
-                                textAlign = TextAlign.End,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            )
-                        }
-
+                        PrimaryItemSelector(
+                            "Meat",
+                            primaryMeatIndex,
+                            enabledMeat,
+                            meatText,
+                            Pair(Icons.Outlined.NoFood, Icons.Filled.Fastfood)
+                        )
                     }
                     if (carbExpanded.value) {
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier
-                                .clickable(onClick = {
-                                    dd3Expanded = true
-                                })
-                                .padding(0.dp, 8.dp)
-                        ) {
-                            Text(
-                                text = "What Primary Carbohydrate?",
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier
-                            )
-                            DropdownMenu(
-                                expanded = dd3Expanded,
-                                onDismissRequest = { dd3Expanded = false },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(24.dp, 4.dp),
-                            ) {
-                                enabledCarb.forEachIndexed() { index, s ->
-                                    if (index != 0) {
-                                        DropdownMenuItem(
-                                            modifier = Modifier
-                                                .padding(0.dp, 4.dp)
-                                                .fillMaxWidth(),
-                                            onClick = {
-                                                primaryCarbIndex = index
-                                                dd3Expanded = false
-                                            }, text = {
-                                                Text(
-                                                    text = s,
-                                                    textAlign = TextAlign.End,
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                )
-                                            })
-                                    }
-                                }
-                            }
-                            Text(
-                                text = enabledCarb[primaryCarbIndex],
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.titleMedium,
-                                textAlign = TextAlign.End,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            )
-                        }
-
+                        PrimaryItemSelector(
+                            "Carbohydrate",
+                            primaryCarbIndex,
+                            enabledCarb,
+                            carbText,
+                            Pair(Icons.Outlined.NoFood, Icons.Filled.Fastfood)
+                        )
                     }
                 }
                 if (additionalExpanded.value) {
@@ -512,8 +427,8 @@ fun NewInput(
                                     if(viewModel.recipeBox.all.size<2 || !adflag){
                                         val query = Query(
                                             viewModel.meatContentItems[meatContentIndex],
-                                            enabledMeat[primaryMeatIndex],
-                                            enabledCarb[primaryCarbIndex],
+                                            meatText.value,
+                                            carbText.value,
                                             cuisineText.value,
                                             ingredients,
                                             exclIngredients,
@@ -582,8 +497,8 @@ fun NewInput(
                 function = {
                     val query = Query(
                         viewModel.meatContentItems[meatContentIndex],
-                        enabledMeat[primaryMeatIndex],
-                        enabledCarb[primaryCarbIndex],
+                        meatText.value,
+                        carbText.value,
                         cuisineText.value,
                         ingredients,
                         exclIngredients,
@@ -601,5 +516,3 @@ fun NewInput(
         }
     }
 }
-
-

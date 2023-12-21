@@ -84,7 +84,7 @@ fun getResponse(question: String, context: Context, flag: Int, callback: (GptRes
             } else {
                 Log.v("data", "empty")
             }
-            val output = body?.let { Json.decodeFromString<GptResponse>(it) }
+            val output = body?.let { Json{ignoreUnknownKeys = true}.decodeFromString<GptResponse>(it) }
             //val jsonObject= JSONObject(body)
             //val jsonArray: JSONArray =jsonObject.getJSONArray("choices")
             //val textResult=jsonArray.getJSONObject(0).getString("message")
@@ -136,7 +136,7 @@ fun getImage(prompt: String, context: Context, callback: (GptImageResponse) -> U
             } else {
                 Log.v("data", "empty")
             }
-            val output = body?.let { Json.decodeFromString<GptImageResponse>(it) }
+            val output = body?.let { Json{ignoreUnknownKeys = true}.decodeFromString<GptImageResponse>(it) }
             //val jsonObject= JSONObject(body)
             //val jsonArray: JSONArray =jsonObject.getJSONArray("choices")
             //val textResult=jsonArray.getJSONObject(0).getString("message")

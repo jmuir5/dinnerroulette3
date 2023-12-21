@@ -58,7 +58,6 @@ fun MultiDialog(
     array: SnapshotStateList<String>
 ) {
     val focusRequester = remember { FocusRequester() }
-    val interactionSource = remember { MutableInteractionSource() }
     var text by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = {

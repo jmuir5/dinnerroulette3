@@ -33,8 +33,6 @@ class InputViewModel: ViewModel() {
 
     val meatContentItems = listOf("Select...", "Yes", "Optional", "Vegetarian", "Vegan")
     val primaryMeatItems = listOf(
-        "Select...",
-        "Any",
         "Beef",
         "Chicken",
         "Pork",
@@ -44,7 +42,7 @@ class InputViewModel: ViewModel() {
         "White Fish"
     )
     val primaryCarbItems =
-        listOf("Select...", "Any", "Pasta", "Potato", "Rice", "Noodles", "Bread", "Other", "None")
+        listOf("Pasta", "Potato", "Rice", "Noodles", "Bread")
 
     val budgetItems = listOf("Select...","$","$$","$$$")
 

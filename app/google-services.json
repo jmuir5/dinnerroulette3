@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "279324967209",
+    "project_id": "chefroulette",
+    "storage_bucket": "chefroulette.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:279324967209:android:393baf21f27cd34d257738",
+        "android_client_info": {
+          "package_name": "com.noxapps.dinnerroulette3"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBX4fzsXFFZ3i2ntlmzSMIsYr2tMj0T24I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
