@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -27,10 +28,9 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SimpleTextDialogue(title:String?, body:String, state: MutableState<Boolean>) {
-    AlertDialog(
-        onDismissRequest = {
-            state.value=false
-        }
+    BasicAlertDialog(onDismissRequest = {
+        state.value=false
+    }
     ) {
         Surface(
             modifier = Modifier
@@ -56,10 +56,11 @@ fun SimpleTextDialogue(title:String?, body:String, state: MutableState<Boolean>)
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Text(it,
+                        Text(
+                            it,
                             style = MaterialTheme.typography.titleLarge,
                             textAlign = TextAlign.Center
-                            )
+                        )
                     }
                 }
                 Row(
@@ -68,9 +69,11 @@ fun SimpleTextDialogue(title:String?, body:String, state: MutableState<Boolean>)
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text(body,
+                    Text(
+                        body,
                         style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center)
+                        textAlign = TextAlign.Center
+                    )
                 }
                 Row() {
                     Button(onClick = {

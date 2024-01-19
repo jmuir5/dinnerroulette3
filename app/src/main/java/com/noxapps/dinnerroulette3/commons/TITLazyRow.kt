@@ -83,7 +83,7 @@ fun TITControlButtons(TITStateList:MutableList<MutableState<Boolean>>){
         }
         Button(
             modifier = Modifier
-                .padding(30.dp, 5.dp)
+                .padding(15.dp, 5.dp)
                 .weight(5F),
             onClick = {
                 TITStateList.forEach {

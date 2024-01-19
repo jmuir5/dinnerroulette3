@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:2831632003414104063",
-      "lastPropertyId": "16:9011391320632828291",
+      "lastPropertyId": "19:3295660916595011573",
       "name": "SavedRecipe",
       "properties": [
         {
@@ -88,6 +88,21 @@
           "id": "16:9011391320632828291",
           "name": "imageDescription",
           "type": 9
+        },
+        {
+          "id": "17:6123408503477221712",
+          "name": "adultServes",
+          "type": 5
+        },
+        {
+          "id": "18:8275470616392107499",
+          "name": "childServes",
+          "type": 5
+        },
+        {
+          "id": "19:3295660916595011573",
+          "name": "budget",
+          "type": 5
         }
       ],
       "relations": []

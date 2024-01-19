@@ -20,9 +20,12 @@ public class SavedRecipe(
     var primaryMeat:String? = "",
     var primaryCarb:String? = "",
     var cuisine:String? = "",
+    var adultServes:Int? = 0,
+    var childServes:Int? = 0,
     var additionalIngredients: MutableList<String> = mutableListOf(),
     var excludedIngredients: MutableList<String> = mutableListOf(),
     var descriptiveTags: MutableList<String> = mutableListOf(),
+    var budget:Int? =0,
 
     var title:String? = "",
     var description:String? = "",
@@ -38,6 +41,8 @@ public class SavedRecipe(
         primaryMeat = recipe.question.primaryMeat
         primaryCarb = recipe.question.primaryCarb
         cuisine = recipe.question.cuisine
+        adultServes = recipe.question.servingSizes.first
+        childServes = recipe.question.servingSizes.second
         recipe.question.additionalIngredients.forEach { item->
             additionalIngredients.add(item)
         }
@@ -47,6 +52,8 @@ public class SavedRecipe(
         recipe.question.descriptiveTags.forEach { item->
             descriptiveTags.add(item)
         }
+        budget = recipe.question.budget
+
         title = recipe.parsed.title
         description = recipe.parsed.description
         ingredients = recipe.parsed.ingredients
@@ -60,6 +67,8 @@ public class SavedRecipe(
         primaryMeat = recipe.question.primaryMeat
         primaryCarb = recipe.question.primaryCarb
         cuisine = recipe.question.cuisine
+        adultServes = recipe.question.servingSizes.first
+        childServes = recipe. question.servingSizes.second
         recipe.question.additionalIngredients.forEach { item->
             additionalIngredients.add(item)
         }
@@ -69,6 +78,8 @@ public class SavedRecipe(
         recipe.question.descriptiveTags.forEach { item->
             descriptiveTags.add(item)
         }
+        budget = recipe.question.budget
+
         title = recipe.parsed.title
         description = recipe.parsed.description
         ingredients = recipe.parsed.ingredients

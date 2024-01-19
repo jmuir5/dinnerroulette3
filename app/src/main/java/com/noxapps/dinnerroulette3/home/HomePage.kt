@@ -1,6 +1,7 @@
 package com.noxapps.dinnerroulette3.home
 
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -66,8 +67,16 @@ fun HomePage(
         }
         else LocalContext.current.getString(R.string.roulette_interstitial_ad_id)
 
+        loadInterstitialAd(
+            context,
+            viewModel.mInterstitialAd,
+            "Home Page Interstitial",
+            adReference
+        )
+        Log.d("Adload","home page load attempted")
+        if (viewModel.mInterstitialAd.value == null) {
 
-        loadInterstitialAd(context, viewModel.mInterstitialAd, "Home Page Interstitial", adReference)
+        }
 
 
 

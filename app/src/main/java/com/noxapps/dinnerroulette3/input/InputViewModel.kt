@@ -28,7 +28,7 @@ import kotlin.random.Random
  */
 class InputViewModel: ViewModel() {
     init{}
-    val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
+    val recipeBox: Box<SavedRecipe> = ObjectBox.store.boxFor(SavedRecipe::class.java)
     val presetBox: Box<DietPreset> = ObjectBox.store.boxFor(DietPreset::class.java)
 
     val meatContentItems = listOf("Select...", "Yes", "Optional", "Vegetarian", "Vegan")
@@ -102,14 +102,14 @@ class InputViewModel: ViewModel() {
             question += "fits the following descriptors: "
             input.descriptiveTags.forEach { s -> question += "$s, " }
         }
-        if(input.servingsizes!=Pair(0,0)){
+        if(input.servingSizes!=Pair(0,0)){
             question+=". The recipe must make enough to serve"
-            if (input.servingsizes.first>0) {
-                question+= input.servingsizes.first.toString()+" adults"
-                if (input.servingsizes.second>0) question+=" and"
+            if (input.servingSizes.first>0) {
+                question+= input.servingSizes.first.toString()+" adults"
+                if (input.servingSizes.second>0) question+=" and"
             }
-            if (input.servingsizes.second>0) {
-                question+= input.servingsizes.second.toString()+" children"
+            if (input.servingSizes.second>0) {
+                question+= input.servingSizes.second.toString()+" children"
             }
         }
         question += when(input.budget){
@@ -153,7 +153,13 @@ class InputViewModel: ViewModel() {
      * pulls up a processing dialogue while waiting for a response from chat gpt then navigates to
      * the appropriate recipe page once its created.
      */
-    fun executeRequest(promptText:String, flag: MutableState<Boolean>, presetId:Long, context:Context, navController:NavHostController){
+    fun executeRequest(
+        promptText:String,
+        processingDialogueFlag:
+        MutableState<Boolean>,
+        presetId:Long, context:Context,
+        navController:NavHostController
+    ){
         var request = if (presetId <2){
             "Give me a recipe for $promptText"
         }
@@ -161,23 +167,15 @@ class InputViewModel: ViewModel() {
             presetRequest(promptText, presetId)
         }
         Log.d("constructed question", request)
-        flag.value = true
+        processingDialogueFlag.value = true
 
+        try {
         getResponse(request, context, 1) {
             val received: SavedRecipe
             try {
                 received = SavedRecipe(QandA(Query(), it, parseResponse(it)))
                 Log.e("id before", received.id.toString())
-                val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
                 recipeBox.put(received)
-
-                runBlocking {
-                    context.dataStore.edit { settings ->
-                        val currentCounterValue = settings[usedTokens] ?: 0
-                        settings[usedTokens] =
-                            currentCounterValue + it.usage.total_tokens
-                    }
-                }
 
                 MainScope().launch {
                     Log.e("id after", received.id.toString())
@@ -189,6 +187,11 @@ class InputViewModel: ViewModel() {
                 }
             }
         }
+        } catch (e:Exception){
+            MainScope().launch {
+                navController.navigate(Paths.Error.Path+"/"+e)
+            }
+        }
     }
 
     /**
@@ -197,7 +200,7 @@ class InputViewModel: ViewModel() {
      * the appropriate recipe page once its created.
      */
     fun executeClassic(query: Query, flag: MutableState<Boolean>, context:Context, navController:NavHostController){
-        var question2 = generateQuestion(query)
+        val question2 = generateQuestion(query)
         Log.d("constructed question", question2)
         flag.value = true
 

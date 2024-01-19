@@ -53,4 +53,9 @@ internal class  GptCommandsKtTest{
     @Test
     fun generatePrompt() {
     }
+
+    @Test
+    fun regenerateRecipeQuestionTest(){
+
+    }
 }

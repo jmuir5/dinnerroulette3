@@ -1,6 +1,7 @@
 package com.noxapps.dinnerroulette3.input
 
 import com.noxapps.dinnerroulette3.gpt.GptResponse
+import com.noxapps.dinnerroulette3.recipe.SavedRecipe
 
 
 /**
@@ -14,14 +15,39 @@ class Query(
     var primaryMeat: String = "",
     var primaryCarb: String = "",
     var cuisine: String = "",
-    var servingsizes: Pair<Int, Int> = Pair(0,0),
+    var servingSizes: Pair<Int, Int> = Pair(0,0),
     var additionalIngredients: MutableList<String> = mutableListOf(),
     var excludedIngredients: MutableList<String> = mutableListOf(),
     var descriptiveTags: MutableList<String> = mutableListOf(),
     var budget: Int = 0
 ) {
+    constructor(recipe: SavedRecipe) : this(){
+        meatContent = recipe.meatContent?:""
+        primaryMeat = recipe.primaryMeat?:""
+        primaryCarb = recipe.primaryCarb?:""
+        cuisine = recipe.cuisine?:""
+        servingSizes = Pair(recipe.adultServes?:0,recipe.childServes?:0)
+        additionalIngredients = recipe.additionalIngredients
+        excludedIngredients = recipe.excludedIngredients
+        descriptiveTags = recipe.descriptiveTags
+        budget = recipe.budget?:0
+
+
+    }
     operator fun set(i: Int, value: String) {
 
+    }
+    override operator fun equals(other:Any?):Boolean {
+        if (other !is Query) return false
+        return this.meatContent==other.meatContent &&
+         this.primaryMeat == other.primaryMeat &&
+         this.primaryCarb == other.primaryCarb &&
+         this.cuisine ==other.cuisine &&
+         this.servingSizes ==other.servingSizes &&
+         this.additionalIngredients ==other.additionalIngredients &&
+         this.excludedIngredients ==other.excludedIngredients &&
+         this.descriptiveTags ==other.descriptiveTags &&
+         this.budget ==other.budget
     }
 }
 

@@ -6,6 +6,7 @@
     <string name="recipe_banner_ad_id">ca-app-pub-3830795303099315/6063190019</string>
     <string name="search_banner_ad_id">ca-app-pub-3830795303099315/9316001324</string>
     <string name="roulette_interstitial_ad_id">ca-app-pub-3830795303099315/5270543595</string>
+    <string name="regenerate_interstitial_ad_id">ca-app-pub-3830795303099315/5373280406</string>
     <string name="build_interstitial_ad_id">ca-app-pub-3830795303099315/4588372532</string>
     <string name="request_interstitial_ad_id">ca-app-pub-3830795303099315/7240540319</string>
     <string name="rewarded_ad_id">ca-app-pub-3830795303099315/5140156431</string>
@@ -13,6 +14,7 @@
     <string name="test_recipe_banner_ad_id">ca-app-pub-3940256099942544/6300978111</string>
     <string name="test_search_banner_ad_id">ca-app-pub-3940256099942544/6300978111</string>
     <string name="test_roulette_interstitial_ad_id">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="test_regenerate_interstitial_ad_id">ca-app-pub-3940256099942544/1033173712</string>
     <string name="test_build_interstitial_ad_id">ca-app-pub-3940256099942544/1033173712</string>
     <string name="test_request_interstitial_ad_id">ca-app-pub-3940256099942544/1033173712</string>
     <string name="test_rewarded_ad_id">ca-app-pub-3940256099942544/5224354917</string>

@@ -43,14 +43,6 @@ class HomeViewModel: ViewModel() {
     val TAG = "Home Page Interstitial"
     val mInterstitialAd:MutableState<InterstitialAd?> = mutableStateOf(null)
 
-    val blankPreset = DietPreset(0,
-        "New Preset",
-        0,
-        mutableListOf(),
-        mutableListOf(),
-        mutableListOf(),
-        mutableListOf())
-
 
     /**
      * generates a list of 5, random favourited recipes
@@ -116,7 +108,7 @@ class HomeViewModel: ViewModel() {
         }
 
         val activePreset = if (presetId==0L){
-            blankPreset
+            DietPreset()
         }else presetBox[presetId]
 
         val chinese = (0..10).map { "Chinese" }

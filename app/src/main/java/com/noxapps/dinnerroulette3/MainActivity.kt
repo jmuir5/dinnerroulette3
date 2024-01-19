@@ -451,16 +451,16 @@ fun initialiseDataStore(context:Context, scope:CoroutineScope){
                     settings[savedPreferences] = Json.encodeToString(defaultSettings)
                 }
             }
-            if (updatedSettings is SettingsObject) {
-                updatedSettings.dietPreset = 0
-                settings[savedPreferences] = Json.encodeToString(updatedSettings)
-            }
 
-            initiliseDietPreset(presetBox)
-            settings[reloadPresets]=true
-            if (loadedData[reloadPresets]==null){
+            /*if (loadedData[reloadPresets]==false){
+                if (updatedSettings is SettingsObject) {
+                    updatedSettings.dietPreset = 1
+                    settings[savedPreferences] = Json.encodeToString(updatedSettings)
+                }
 
-            }
+                initiliseDietPreset(presetBox)
+                settings[reloadPresets]=true
+            }*/
         }
         Log.d("datastore", "Init successfull")
     }

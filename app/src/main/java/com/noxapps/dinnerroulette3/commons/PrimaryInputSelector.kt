@@ -33,9 +33,11 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.noxapps.dinnerroulette3.ui.theme.AppTheme
 import kotlin.math.abs
@@ -47,7 +49,8 @@ fun PrimaryItemSelector(
     selectedPrimaryIndex: MutableIntState,
     optionsInit: SnapshotStateList<String>,
     currentValue: MutableState<String>,
-    icons: Pair<ImageVector, ImageVector>
+    icons: Pair<ImageVector, ImageVector>,
+    antiPadding: Dp = 0.dp
 )   {
     val listPrefix = listOf("Select...", "Any")
     val listSuffix = listOf("Other...","One of...", "All of...","None")
@@ -167,6 +170,14 @@ fun PrimaryItemSelector(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
                         .padding(0.dp, 8.dp)
+                        .layout(){ measurable, constraints ->
+                            val placeable = measurable.measure(constraints.copy(
+                                maxWidth = constraints.maxWidth + (antiPadding*2).roundToPx(), //add the end padding 16.dp
+                            ))
+                            layout(placeable.width, placeable.height) {
+                                placeable.place(0,0)//-antiPadding.roundToPx(), 0)
+                            }
+                        }
                 ) {
                     TITLazyRow(
                         values = options + listOf("Other"),

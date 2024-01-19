@@ -199,8 +199,10 @@ fun generatePrompt(context: Context, flag: Int): String {
     imperial = retrievedData.imperial
     fahrenheit = retrievedData.fahrenheit
     skill = retrievedData.skill
-    appliances =  ObjectBox.store.boxFor(DietPreset::class.java)[retrievedData.dietPreset].availableAppliances
-
+    if(retrievedData.dietPreset>1) {
+        appliances =
+            ObjectBox.store.boxFor(DietPreset::class.java)[retrievedData.dietPreset].availableAppliances
+    }
 
 
     var skillText = ""

@@ -1,6 +1,7 @@
 package com.noxapps.dinnerroulette3.input
 
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.outlined.NoFood
@@ -180,10 +183,15 @@ fun NewInput(
             modifier = Modifier
                 .fillMaxSize()
                 .wrapContentSize(Alignment.TopStart)
+                .verticalScroll(rememberScrollState())
         ) {
-            Column {
+            Column(modifier = Modifier
+
+            ) {
                 Column(modifier = Modifier
-                    .padding(24.dp, 24.dp, 24.dp, 0.dp)) {
+                    .padding(24.dp, 24.dp, 24.dp, 0.dp)
+
+                ) {
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
@@ -242,7 +250,8 @@ fun NewInput(
                             primaryMeatIndex,
                             enabledMeat,
                             meatText,
-                            Pair(Icons.Outlined.NoFood, Icons.Filled.Fastfood)
+                            Pair(Icons.Outlined.NoFood, Icons.Filled.Fastfood),
+                            24.dp
                         )
                     }
                     if (carbExpanded.value) {
@@ -251,7 +260,8 @@ fun NewInput(
                             primaryCarbIndex,
                             enabledCarb,
                             carbText,
-                            Pair(Icons.Outlined.NoFood, Icons.Filled.Fastfood)
+                            Pair(Icons.Outlined.NoFood, Icons.Filled.Fastfood),
+                            24.dp
                         )
                     }
                 }
@@ -521,6 +531,7 @@ fun NewInput(
         }
 
         if(adFrameFlag.value){
+            Log.d("debug", "new random - ad initialised")
             InterstitialAdDialogue(
                 mInterstitialAd = viewModel.mInterstitialAd,
                 context = context,

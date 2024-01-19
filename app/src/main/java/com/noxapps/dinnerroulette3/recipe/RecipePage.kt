@@ -2,8 +2,10 @@ package com.noxapps.dinnerroulette3.recipe
 
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,33 +19,56 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -57,6 +82,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -66,6 +93,7 @@ import androidx.navigation.NavHostController
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.noxapps.dinnerroulette3.AdmobBanner
 import com.noxapps.dinnerroulette3.BuildConfig
+import com.noxapps.dinnerroulette3.InterstitialAdDialogue
 import com.noxapps.dinnerroulette3.commons.Indicator
 import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.Paths
@@ -73,19 +101,16 @@ import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.RewardedAdFrame
 import com.noxapps.dinnerroulette3.commons.AdOrShopDialogue
 import com.noxapps.dinnerroulette3.commons.FavouriteButton
+import com.noxapps.dinnerroulette3.commons.ProcessingDialog
+import com.noxapps.dinnerroulette3.commons.StyledLazyRow
 import com.noxapps.dinnerroulette3.commons.addImageCredits
 import com.noxapps.dinnerroulette3.commons.getAdFlag
 import com.noxapps.dinnerroulette3.commons.getImageCredits
-import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.gpt.getImage
 import com.noxapps.dinnerroulette3.gpt.saveImage
-import com.noxapps.dinnerroulette3.settings.SettingsObject
+import com.noxapps.dinnerroulette3.input.Query
+import com.noxapps.dinnerroulette3.loadInterstitialAd
 import com.noxapps.dinnerroulette3.loadRewardedAd
-import com.noxapps.dinnerroulette3.savedPreferences
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 import java.io.File
 
 
@@ -97,7 +122,7 @@ fun Recipe(
     navController: NavHostController
 ) {
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
-    var thisRecipe = recipeBox[recipeId]
+    var thisRecipe by remember {mutableStateOf(recipeBox[recipeId])}
 
     val scrollBehaviour = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         rememberTopAppBarState()
@@ -147,9 +172,14 @@ fun Recipe(
             state.heightOffset = state.heightOffset + available.y
             return Offset.Zero
         }
-
-
     }
+
+    val regenDialogueState = remember{ mutableStateOf(false) }
+    val shareDialogueState = remember{ mutableStateOf(false) }
+    val deleteDialogueState = remember{ mutableStateOf(false) }
+    val deleteActionState = remember{ mutableStateOf(false) }
+    val processingDialogueState = remember{ mutableStateOf(false) }
+
     Scaffold(
         modifier = Modifier
             .nestedScroll(customScroll),
@@ -162,7 +192,7 @@ fun Recipe(
                 MediumTopAppBar(
                     title = {
                         Text(
-                            text = thisRecipe.title!!,
+                            text = thisRecipe.title?:"",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -187,11 +217,22 @@ fun Recipe(
                             Icon(Icons.Filled.ArrowBack, contentDescription = "back")
                         }
                     },
+                    actions = {
+                        OverflowActionButtons(
+                            regenDialogueState = regenDialogueState,
+                            shareDialogueState = shareDialogueState,
+                            deleteDialogueState = deleteDialogueState,
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = iconButtonBackgroundColor.value,
+                                contentColor = iconColor.value
+                            )
+                        )
+                    },
                 )
             } else {
                 TopAppBar(
                     title = {
-                        Text(text = thisRecipe.title!!,
+                        Text(text = thisRecipe.title?:"undefined",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -206,8 +247,15 @@ fun Recipe(
                                 navController.popBackStack()
                             }
                         ) {
-                            Icon(Icons.Filled.ArrowBack, contentDescription = "back")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "back")
                         }
+                    },
+                    actions = {
+                        OverflowActionButtons(
+                            regenDialogueState = regenDialogueState,
+                            shareDialogueState = shareDialogueState,
+                            deleteDialogueState = deleteDialogueState,
+                        )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primary,
@@ -239,6 +287,29 @@ fun Recipe(
         {
             TitleCardFull(thisRecipe = thisRecipe, imageFlag = imageFlag, imageFlag2 = imageFlag2, navController = navController)
             RecipeBody(thisRecipe = thisRecipe)
+            if(regenDialogueState.value){
+                RegenerateDialogue(
+                    state = regenDialogueState,
+                    processingState = processingDialogueState,
+                    recipe = thisRecipe,
+                    navController = navController
+                )
+            }
+            if(shareDialogueState.value){
+
+            }
+            if(deleteDialogueState.value){
+                DeleteDialogue(state = deleteDialogueState, actionState = deleteActionState)
+            }
+            if(deleteActionState.value){
+                deleteActionState.value=!deleteActionState.value
+                thisRecipe = SavedRecipe()
+                recipeBox.remove(recipeId)
+                navController.popBackStack()
+            }
+            if(processingDialogueState.value){
+                ProcessingDialog(text = "Regenerating your recipe for ${thisRecipe.title}")
+            }
 
         }
     }
@@ -263,7 +334,7 @@ fun RecipeBody(
             .padding(24.dp)
     ) {
         Text(
-            text = thisRecipe.description!!,
+            text = thisRecipe.description?:"",
             style = MaterialTheme.typography.titleLarge
         )
         Spacer(modifier = Modifier.size(10.dp))
@@ -464,7 +535,7 @@ fun TitleCardImage(thisRecipe: SavedRecipe, imageHeight:Dp){
             .matchParentSize()
             .background(gradient))
         Text(
-            text = thisRecipe.title!!,
+            text = thisRecipe.title?:"",
             modifier = Modifier
                 .padding(24.dp)
                 .align(Alignment.BottomStart),
@@ -502,7 +573,7 @@ fun TitleCardLoading(thisRecipe: SavedRecipe, imageHeight:Dp) {
             .matchParentSize()
             .background(gradient))
         Text(
-            text = thisRecipe.title!!,
+            text = thisRecipe.title?:"",
             modifier = Modifier
                 .padding(24.dp)
                 .align(Alignment.BottomStart),
@@ -555,7 +626,7 @@ fun TitleCardFull(
                 .fillMaxSize()
             ) {
                 Text(
-                    text = thisRecipe.title!!,
+                    text = thisRecipe.title?:"",
                     modifier = Modifier
                         .padding(24.dp),
                     style = MaterialTheme.typography.headlineLarge,
@@ -650,4 +721,477 @@ fun TitleCardFull(
         AdOrShopDialogue(thisState = shopPrompt, adState = adFrameFlag, navController = navController)
     }
 }
+
+@Composable
+fun OverflowActionButtons(
+    regenDialogueState:MutableState<Boolean>,
+    shareDialogueState:MutableState<Boolean>,
+    deleteDialogueState:MutableState<Boolean>,
+    colors: IconButtonColors? = null
+){
+    var overflowDD by remember { mutableStateOf(false) }
+    var overflowIcon by remember{mutableStateOf(Icons.Filled.MoreHoriz)}
+    overflowIcon = if (overflowDD)
+        Icons.Filled.MoreHoriz
+    else
+        Icons.Filled.MoreVert
+
+    IconButton(
+        colors = colors
+            ?: IconButtonDefaults.iconButtonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ),
+        onClick = {
+            overflowDD = !overflowDD
+        }
+    ) {
+        Icon(overflowIcon, contentDescription = "Overflow")
+    }
+    DropdownMenu(
+        expanded = overflowDD,
+        onDismissRequest = { overflowDD = false },
+        modifier = Modifier
+        //.fillMaxWidth()
+        //.padding(24.dp, 4.dp),
+
+    ) {
+        DropdownMenuItem(
+            onClick = {
+                overflowDD = false
+                regenDialogueState.value = true
+            },
+            text = {
+                Row(){
+                    Icon(Icons.Filled.Refresh, contentDescription = "Regenerate")
+                    Text(text = "Regenerate")
+                }
+            }
+        )
+        /*
+        DropdownMenuItem(
+            onClick = {//todo share
+                overflowDD = false
+                shareDialogueState.value = true
+            },
+            text = {
+                Row(){
+                    Icon(Icons.Filled.Share, contentDescription = "Share")
+                    Text(text = "Share")
+                }
+            }
+        )
+         */
+        DropdownMenuItem(
+            onClick = {
+                overflowDD = false
+                deleteDialogueState.value = true
+            },
+            text = {
+                Row(){
+                    Icon(Icons.Filled.Delete, contentDescription = "Delete")
+                    Text(text = "Delete")
+                }
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RegenerateDialogue(
+    state: MutableState<Boolean>,
+    processingState: MutableState<Boolean>,
+    viewModel: RegenerateViewModel = RegenerateViewModel(),
+    recipe:SavedRecipe,
+    navController: NavHostController
+) {
+    val focusRequester = remember { FocusRequester() }
+
+    var similarityDD by remember { mutableStateOf(false) }
+    var similarityIndex by remember { mutableIntStateOf(0) }
+
+    var text by remember { mutableStateOf("") }
+    val modifierArray = remember{mutableStateListOf<String>()}
+    val queryState = derivedStateOf { Query() != Query(recipe) }
+    Log.d("debug query none", Query().toString())
+    Log.d("debug query constructed", Query(recipe).toString())
+
+    var modifierState by remember{mutableStateOf(false)}
+
+    var replaceState by remember{mutableStateOf(true)}
+
+    val context = LocalContext.current
+
+    val titleAdFrameFlag = remember { mutableStateOf(false) }
+    val queryAdFrameFlag = remember { mutableStateOf(false) }
+    val fullAdFrameFlag = remember { mutableStateOf(false) }
+    val adReference = if(BuildConfig.DEBUG){
+        LocalContext.current.getString(R.string.test_regenerate_interstitial_ad_id)
+    }
+    else LocalContext.current.getString(R.string.regenerate_interstitial_ad_id)
+
+    loadInterstitialAd(context, viewModel.mInterstitialAd, viewModel.TAG, adReference)
+
+    BasicAlertDialog(
+        onDismissRequest = {
+            state.value = false
+        }
+    ) {
+        Surface(
+            modifier = Modifier
+                .wrapContentSize(Alignment.Center)
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(15.dp)
+                ),
+            shape = MaterialTheme.shapes.large,
+            tonalElevation = AlertDialogDefaults.TonalElevation
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "Regenerate Recipe",
+                    style = MaterialTheme.typography.headlineMedium,
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .clickable(onClick = {
+                            similarityDD = true
+                        })
+                        .padding(0.dp, 8.dp)
+                ) {
+                    Text(
+                        text = "Regenerate from:",
+                        style = MaterialTheme.typography.titleMedium
+
+                    )
+                    DropdownMenu(
+                        expanded = similarityDD,
+                        onDismissRequest = { similarityDD = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp, 4.dp),
+
+                        ) {
+                        viewModel.similarityItems.forEachIndexed() { index, s ->
+                            if(index!=1||queryState.value) {
+                                DropdownMenuItem(
+                                    onClick = {
+                                        similarityIndex = index
+                                        similarityDD = false
+                                    }, text = {
+                                        Text(
+                                            text = s,
+                                            textAlign = TextAlign.End,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .padding(0.dp, 4.dp)
+                                        .fillMaxWidth()
+                                )
+                            }
+                            
+                        }
+                    }
+                    Text(
+                        text = viewModel.similarityItems[similarityIndex],
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                }
+                Row(                                                               //sav as new/replace
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp, 8.dp)
+                ) {
+                    Text(
+                        text = "Replace this recipe?",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Checkbox(checked = replaceState, onCheckedChange = {replaceState = it})
+
+                }
+                if(modifierState) {
+
+                    StyledLazyRow(array = modifierArray, true)
+                    Row() {
+                        val maxChar = 17
+                        TextField(
+                            modifier = Modifier
+                                .focusRequester(focusRequester),
+                            value = text,
+                            onValueChange = {
+                                if (it.length <= maxChar) text = it
+                            },
+                            label = { Text("Modifiers") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(
+                                onDone = {
+                                    if (text.isNotEmpty()) {
+                                        modifierArray.add(text)
+                                        text = ""
+                                    }
+                                }
+                            )
+                        )
+                    }
+                    Row(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        Button(onClick = {
+                            if (text.isNotEmpty()) {
+                                modifierArray.add(text)
+                                text = ""
+                            }
+                        }) {
+                            Text(text = "Add")
+                        }
+                    }
+                    LaunchedEffect(Unit) {
+                        focusRequester.requestFocus()
+                    }
+                }
+                else{
+                    Button(
+                        modifier = Modifier,
+                        onClick = { modifierState = !modifierState }) {
+                        Text(text = "Add Modifiers...")
+                    }
+                }
+                
+                Button(
+                    onClick = {
+                        when(similarityIndex){
+                            0-> {
+                                titleAdFrameFlag.value = true
+                            }
+                            1->{
+                                queryAdFrameFlag.value = true
+                            }
+                            2->{
+                                fullAdFrameFlag.value = true
+                            }
+                        }
+                    }
+                ) {
+                    Text(text = "Regenerate")
+                }
+            }
+        }
+
+    }
+    if(titleAdFrameFlag.value){
+        InterstitialAdDialogue(
+            mInterstitialAd = viewModel.mInterstitialAd,
+            context = context,
+            displayFlag = fullAdFrameFlag,
+            function = {
+                titleAdFrameFlag.value=false
+                viewModel.regenerateName(
+                    promptText = recipe.title?:"undefined",
+                    modifiers = modifierArray,
+                    processingDialogueFlag = processingState,
+                    saveID = if(replaceState) recipe.id else 0L,
+                    presetId = viewModel.getPreset(context),
+                    context = context,
+                    navController = navController,
+                )
+                state.value = false
+            }
+        )
+    }
+    if(queryAdFrameFlag.value){
+        InterstitialAdDialogue(
+            mInterstitialAd = viewModel.mInterstitialAd,
+            context = context,
+            displayFlag = fullAdFrameFlag,
+            function = {
+                queryAdFrameFlag.value = false
+                viewModel.regenerateQuery(
+                    query = Query(recipe),
+                    modifiers = modifierArray,
+                    processingStateFlag = processingState,
+                    saveID = if(replaceState) recipe.id else 0L,
+                    context = context,
+                    navController = navController,
+                )
+                state.value = false
+            }
+        )
+    }
+    if(fullAdFrameFlag.value){
+        InterstitialAdDialogue(
+            mInterstitialAd = viewModel.mInterstitialAd,
+            context = context,
+            displayFlag = fullAdFrameFlag,
+            function = {
+                fullAdFrameFlag.value=false
+                viewModel.regenerateFull(
+                    recipe = recipe,
+                    modifiers = modifierArray,
+                    processingStateFlag = processingState,
+                    saveID = if(replaceState) recipe.id else 0L,
+                    context = context,
+                    navController = navController,
+                )
+                state.value = false
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ShareDialogue(title:String?, body:String, state: MutableState<Boolean>) {
+    BasicAlertDialog(onDismissRequest = {
+        state.value=false
+    }
+    ) {
+        Surface(
+            modifier = Modifier
+                .wrapContentSize(Alignment.Center)
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(15.dp)
+                ),
+            shape = MaterialTheme.shapes.large,
+            tonalElevation = AlertDialogDefaults.TonalElevation
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                title?.let() {
+                    Row(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.titleLarge,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        body,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Row() {
+                    Button(onClick = {
+                        state.value = false
+                    }) {
+                        Text(text = "OK")
+                    }
+                }
+            }
+
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DeleteDialogue(state: MutableState<Boolean>, actionState: MutableState<Boolean>) {
+    val title = "Delete Recipe?"
+    val body = "Are you sure you want to delete this recipe? \n There is no way to undo this."
+
+    BasicAlertDialog(onDismissRequest = {
+        state.value=false
+    }
+    ) {
+        Surface(
+            modifier = Modifier
+                .wrapContentSize(Alignment.Center)
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(15.dp)
+                ),
+            shape = MaterialTheme.shapes.large,
+            tonalElevation = AlertDialogDefaults.TonalElevation
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                title?.let() {
+                    Row(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.titleLarge,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        body,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Row() {
+                    Button(onClick = {
+                        state.value = false
+                    }) {
+                        Text(text = "Cancel")
+                    }
+                    Button(onClick = {
+                        state.value = false
+                        actionState.value = true
+                    }) {
+                        Text(text = "Confirm")
+                    }
+                }
+            }
+
+        }
+    }
+}
+
 
