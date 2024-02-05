@@ -165,7 +165,13 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StandardScaffold(tabt:String, navController:NavHostController, adFlag:Boolean = true, homePageFlag:Boolean = false, content:@Composable () -> Unit){
+fun StandardScaffold(
+    tabt:String,
+    navController:NavHostController,
+    adFlag:Boolean = true,
+    homePageFlag:Boolean = false,
+    content:@Composable () -> Unit
+){
     val scrollBehaviour = exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     Scaffold(
         topBar = {
