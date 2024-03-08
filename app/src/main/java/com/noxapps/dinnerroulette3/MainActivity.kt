@@ -102,7 +102,7 @@ class MainActivity : ComponentActivity() {
         setPurchaseFlag(this, -1)
 
 
-        ReminderNotificationWorker.schedule(this, 16, 0)
+        ReminderNotificationWorker.schedule(this, 23, 6)
         /*val params = QueryPurchasesParams.newBuilder()
             .setProductType(BillingClient.ProductType.INAPP)
             .build()
@@ -347,6 +347,23 @@ fun NavMain(navController: NavHostController, billingClient: BillingClient){
                 "SpecificRecipeInput"-> SpecificRecipeInput(navController = navController)
                 "Search"-> SearchPage(navController = navController)
                 else -> HomePage(navController = navController)
+            }
+        }
+        composable(
+            route = "recipe?id={id}",
+            arguments = listOf(navArgument("id") { type = NavType.LongType }),
+            deepLinks = listOf(navDeepLink {
+                uriPattern = "$uri/recipe?id={id}"
+                action= Intent.ACTION_VIEW
+            })
+        ) { backStackEntry ->
+            val arguments = backStackEntry.arguments
+            val recipeId = backStackEntry.arguments?.getLong("id")
+            if (recipeId != null) {
+                Recipe(recipeId, navController)
+            }
+            else{
+                //todo: error code
             }
         }
         /*...*/

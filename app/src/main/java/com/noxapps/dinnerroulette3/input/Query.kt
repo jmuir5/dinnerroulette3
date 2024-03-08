@@ -2,6 +2,7 @@ package com.noxapps.dinnerroulette3.input
 
 import com.noxapps.dinnerroulette3.gpt.GptResponse
 import com.noxapps.dinnerroulette3.recipe.SavedRecipe
+import kotlinx.serialization.Serializable
 
 
 /**
@@ -27,9 +28,9 @@ class Query(
         primaryCarb = recipe.primaryCarb?:""
         cuisine = recipe.cuisine?:""
         servingSizes = Pair(recipe.adultServes?:0,recipe.childServes?:0)
-        additionalIngredients = recipe.additionalIngredients
-        excludedIngredients = recipe.excludedIngredients
-        descriptiveTags = recipe.descriptiveTags
+        additionalIngredients = recipe.additionalIngredients.toMutableList()
+        excludedIngredients = recipe.excludedIngredients.toMutableList()
+        descriptiveTags = recipe.descriptiveTags.toMutableList()
         budget = recipe.budget?:0
 
 
@@ -58,12 +59,13 @@ class QandA(
     val parsed: ParsedResponse
 )
 
+@Serializable
 class ParsedResponse(
     val title:String,
     val description:String,
-    val ingredients:String,
-    val method:String,
-    val notes:String,
+    val ingredients:List<String>,
+    val method:List<String>,
+    val notes:List<String>,
     val image:String
 )
 

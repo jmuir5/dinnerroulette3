@@ -14,6 +14,7 @@ import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.dataStore
 import com.noxapps.dinnerroulette3.gpt.getResponse
 import com.noxapps.dinnerroulette3.gpt.parseResponse
+import com.noxapps.dinnerroulette3.input.ParsedResponse
 import com.noxapps.dinnerroulette3.input.QandA
 import com.noxapps.dinnerroulette3.input.Query
 import com.noxapps.dinnerroulette3.savedPreferences
@@ -82,7 +83,7 @@ class RegenerateViewModel: ViewModel() {
             getResponse(request, context, 1) {
                 val received: SavedRecipe
                 try {
-                    received = SavedRecipe(QandA(Query(), it, parseResponse(it)))
+                    received = SavedRecipe(QandA(Query(), it, Json{ignoreUnknownKeys = true}.decodeFromString<ParsedResponse>(it.choices[0].message.content)))
                     received.id = saveID
                     recipeBox.put(received)
 
@@ -122,7 +123,7 @@ class RegenerateViewModel: ViewModel() {
             getResponse(question, context, 0) { it ->
                 var received = SavedRecipe()
                 try {
-                    received = SavedRecipe(QandA(query, it, parseResponse(it)))
+                    received = SavedRecipe(QandA(query, it, Json{ignoreUnknownKeys = true}.decodeFromString<ParsedResponse>(it.choices[0].message.content)))
                     Log.e("id before", received.id.toString())
                     received.id = saveID
                     recipeBox.put(received)
@@ -163,7 +164,7 @@ class RegenerateViewModel: ViewModel() {
             getResponse(question, context, 0) { it ->
                 var received = SavedRecipe()
                 try {
-                    received = SavedRecipe(QandA(Query(recipe), it, parseResponse(it)))
+                    received = SavedRecipe(QandA(Query(recipe), it, Json{ignoreUnknownKeys = true}.decodeFromString<ParsedResponse>(it.choices[0].message.content)))
                     Log.e("id before", received.id.toString())
                     received.id = saveID
                     recipeBox.put(received)
@@ -300,9 +301,9 @@ class RegenerateViewModel: ViewModel() {
         }
         question += "Give the new recipe an appropriate title." +
                 "Title: ${input.title}. Description: ${input.description}."+
-                "Ingredients: ${input.ingredients?.replace("\n",", ")}. " +
-                "Method: ${input.method?.replace("\n",", ")}. " +
-                "Notes: ${input.notes?.replace("\n",", ")}"
+                "Ingredients: ${input.ingredients.map { "$it, " }}. " +
+                "Method: ${input.method.map { "$it, " }}. " +
+                "Notes: ${input.notes.map { "$it, " }}"
         return question
     }
 

@@ -9,10 +9,11 @@ import com.noxapps.dinnerroulette3.input.QandA
 import com.noxapps.dinnerroulette3.input.Query
 import io.objectbox.annotation.Entity
 import io.objectbox.annotation.Id
+import kotlinx.serialization.Serializable
 
 
 @Entity
-public class SavedRecipe(
+public data class SavedRecipe(
     @Id
     var id:Long =0,
     var favourite:Boolean = false,
@@ -22,16 +23,16 @@ public class SavedRecipe(
     var cuisine:String? = "",
     var adultServes:Int? = 0,
     var childServes:Int? = 0,
-    var additionalIngredients: MutableList<String> = mutableListOf(),
-    var excludedIngredients: MutableList<String> = mutableListOf(),
-    var descriptiveTags: MutableList<String> = mutableListOf(),
+    var additionalIngredients: List<String> = listOf(),
+    var excludedIngredients: List<String> = listOf(),
+    var descriptiveTags: List<String> = listOf(),
     var budget:Int? =0,
 
     var title:String? = "",
     var description:String? = "",
-    var ingredients:String? = "",
-    var method:String? = "",
-    var notes:String? = "",
+    var ingredients:List<String> = listOf(),
+    var method:List<String> = listOf(),
+    var notes:List<String> = listOf(),
     var image:String? = "",
     var imageDescription:String?=""
     )  {
@@ -43,15 +44,9 @@ public class SavedRecipe(
         cuisine = recipe.question.cuisine
         adultServes = recipe.question.servingSizes.first
         childServes = recipe.question.servingSizes.second
-        recipe.question.additionalIngredients.forEach { item->
-            additionalIngredients.add(item)
-        }
-        recipe.question.excludedIngredients.forEach { item->
-            excludedIngredients.add(item)
-        }
-        recipe.question.descriptiveTags.forEach { item->
-            descriptiveTags.add(item)
-        }
+        additionalIngredients = recipe.question.additionalIngredients.toList()
+        excludedIngredients = recipe.question.excludedIngredients.toList()
+        descriptiveTags = recipe.question.descriptiveTags.toList()
         budget = recipe.question.budget
 
         title = recipe.parsed.title
@@ -69,15 +64,11 @@ public class SavedRecipe(
         cuisine = recipe.question.cuisine
         adultServes = recipe.question.servingSizes.first
         childServes = recipe. question.servingSizes.second
-        recipe.question.additionalIngredients.forEach { item->
-            additionalIngredients.add(item)
-        }
-        recipe.question.excludedIngredients.forEach { item->
-            excludedIngredients.add(item)
-        }
-        recipe.question.descriptiveTags.forEach { item->
-            descriptiveTags.add(item)
-        }
+
+        additionalIngredients = recipe.question.additionalIngredients.toList()
+        excludedIngredients = recipe.question.excludedIngredients.toList()
+        descriptiveTags = recipe.question.descriptiveTags.toList()
+
         budget = recipe.question.budget
 
         title = recipe.parsed.title
@@ -108,5 +99,5 @@ val defaultQandA = QandA(
     ),
         GptUsage(1, 1, 2),
         null),
-    ParsedResponse("1","2", "3", "4", "5", "")
+    ParsedResponse("1","2", listOf("3"), listOf("4"), listOf("5"), "")
 )

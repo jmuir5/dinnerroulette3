@@ -6,6 +6,7 @@ plugins {
     id 'kotlin-kapt'
     id 'io.objectbox'
     id'com.google.gms.google-services'
+
 }
 
 android {
@@ -16,8 +17,8 @@ android {
         applicationId "com.noxapps.dinnerroulette3"
         minSdk 26
         targetSdk 34
-        versionCode 16
-        versionName "1.2.8"
+        versionCode 17
+        versionName "1.2.9"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

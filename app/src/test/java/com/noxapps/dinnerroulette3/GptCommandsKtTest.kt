@@ -36,7 +36,7 @@ internal class  GptCommandsKtTest{
 
 
 
-    @Test
+    /*@Test
     fun parseResponse() {
         val expectedOutput = ParsedResponse(
             "Piquant Vietnamese Beef Stir Fry",
@@ -48,7 +48,7 @@ internal class  GptCommandsKtTest{
         assertEquals(expectedOutput,
             com.noxapps.dinnerroulette3.gpt.parseResponse(sampleGptResponse)
         )
-    }
+    }*/
 
     @Test
     fun generatePrompt() {

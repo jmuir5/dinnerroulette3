@@ -65,6 +65,9 @@ class NotificationService(private val context: Context) {
             Pair("Not Sure what to make?", "Try these old favourites again with Chef Roulette"),
             Pair("Feel like something familiar?", "Get some inspiration from the past with Chef Roulette"),
             Pair("\"I want... again \"", "Try these old favourites again with Chef Roulette"),
+        ),
+        listOf(
+            Pair("Try out this old classic", "xxx")
         )
     )
 
@@ -72,19 +75,26 @@ class NotificationService(private val context: Context) {
     fun createReminderNotification() {
         //  No back-stack when launched
         val rand = Random(Date().time)
-        val rand1 = rand.nextInt() % 4
+        val rand1 = 4//rand.nextInt() % 5
         val rand2 = rand.nextInt() % notificationContent[rand1].size
         val destination = when (rand1) {
             0 -> "Home"
             1 -> "SpecificRecipeInput"
             2 -> "NewInput"
             3 -> "Search"
+            4 -> "Recipe"
             else -> "Home"
         }
 
-        val intent = Intent(
+        val intent = if(rand1!=4) {
+            Intent(
+                Intent.ACTION_MAIN,
+                "chefroulette://noximilionapplications.com/page/${destination}".toUri()
+            )
+        }
+        else Intent(
             Intent.ACTION_MAIN,
-            "chefroulette://noximilionapplications.com/page/${destination}".toUri()
+            "chefroulette://noximilionapplications.com/recipe?id=3".toUri()
         )
 
         val pending: PendingIntent = TaskStackBuilder.create(context).run {

@@ -4,160 +4,160 @@
   "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
   "entities": [
     {
-      "id": "1:2831632003414104063",
-      "lastPropertyId": "19:3295660916595011573",
-      "name": "SavedRecipe",
+      "id": "1:7927985205751851803",
+      "lastPropertyId": "8:3345480614135950200",
+      "name": "DietPreset",
       "properties": [
         {
-          "id": "1:6439452069094551019",
+          "id": "1:1240340382128590393",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:7056743821522922545",
+          "id": "2:7151278299038272392",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:1732799204097376323",
           "name": "meatContent",
-          "type": 9
+          "type": 5
         },
         {
-          "id": "3:8232329520313890902",
-          "name": "primaryMeat",
-          "type": 9
-        },
-        {
-          "id": "4:8393568281402135337",
-          "name": "primaryCarb",
-          "type": 9
-        },
-        {
-          "id": "5:8525619413151993361",
-          "name": "cuisine",
-          "type": 9
-        },
-        {
-          "id": "6:463650900902664387",
-          "name": "additionalIngredients",
+          "id": "4:7003293434201740833",
+          "name": "enabledMeat",
           "type": 30
         },
         {
-          "id": "7:2284109375679591565",
+          "id": "5:8325878906599118432",
+          "name": "enabledCarb",
+          "type": 30
+        },
+        {
+          "id": "6:2817366559889740055",
+          "name": "availableAppliances",
+          "type": 30
+        },
+        {
+          "id": "7:51087293720362125",
           "name": "excludedIngredients",
           "type": 30
         },
         {
-          "id": "8:10058458008640423",
+          "id": "8:3345480614135950200",
           "name": "descriptiveTags",
           "type": 30
-        },
-        {
-          "id": "9:8022351885170195876",
-          "name": "title",
-          "type": 9
-        },
-        {
-          "id": "10:3166545710890396980",
-          "name": "description",
-          "type": 9
-        },
-        {
-          "id": "11:5657644352762718203",
-          "name": "ingredients",
-          "type": 9
-        },
-        {
-          "id": "12:5754804126566956833",
-          "name": "method",
-          "type": 9
-        },
-        {
-          "id": "13:5329405731796560243",
-          "name": "notes",
-          "type": 9
-        },
-        {
-          "id": "14:3469728470095896959",
-          "name": "favourite",
-          "type": 1
-        },
-        {
-          "id": "15:3066777377807323411",
-          "name": "image",
-          "type": 9
-        },
-        {
-          "id": "16:9011391320632828291",
-          "name": "imageDescription",
-          "type": 9
-        },
-        {
-          "id": "17:6123408503477221712",
-          "name": "adultServes",
-          "type": 5
-        },
-        {
-          "id": "18:8275470616392107499",
-          "name": "childServes",
-          "type": 5
-        },
-        {
-          "id": "19:3295660916595011573",
-          "name": "budget",
-          "type": 5
         }
       ],
       "relations": []
     },
     {
-      "id": "2:5311853622830536945",
-      "lastPropertyId": "8:2286056260166289377",
-      "name": "DietPreset",
+      "id": "2:1316828313377184297",
+      "lastPropertyId": "22:8174720259872962129",
+      "name": "SavedRecipe",
       "properties": [
         {
-          "id": "1:1863966707011570632",
+          "id": "1:8914202130232897669",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:2054868438111736679",
-          "name": "name",
+          "id": "2:2757099095600320605",
+          "name": "favourite",
+          "type": 1
+        },
+        {
+          "id": "3:5639252242402390295",
+          "name": "meatContent",
           "type": 9
         },
         {
-          "id": "3:3310266039541895222",
-          "name": "meatContent",
+          "id": "4:7549928733825997192",
+          "name": "primaryMeat",
+          "type": 9
+        },
+        {
+          "id": "5:3673391763841904645",
+          "name": "primaryCarb",
+          "type": 9
+        },
+        {
+          "id": "6:2713391549349550867",
+          "name": "cuisine",
+          "type": 9
+        },
+        {
+          "id": "7:670896268381375869",
+          "name": "adultServes",
           "type": 5
         },
         {
-          "id": "4:7607646689126467342",
-          "name": "enabledMeat",
+          "id": "8:4511047082780996058",
+          "name": "childServes",
+          "type": 5
+        },
+        {
+          "id": "9:1523125240482873059",
+          "name": "additionalIngredients",
           "type": 30
         },
         {
-          "id": "5:46716493177014400",
-          "name": "enabledCarb",
-          "type": 30
-        },
-        {
-          "id": "6:3077305578649550859",
+          "id": "10:3921715617298359148",
           "name": "excludedIngredients",
           "type": 30
         },
         {
-          "id": "7:1100855671340617378",
+          "id": "11:118512221525711723",
           "name": "descriptiveTags",
           "type": 30
         },
         {
-          "id": "8:2286056260166289377",
-          "name": "availableAppliances",
+          "id": "12:6029003953061291800",
+          "name": "budget",
+          "type": 5
+        },
+        {
+          "id": "13:2341772627244475363",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "14:3776495992393923727",
+          "name": "description",
+          "type": 9
+        },
+        {
+          "id": "15:6624534577480641282",
+          "name": "ingredients",
           "type": 30
+        },
+        {
+          "id": "16:7035969795692638452",
+          "name": "method",
+          "type": 30
+        },
+        {
+          "id": "17:7458894731651126554",
+          "name": "notes",
+          "type": 30
+        },
+        {
+          "id": "21:3918470103812548387",
+          "name": "image",
+          "type": 9
+        },
+        {
+          "id": "22:8174720259872962129",
+          "name": "imageDescription",
+          "type": 9
         }
       ],
       "relations": []
     }
   ],
-  "lastEntityId": "2:5311853622830536945",
+  "lastEntityId": "2:1316828313377184297",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
@@ -165,7 +165,11 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    510970690749897941,
+    3744844743498172748,
+    2175887869323401623
+  ],
   "retiredRelationUids": [],
   "version": 1
 }

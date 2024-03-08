@@ -111,6 +111,7 @@ import com.noxapps.dinnerroulette3.gpt.saveImage
 import com.noxapps.dinnerroulette3.input.Query
 import com.noxapps.dinnerroulette3.loadInterstitialAd
 import com.noxapps.dinnerroulette3.loadRewardedAd
+import kotlinx.coroutines.launch
 import java.io.File
 
 
@@ -119,7 +120,8 @@ import java.io.File
 @Composable
 fun Recipe(
     recipeId:Long,
-    navController: NavHostController
+    navController: NavHostController,
+    viewModel:RecipeViewModel = RecipeViewModel(),
 ) {
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
     var thisRecipe by remember {mutableStateOf(recipeBox[recipeId])}
@@ -180,6 +182,12 @@ fun Recipe(
     val deleteActionState = remember{ mutableStateOf(false) }
     val processingDialogueState = remember{ mutableStateOf(false) }
 
+    val shareIdHolder = remember{mutableStateOf(0L)}
+    val shareReadyState = remember{mutableStateOf(false)}
+
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
     Scaffold(
         modifier = Modifier
             .nestedScroll(customScroll),
@@ -214,13 +222,13 @@ fun Recipe(
                                 navController.popBackStack()
                             }
                         ) {
-                            Icon(Icons.Filled.ArrowBack, contentDescription = "back")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "back")
                         }
                     },
                     actions = {
                         OverflowActionButtons(
                             regenDialogueState = regenDialogueState,
-                            shareDialogueState = shareDialogueState,
+                            shareOnClick = {coroutineScope.launch(){viewModel.share(thisRecipe, processingDialogueState, context)}},
                             deleteDialogueState = deleteDialogueState,
                             colors = IconButtonDefaults.iconButtonColors(
                                 containerColor = iconButtonBackgroundColor.value,
@@ -253,7 +261,7 @@ fun Recipe(
                     actions = {
                         OverflowActionButtons(
                             regenDialogueState = regenDialogueState,
-                            shareDialogueState = shareDialogueState,
+                            shareOnClick = {coroutineScope.launch { viewModel.share(thisRecipe, processingDialogueState, context)}},
                             deleteDialogueState = deleteDialogueState,
                         )
                     },
@@ -319,10 +327,6 @@ fun Recipe(
 fun RecipeBody(
     thisRecipe: SavedRecipe
 ) {
-    val parsedIngredients = thisRecipe.ingredients?.split("\n")
-    val parsedMethod = thisRecipe.method?.split("\n")
-    val parsedNotes = thisRecipe.notes?.split("\n")
-
     val context = LocalContext.current
     val adFlag = getAdFlag(context)
     val adReference = if(BuildConfig.DEBUG){
@@ -358,7 +362,7 @@ fun RecipeBody(
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary
         )
-        parsedIngredients?.forEach() {
+        thisRecipe.ingredients.forEach() {
             if (it.isEmpty()) {
                 Spacer(modifier = Modifier.size(10.dp))
             } else if (it.startsWith("-")) {
@@ -414,7 +418,7 @@ fun RecipeBody(
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary
         )
-        parsedMethod?.forEach() {
+        thisRecipe.method.forEach() {
             if(it.isNotEmpty()) {
                 Row(
                     modifier = Modifier
@@ -460,7 +464,7 @@ fun RecipeBody(
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary
         )
-        parsedNotes?.forEach() {
+        thisRecipe.notes.forEach() {
             if(it=="User Notes:"){
                 Row(verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -603,7 +607,7 @@ fun TitleCardFull(
         loadRewardedAd(context, mRewardedAd, TAG)
         loadAttempted=true
     }
-    var imageCredits by remember { mutableStateOf(getImageCredits(context)) }
+    val imageCredits by remember { mutableStateOf(getImageCredits(context)) }
 
     val shopPrompt = remember{ mutableStateOf(false) }
 
@@ -725,7 +729,7 @@ fun TitleCardFull(
 @Composable
 fun OverflowActionButtons(
     regenDialogueState:MutableState<Boolean>,
-    shareDialogueState:MutableState<Boolean>,
+    shareOnClick:()->Unit,
     deleteDialogueState:MutableState<Boolean>,
     colors: IconButtonColors? = null
 ){
@@ -768,11 +772,10 @@ fun OverflowActionButtons(
                 }
             }
         )
-        /*
+
         DropdownMenuItem(
             onClick = {//todo share
-                overflowDD = false
-                shareDialogueState.value = true
+                shareOnClick()
             },
             text = {
                 Row(){
@@ -781,7 +784,7 @@ fun OverflowActionButtons(
                 }
             }
         )
-         */
+
         DropdownMenuItem(
             onClick = {
                 overflowDD = false
@@ -813,7 +816,7 @@ fun RegenerateDialogue(
 
     var text by remember { mutableStateOf("") }
     val modifierArray = remember{mutableStateListOf<String>()}
-    val queryState = derivedStateOf { Query() != Query(recipe) }
+    val queryState = remember{derivedStateOf { Query() != Query(recipe) }}
     Log.d("debug query none", Query().toString())
     Log.d("debug query constructed", Query(recipe).toString())
 

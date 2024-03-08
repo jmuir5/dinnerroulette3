@@ -15,8 +15,10 @@ import com.noxapps.dinnerroulette3.input.Query
 import com.noxapps.dinnerroulette3.recipe.SavedRecipe
 import com.noxapps.dinnerroulette3.settings.SettingsObject
 import com.noxapps.dinnerroulette3.dataStore
+import com.noxapps.dinnerroulette3.gpt.GptResponse
 import com.noxapps.dinnerroulette3.gpt.getResponse
 import com.noxapps.dinnerroulette3.gpt.parseResponse
+import com.noxapps.dinnerroulette3.input.ParsedResponse
 import com.noxapps.dinnerroulette3.savedPreferences
 import com.noxapps.dinnerroulette3.settings.dietpreset.DietPreset
 import com.noxapps.dinnerroulette3.usedTokens
@@ -60,7 +62,7 @@ class HomeViewModel: ViewModel() {
         getResponse(randQuestion, context, 1) {
 
             try {
-                var received = SavedRecipe(QandA(randQuery, it, parseResponse(it)))
+                var received = SavedRecipe(QandA(randQuery, it, Json{ignoreUnknownKeys = true}.decodeFromString<ParsedResponse>(it.choices[0].message.content)))
                 Log.e("id before", received.id.toString())
                 val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
                 recipeBox.put(received)

@@ -61,6 +61,7 @@ fun getResponse(question: String, context: Context, flag: Int, callback: (GptRes
     val requestBody = """
             {
             "model": "gpt-3.5-turbo",
+            "response_format": {"type":"json_object"},
             "messages": [{"role": "system", "content": "$prompt"},{"role": "user", "content":"$question"}]
             }
         """.trimIndent()
@@ -103,7 +104,6 @@ fun getResponse(question: String, context: Context, flag: Int, callback: (GptRes
 fun getImage(prompt: String, context: Context, callback: (GptImageResponse) -> Unit) {
 
     val apiKey = context.getString(R.string.api_Key)
-    Log.e("key", apiKey)
     val url = "https://api.openai.com/v1/images/generations"
 
     //val prompt = generatePrompt(context, flag)
@@ -164,9 +164,9 @@ fun parseResponse(gptResponse: GptResponse): ParsedResponse {
     return ParsedResponse(
         title = title.trim(),
         description = description.trim(),
-        ingredients = ingredients.trim(),
-        method = method.trim(),
-        notes = notes.trim(),
+        ingredients = listOf(ingredients),
+        method = listOf(method),
+        notes = listOf(notes),
         image = image.trim()
     )
 }
@@ -229,8 +229,8 @@ fun generatePrompt(context: Context, flag: Int): String {
     }
 
     val prompt = when (flag) {
-        1 -> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook. $applianceText The prompt will end with [fin], indicating the intended end of the prompt. include a recommendation for an appropriate carbohydrate component or accompaniment in the description. you are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
-        else -> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook. $applianceText The prompt will end with [fin], indicating the intended end of the prompt. the prompt will include a primary protein and a primary carbohydrate. for example, if the prompt requests a 'chinese lamb dish', lamb is the primary protein. if the prompt includes additional sources of protein or carbohydrate include them both, but make the primary protein or carbohydrate more prominent. be sure to give the recipe an appropriate name. You are to output a recipe in the format:[title]title of recipe [desc]brief description of recipe [ingredients]list of ingredients in $unit1Text units [method]recipe method with oven temperature displayed in $unit2Text [notes] optionally include any appropriate notes [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish"
+        1 -> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook in json format. $applianceText The prompt will end with [fin], indicating the intended end of the prompt. include a recommendation for an appropriate carbohydrate component or accompaniment in the description. you are to output a recipe in the format:[title]title of recipe [description]brief description of recipe [ingredients]list of ingredients in $unit1Text units as strings. do not separate the units from the ingredients. preface ingredients with a hyphen. do not preface subtitles at all [method]recipe method with oven temperature displayed in $unit2Text as a list. preface steps with their index number [notes] a list of at least 1 note about things like accompaniments, alterations and things to look out for as strings [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish. include the descriptors photo-realistic and high quality in the prompt"
+        else -> "You are a recipe generating bot that receives a natural language prompt and returns a recipe suited to $skillText home cook in json format. $applianceText The prompt will end with [fin], indicating the intended end of the prompt. the prompt will include a primary protein and a primary carbohydrate. for example, if the prompt requests a 'chinese lamb dish', lamb is the primary protein. if the prompt includes additional sources of protein or carbohydrate include them both, but make the primary protein or carbohydrate more prominent. be sure to give the recipe an appropriate name. You are to output a recipe in the format:[title]title of recipe [description]brief description of recipe [ingredients]list of ingredients in $unit1Text units as strings. do not separate the units from the ingredients. preface ingredients with a hyphen. do not preface subtitles at all [method]recipe method with oven temperature displayed in $unit2Text as a list [notes] a list of at least 1 note about things like accompaniments, alterations and things to look out for as strings [image] a text description of the dish that will be used with dall-e to generate an accurate image of the dish. include the descriptors photo-realistic and high quality in the prompt"
 
     }
 

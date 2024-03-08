@@ -20,6 +20,8 @@ import io.objectbox.Box
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import java.util.Date
 import kotlin.random.Random
 
@@ -173,7 +175,7 @@ class InputViewModel: ViewModel() {
         getResponse(request, context, 1) {
             val received: SavedRecipe
             try {
-                received = SavedRecipe(QandA(Query(), it, parseResponse(it)))
+                received = SavedRecipe(QandA(Query(), it, Json{ignoreUnknownKeys = true}.decodeFromString<ParsedResponse>(it.choices[0].message.content)))
                 Log.e("id before", received.id.toString())
                 recipeBox.put(received)
 
@@ -207,7 +209,7 @@ class InputViewModel: ViewModel() {
         getResponse(question2, context, 0) { it ->
             var received = SavedRecipe()
             try {
-                received = SavedRecipe(QandA(query, it, parseResponse(it)))
+                received = SavedRecipe(QandA(query, it, Json{ignoreUnknownKeys = true}.decodeFromString<ParsedResponse>(it.choices[0].message.content)))
                 Log.e("id before", received.id.toString())
                 val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
                 recipeBox.put(received)
