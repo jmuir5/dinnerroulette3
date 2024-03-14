@@ -17,14 +17,15 @@ android {
         applicationId "com.noxapps.dinnerroulette3"
         minSdk 26
         targetSdk 34
-        versionCode 17
-        versionName "1.2.9"
+        versionCode 18
+        versionName "1.3.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary true
         }
     }
+
 
     buildTypes {
         release {
@@ -89,6 +90,7 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation 'com.google.firebase:firebase-database'
     implementation 'com.google.firebase:firebase-storage'
+    implementation "com.github.bumptech.glide:compose:1.0.0-beta01"
     constraints {
         implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0") {
             because("kotlin-stdlib-jdk7 is now a part of kotlin-stdlib")

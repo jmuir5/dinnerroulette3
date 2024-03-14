@@ -26,13 +26,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
 
             </intent-filter>
-            <intent-filter>
-                <data
-                    android:host="noximilionapplications.com"
-                    android:scheme="chefroulette" />
+            <intent-filter android:autoVerify="true">
+                <data android:host="www.chefroulette.com.au" />
+                <data android:pathPrefix="/recipe" />
+
+                <data android:scheme="https" />
+                <data android:scheme="http" />
+                <data android:scheme="chefroulette"/>
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.VIEW"/>
+
             </intent-filter>
 
         </activity>

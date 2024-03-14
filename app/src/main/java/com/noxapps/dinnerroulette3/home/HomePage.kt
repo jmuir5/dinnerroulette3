@@ -18,6 +18,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -38,6 +40,7 @@ import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.recipe.SavedRecipe
 import com.noxapps.dinnerroulette3.commons.ProcessingDialog
+import com.noxapps.dinnerroulette3.commons.UpdateDialog
 import com.noxapps.dinnerroulette3.commons.getAdFlag
 import com.noxapps.dinnerroulette3.loadInterstitialAd
 
@@ -55,9 +58,6 @@ fun HomePage(
         val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
         val processing = remember { mutableStateOf(false) }
 
-
-        //val genState = remember { mutableStateOf(true) }
-        //val savedState = remember { mutableStateOf(false) }
         val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.roulette_table)
         val painter = remember{ BitmapPainter(image = bitmap.asImageBitmap())}
 
@@ -66,6 +66,9 @@ fun HomePage(
             LocalContext.current.getString(R.string.test_roulette_interstitial_ad_id)
         }
         else LocalContext.current.getString(R.string.roulette_interstitial_ad_id)
+
+        val updatePrimed = remember{mutableStateOf(true)}
+        val upToDateState by remember{ derivedStateOf { (viewModel.buildVersion<viewModel.upToDateVersion.intValue)&&updatePrimed.value }}
 
         loadInterstitialAd(
             context,
@@ -187,6 +190,9 @@ fun HomePage(
                     viewModel.executeRandom(processing, context, navController)
                 }
             )
+        }
+        if (upToDateState) {
+            UpdateDialog(state = updatePrimed)
         }
     }
 }

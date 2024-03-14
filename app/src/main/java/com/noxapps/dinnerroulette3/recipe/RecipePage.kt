@@ -27,7 +27,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.MoreVert
@@ -66,7 +65,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
@@ -95,7 +93,6 @@ import com.noxapps.dinnerroulette3.AdmobBanner
 import com.noxapps.dinnerroulette3.BuildConfig
 import com.noxapps.dinnerroulette3.InterstitialAdDialogue
 import com.noxapps.dinnerroulette3.commons.Indicator
-import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.RewardedAdFrame
@@ -111,6 +108,7 @@ import com.noxapps.dinnerroulette3.gpt.saveImage
 import com.noxapps.dinnerroulette3.input.Query
 import com.noxapps.dinnerroulette3.loadInterstitialAd
 import com.noxapps.dinnerroulette3.loadRewardedAd
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -121,10 +119,17 @@ import java.io.File
 fun Recipe(
     recipeId:Long,
     navController: NavHostController,
+    downloadFlag:Boolean = false,
     viewModel:RecipeViewModel = RecipeViewModel(),
 ) {
-    val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
-    var thisRecipe by remember {mutableStateOf(recipeBox[recipeId])}
+    var thisRecipe = remember {
+        mutableStateOf(
+            if(downloadFlag)
+                SavedRecipe()
+            else
+                viewModel.recipeBox[recipeId]
+        )
+    }
 
     val scrollBehaviour = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         rememberTopAppBarState()
@@ -142,7 +147,7 @@ fun Recipe(
     val state = scrollBehaviour.state
 
 
-    val imageFlag = remember { mutableStateOf(thisRecipe.image!!.isNotEmpty()) }
+    val imageFlag = remember { mutableStateOf(thisRecipe.value.image!!.isNotEmpty()) }
     val imageFlag2 = remember { mutableStateOf(imageFlag.value) }
 
     val collapsedFraction by remember{ derivedStateOf { scrollBehaviour.state.collapsedFraction < 0.70 }}
@@ -180,7 +185,10 @@ fun Recipe(
     val shareDialogueState = remember{ mutableStateOf(false) }
     val deleteDialogueState = remember{ mutableStateOf(false) }
     val deleteActionState = remember{ mutableStateOf(false) }
-    val processingDialogueState = remember{ mutableStateOf(false) }
+    val regenerationProcessingDialogueState = remember{ mutableStateOf(false) }
+    val shareProcessingDialogueState = remember{ mutableStateOf(false) }
+    val shareReceivingDialogueState = remember{ mutableStateOf(downloadFlag) }
+
 
     val shareIdHolder = remember{mutableStateOf(0L)}
     val shareReadyState = remember{mutableStateOf(false)}
@@ -188,19 +196,27 @@ fun Recipe(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
+    val loadAttemptedState = remember{ mutableStateOf(false) }
+
+
+    if (!loadAttemptedState.value&&downloadFlag){
+        loadAttemptedState.value=true
+        viewModel.getRecipe(recipeId, thisRecipe, shareReceivingDialogueState, imageFlag, imageFlag2, context, coroutineScope)
+    }
+
     Scaffold(
         modifier = Modifier
             .nestedScroll(customScroll),
 
         floatingActionButton = {
-            FavouriteButton(recipeId)
+            if(!downloadFlag) FavouriteButton(recipeId)
         },
         topBar = {
             if (imageFlag.value || imageFlag2.value) {
                 MediumTopAppBar(
                     title = {
                         Text(
-                            text = thisRecipe.title?:"",
+                            text = thisRecipe.value.title?:"",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -228,7 +244,7 @@ fun Recipe(
                     actions = {
                         OverflowActionButtons(
                             regenDialogueState = regenDialogueState,
-                            shareOnClick = {coroutineScope.launch(){viewModel.share(thisRecipe, processingDialogueState, context)}},
+                            shareOnClick = {coroutineScope.launch(){viewModel.share(thisRecipe.value, regenerationProcessingDialogueState, context)}},
                             deleteDialogueState = deleteDialogueState,
                             colors = IconButtonDefaults.iconButtonColors(
                                 containerColor = iconButtonBackgroundColor.value,
@@ -240,7 +256,7 @@ fun Recipe(
             } else {
                 TopAppBar(
                     title = {
-                        Text(text = thisRecipe.title?:"undefined",
+                        Text(text = thisRecipe.value.title?:"undefined",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -261,7 +277,7 @@ fun Recipe(
                     actions = {
                         OverflowActionButtons(
                             regenDialogueState = regenDialogueState,
-                            shareOnClick = {coroutineScope.launch { viewModel.share(thisRecipe, processingDialogueState, context)}},
+                            shareOnClick = {coroutineScope.launch { viewModel.share(thisRecipe.value, shareProcessingDialogueState, context)}},
                             deleteDialogueState = deleteDialogueState,
                         )
                     },
@@ -293,30 +309,33 @@ fun Recipe(
             modifier = variableModifier
         )
         {
-            TitleCardFull(thisRecipe = thisRecipe, imageFlag = imageFlag, imageFlag2 = imageFlag2, navController = navController)
-            RecipeBody(thisRecipe = thisRecipe)
+            TitleCardFull(thisRecipe = thisRecipe.value, imageFlag = imageFlag, imageFlag2 = imageFlag2, navController = navController)
+            RecipeBody(thisRecipe = thisRecipe.value)
             if(regenDialogueState.value){
                 RegenerateDialogue(
                     state = regenDialogueState,
-                    processingState = processingDialogueState,
-                    recipe = thisRecipe,
+                    processingState = regenerationProcessingDialogueState,
+                    recipe = thisRecipe.value,
                     navController = navController
                 )
-            }
-            if(shareDialogueState.value){
-
             }
             if(deleteDialogueState.value){
                 DeleteDialogue(state = deleteDialogueState, actionState = deleteActionState)
             }
             if(deleteActionState.value){
                 deleteActionState.value=!deleteActionState.value
-                thisRecipe = SavedRecipe()
-                recipeBox.remove(recipeId)
+                thisRecipe.value = SavedRecipe()
+                viewModel.recipeBox.remove(recipeId)
                 navController.popBackStack()
             }
-            if(processingDialogueState.value){
-                ProcessingDialog(text = "Regenerating your recipe for ${thisRecipe.title}")
+            if(regenerationProcessingDialogueState.value){
+                ProcessingDialog(text = "Regenerating your recipe for ${thisRecipe.value.title}")
+            }
+            if(shareProcessingDialogueState.value){
+                ProcessingDialog(text = "Sharing your recipe for ${thisRecipe.value.title}")
+            }
+            if(shareReceivingDialogueState.value){
+                ProcessingDialog(text = "Receiving Data")
             }
 
         }
@@ -691,7 +710,16 @@ fun TitleCardFull(
                                     addImageCredits(context, -1)
                                     imageFlag.value = true
                                     try {
-                                        getImage(it, context) {
+                                        getImage(
+                                            it,
+                                            context,
+                                            errorCallback = {
+                                                MainScope().launch {
+                                                    navController.navigate(Paths.Error.Path+"/"+it+"\nYou have been refunded an image credit in compensation")
+                                                    addImageCredits(context, 1)
+                                                }
+                                            }
+                                        ) {
                                             saveImage(context, thisRecipe, it.data[0].url) { it2 ->
                                                 imageFlag2.value = it2
                                             }
@@ -718,7 +746,8 @@ fun TitleCardFull(
             imageFlag = imageFlag,
             imageFlag2 = imageFlag2,
             thisRecipe = thisRecipe,
-            displayFlag = adFrameFlag
+            displayFlag = adFrameFlag,
+            navController = navController
         )
     }
     if(shopPrompt.value){

@@ -54,7 +54,7 @@
     },
     {
       "id": "2:1316828313377184297",
-      "lastPropertyId": "22:8174720259872962129",
+      "lastPropertyId": "23:8895268401659038995",
       "name": "SavedRecipe",
       "properties": [
         {
@@ -151,6 +151,11 @@
         {
           "id": "22:8174720259872962129",
           "name": "imageDescription",
+          "type": 9
+        },
+        {
+          "id": "23:8895268401659038995",
+          "name": "shareUrl",
           "type": 9
         }
       ],

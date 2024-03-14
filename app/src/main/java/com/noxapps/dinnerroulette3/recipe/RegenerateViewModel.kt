@@ -80,7 +80,16 @@ class RegenerateViewModel: ViewModel() {
         Log.d("constructed question", request)
         processingDialogueFlag.value = true
         try {
-            getResponse(request, context, 1) {
+            getResponse(
+                request,
+                context,
+                1,
+                errorCallback = {
+                    MainScope().launch {
+                        navController.navigate(Paths.Error.Path+"/"+it)
+                    }
+                }
+            ) {
                 val received: SavedRecipe
                 try {
                     received = SavedRecipe(QandA(Query(), it, Json{ignoreUnknownKeys = true}.decodeFromString<ParsedResponse>(it.choices[0].message.content)))
@@ -120,7 +129,16 @@ class RegenerateViewModel: ViewModel() {
         processingStateFlag.value = true
 
         try {
-            getResponse(question, context, 0) { it ->
+            getResponse(
+                question,
+                context,
+                0,
+                errorCallback = {
+                    MainScope().launch {
+                        navController.navigate(Paths.Error.Path+"/"+it)
+                    }
+                }
+            ) { it ->
                 var received = SavedRecipe()
                 try {
                     received = SavedRecipe(QandA(query, it, Json{ignoreUnknownKeys = true}.decodeFromString<ParsedResponse>(it.choices[0].message.content)))
@@ -161,7 +179,16 @@ class RegenerateViewModel: ViewModel() {
         processingStateFlag.value = true
 
         try {
-            getResponse(question, context, 0) { it ->
+            getResponse(
+                question,
+                context,
+                0,
+                errorCallback = {
+                    MainScope().launch {
+                        navController.navigate(Paths.Error.Path+"/"+it)
+                    }
+                }
+            ) { it ->
                 var received = SavedRecipe()
                 try {
                     received = SavedRecipe(QandA(Query(recipe), it, Json{ignoreUnknownKeys = true}.decodeFromString<ParsedResponse>(it.choices[0].message.content)))

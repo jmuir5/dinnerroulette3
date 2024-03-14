@@ -13,7 +13,9 @@ import com.noxapps.dinnerroulette3.settings.SettingsObject
 import com.noxapps.dinnerroulette3.savedPreferences
 import com.noxapps.dinnerroulette3.settings.dietpreset.DietPreset
 import io.objectbox.Box
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
@@ -49,7 +51,7 @@ private val client = OkHttpClient.Builder()
  * [flag]: int flag for use with generatePrompt() indicating source/version of prompt that needs tobe generated
  * [callback] : GptResponse returned to parent function
  */
-fun getResponse(question: String, context: Context, flag: Int, callback: (GptResponse) -> Unit) {
+fun getResponse(question: String, context: Context, flag: Int, errorCallback:(String)-> Unit, callback: (GptResponse) -> Unit ) {
 
     val apiKey = context.getString(R.string.api_Key)
     Log.e("key", apiKey)
@@ -76,7 +78,9 @@ fun getResponse(question: String, context: Context, flag: Int, callback: (GptRes
 
     client.newCall(request).enqueue(object : Callback {
         override fun onFailure(call: Call, e: IOException) {
-            Log.e("error", "API failed", e)
+            Log.e("error", "API failed, $e")
+            errorCallback(e.toString())
+
         }
 
         override fun onResponse(call: Call, response: Response) {
@@ -101,7 +105,7 @@ fun getResponse(question: String, context: Context, flag: Int, callback: (GptRes
  * [context]: context (LocalContext.Current, usually)
  * [callback] : GptImageResponse returned to parent function
  */
-fun getImage(prompt: String, context: Context, callback: (GptImageResponse) -> Unit) {
+fun getImage(prompt: String, context: Context, errorCallback:(String)-> Unit, callback: (GptImageResponse) -> Unit) {
 
     val apiKey = context.getString(R.string.api_Key)
     val url = "https://api.openai.com/v1/images/generations"
@@ -128,6 +132,7 @@ fun getImage(prompt: String, context: Context, callback: (GptImageResponse) -> U
     client.newCall(request).enqueue(object : Callback {
         override fun onFailure(call: Call, e: IOException) {
             Log.e("error", "API failed", e)
+            errorCallback(e.toString())
         }
 
         override fun onResponse(call: Call, response: Response) {
@@ -259,13 +264,16 @@ fun saveImage(
     val recipeBox = ObjectBox.store.boxFor(SavedRecipe::class.java)
 
 
-    val url = URL(imageUrl)//url
+    val url = URL(imageUrl) //url
     val image = BitmapFactory.decodeStream(url.openConnection().getInputStream())
     currentFile.outputStream().use {
         image.compress(Bitmap.CompressFormat.PNG, 100, it)
 
         savedRecipe.image = name
-        recipeBox.put(savedRecipe)
+        if (!imageUrl.contains("https://firebasestorage.googleapis.com/v0/b/chefroulette.appspot.com/o/Images")){
+            savedRecipe.shareUrl=""
+        }
+        MainScope().launch {  recipeBox.put(savedRecipe)}
         callback(true)
     }
     image.recycle()

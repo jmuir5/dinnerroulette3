@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.navigation.NavHostController
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
@@ -42,6 +43,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.noxapps.dinnerroulette3.commons.Indicator
+import com.noxapps.dinnerroulette3.commons.addImageCredits
 import com.noxapps.dinnerroulette3.gpt.getImage
 import com.noxapps.dinnerroulette3.gpt.saveImage
 import com.noxapps.dinnerroulette3.recipe.SavedRecipe
@@ -181,7 +183,8 @@ fun RewardedAdFrame(
     imageFlag: MutableState<Boolean>,
     imageFlag2: MutableState<Boolean>,
     thisRecipe: SavedRecipe,
-    displayFlag:MutableState<Boolean>
+    displayFlag:MutableState<Boolean>,
+    navController:NavHostController
 ){
     var i by remember{mutableStateOf(0)}
     val scope = rememberCoroutineScope()
@@ -267,7 +270,16 @@ fun RewardedAdFrame(
                 // Handle the reward.
                 displayFlag.value = false
                 imageFlag.value = true
-                getImage(thisRecipe.imageDescription!!, context) {
+                getImage(
+                    thisRecipe.imageDescription!!,
+                    context,
+                    errorCallback = {
+                        MainScope().launch {
+                            navController.navigate(Paths.Error.Path+"/"+it+"you have been awarded an image credit in compensation")
+                            addImageCredits(context, 1)
+                        }
+                    }
+                ) {
                     saveImage(context, thisRecipe, it.data[0].url) { it2 ->
                         imageFlag2.value = it2
                     }

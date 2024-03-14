@@ -81,7 +81,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.navigation.NavHostController
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.noxapps.dinnerroulette3.AdmobBanner
 import com.noxapps.dinnerroulette3.BuildConfig
 import com.noxapps.dinnerroulette3.StandardScaffold
@@ -90,6 +93,7 @@ import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.commons.getAdFlag
 import com.noxapps.dinnerroulette3.recipe.SavedRecipe
+import java.io.File
 
 @Composable
 fun SearchPage(
@@ -384,78 +388,106 @@ fun RecipeList(recipesList: List<SavedRecipe>,
 ){
 
 
-    var counter = 0
     val adReference = if(BuildConfig.DEBUG){
         LocalContext.current.getString(R.string.test_scaffold_banner_ad_id)
     }
     else LocalContext.current.getString(R.string.scaffold_banner_ad_id)
     val adFlag = getAdFlag(LocalContext.current)
 
-    Column(modifier = Modifier
-        .verticalScroll(rememberScrollState())
+    LazyColumn(//modifier = Modifier.verticalScroll(rememberScrollState())
     ){
         if (recipesList.isEmpty()){
-            Row(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text("Theres nothing here, try making some new recipes",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
-                    textAlign = TextAlign.Center)
-            }
-            if(adFlag){
-                Row(){
-                    Spacer(modifier = Modifier
-                        .height(50.dp))
-                    AdmobBanner(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                        reference = adReference
+            item {
+                Row(
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        "Theres nothing here, try making some new recipes",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center
                     )
+                }
+            }
+
+            if (adFlag) {
+                item{
+                    Row() {
+                        Spacer(
+                            modifier = Modifier
+                                .height(50.dp)
+                        )
+                        AdmobBanner(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            reference = adReference
+                        )
+                    }
                 }
 
             }
+
 
         }
         else {
             for (i in recipesList.indices step(3)){
-                counter+=1
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
 
-                Row(modifier = Modifier
-                    .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-
-                ){
-                    RecipeCard(recipe = recipesList[i], navController = navController, viewModel)
-                    if(i+1<recipesList.size){
-                        RecipeCard(recipe = recipesList[i+1], navController = navController, viewModel)
-                    }
-                    else {
-                        Spacer(modifier = Modifier
-                            .width((viewModel.screenWidth / viewModel.tilesPerRow).dp))
-                    }
-                    if(i+2<recipesList.size){
-                        RecipeCard(recipe = recipesList[i+2], navController = navController, viewModel)
-                    }
-                    else {
-                        Spacer(modifier = Modifier
-                            .width((viewModel.screenWidth / viewModel.tilesPerRow).dp))
-                    }
-                }
-
-
-                if(counter%2==0&&adFlag){
-                    Row(){
-                        Spacer(modifier = Modifier
-                            .height(50.dp))
-                        AdmobBanner(modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                            reference = adReference
+                    ) {
+                        RecipeCard(
+                            recipe = recipesList[i],
+                            navController = navController,
+                            viewModel
                         )
+                        if (i + 1 < recipesList.size) {
+                            RecipeCard(
+                                recipe = recipesList[i + 1],
+                                navController = navController,
+                                viewModel
+                            )
+                        } else {
+                            Spacer(
+                                modifier = Modifier
+                                    .width((viewModel.screenWidth / viewModel.tilesPerRow).dp)
+                            )
+                        }
+                        if (i + 2 < recipesList.size) {
+                            RecipeCard(
+                                recipe = recipesList[i + 2],
+                                navController = navController,
+                                viewModel
+                            )
+                        } else {
+                            Spacer(
+                                modifier = Modifier
+                                    .width((viewModel.screenWidth / viewModel.tilesPerRow).dp)
+                            )
+                        }
+                    }
+
+
+                    if ((i/3) % 2 == 0 && adFlag) {
+
+                        Row() {
+                            Spacer(
+                                modifier = Modifier
+                                    .height(50.dp)
+                            )
+                            AdmobBanner(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(50.dp),
+                                reference = adReference
+                            )
+                        }
                     }
                 }
             }
@@ -539,9 +571,12 @@ fun RecipeList(recipesList: List<SavedRecipe>,
 
 }
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun RecipeCard(recipe: SavedRecipe, navController: NavHostController, viewModel: SearchViewModel){
-    val bitmap = viewModel.getImageOrPlaceholder(recipe.image, LocalContext.current)
+    val context = LocalContext.current
+    //val bitmap = viewModel.getImageOrPlaceholder(recipe.image, LocalContext.current)
+    val path = viewModel.getImageOrPlaceholderPath(recipe.image, context)
 
     Column(
         modifier = Modifier
@@ -554,7 +589,15 @@ fun RecipeCard(recipe: SavedRecipe, navController: NavHostController, viewModel:
     ){
         Box(
         ){
-            Image(
+            GlideImage(
+                model = path,// recipe.image?.toUri(),
+                contentDescription = recipe.title,
+                modifier = Modifier
+                //.aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height)
+                    .size(((viewModel.screenWidth/viewModel.tilesPerRow)-16).dp)
+                ,
+            )
+            /*Image(
                 painter = BitmapPainter(
                     image = bitmap.asImageBitmap()
                 ),
@@ -562,10 +605,9 @@ fun RecipeCard(recipe: SavedRecipe, navController: NavHostController, viewModel:
                 modifier = Modifier
                     //.aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height)
                     .size(((viewModel.screenWidth/viewModel.tilesPerRow)-16).dp)
-
                 ,
                 contentScale = ContentScale.Fit
-            )
+            )*/
             FreeFavouriteButton(id = recipe.id, modifier = Modifier.align(Alignment.TopEnd))
         }
         

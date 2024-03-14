@@ -2,6 +2,7 @@ package com.noxapps.dinnerroulette3.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,11 +52,12 @@ fun RedeemCode(
     viewModel: RedeemViewModel = RedeemViewModel(),
     navController: NavHostController
 ) {
-    StandardScaffold(tabt = "Request Recipe", navController = navController, adFlag = false) {
+    StandardScaffold(tabt = "Redeem Code", navController = navController, adFlag = false) {
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
 
         val focusRequester = remember { FocusRequester() }
+
         var promptText by remember { mutableStateOf("") }
 
         val placeholder = ""
@@ -71,10 +73,12 @@ fun RedeemCode(
         val primaryOrange = MaterialTheme.colorScheme.primary
 
 
+
         Column(
             Modifier
                 .padding(24.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .focusable(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text("Redeem Promo Code",

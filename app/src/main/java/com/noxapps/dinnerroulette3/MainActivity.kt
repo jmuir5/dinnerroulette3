@@ -102,7 +102,7 @@ class MainActivity : ComponentActivity() {
         setPurchaseFlag(this, -1)
 
 
-        ReminderNotificationWorker.schedule(this, 23, 6)
+        ReminderNotificationWorker.schedule(this, 15, 30)
         /*val params = QueryPurchasesParams.newBuilder()
             .setProductType(BillingClient.ProductType.INAPP)
             .build()
@@ -138,6 +138,9 @@ class MainActivity : ComponentActivity() {
             it.notes = it.notes?.trim()
             recipeBox.put(it)
         }*/
+
+        val data = this.intent.data;
+        Log.e("intent data", data.toString())
 
         setContent {
             AppTheme {
@@ -294,7 +297,8 @@ fun DefaultPreview() {
 
 @Composable
 fun NavMain(navController: NavHostController, billingClient: BillingClient){
-    val uri = "chefroulette://noximilionapplications.com"
+    val uri = "https://www.chefroulette.com.au/"
+
 
     NavHost(navController = navController, startDestination = Paths.Home.Path) {
         composable(Paths.Home.Path) { HomePage(navController = navController) }
@@ -340,6 +344,8 @@ fun NavMain(navController: NavHostController, billingClient: BillingClient){
             val arguments = backStackEntry.arguments
             Log.d("notification info", "recieved")
             arguments?.getString("id")?.let { Log.d("notification info", it) }
+            Log.e("intent arguments id", "notification tree")
+
 
             when(arguments?.getString("id")){
                 "Home"-> HomePage(navController = navController)
@@ -353,14 +359,23 @@ fun NavMain(navController: NavHostController, billingClient: BillingClient){
             route = "recipe?id={id}",
             arguments = listOf(navArgument("id") { type = NavType.LongType }),
             deepLinks = listOf(navDeepLink {
-                uriPattern = "$uri/recipe?id={id}"
-                action= Intent.ACTION_VIEW
+                uriPattern = "${uri}recipe?id={id}"
+                //uriPattern = "${uri}{id}"
+
+                //action= Intent.ACTION_VIEW
             })
         ) { backStackEntry ->
+
             val arguments = backStackEntry.arguments
+            //val bundle = arguments?.getBundle()
+
+            Log.e("intent arguments", backStackEntry.arguments.toString())
             val recipeId = backStackEntry.arguments?.getLong("id")
+            //val recipeId = backStackEntry.arguments?.getString("id")
+            Log.e("intent arguments id", recipeId.toString())
+
             if (recipeId != null) {
-                Recipe(recipeId, navController)
+                Recipe(recipeId, navController, true)
             }
             else{
                 //todo: error code

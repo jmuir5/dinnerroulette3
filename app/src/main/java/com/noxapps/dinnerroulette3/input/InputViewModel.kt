@@ -172,7 +172,16 @@ class InputViewModel: ViewModel() {
         processingDialogueFlag.value = true
 
         try {
-        getResponse(request, context, 1) {
+        getResponse(
+            request,
+            context,
+            1,
+            errorCallback = {
+                MainScope().launch {
+                    navController.navigate(Paths.Error.Path+"/"+it)
+                }
+            }
+        ) {
             val received: SavedRecipe
             try {
                 received = SavedRecipe(QandA(Query(), it, Json{ignoreUnknownKeys = true}.decodeFromString<ParsedResponse>(it.choices[0].message.content)))
@@ -206,7 +215,16 @@ class InputViewModel: ViewModel() {
         Log.d("constructed question", question2)
         flag.value = true
 
-        getResponse(question2, context, 0) { it ->
+        getResponse(
+            question2,
+            context,
+            0,
+            errorCallback = {
+                MainScope().launch {
+                    navController.navigate(Paths.Error.Path+"/"+it)
+                }
+            }
+        ) { it ->
             var received = SavedRecipe()
             try {
                 received = SavedRecipe(QandA(query, it, Json{ignoreUnknownKeys = true}.decodeFromString<ParsedResponse>(it.choices[0].message.content)))

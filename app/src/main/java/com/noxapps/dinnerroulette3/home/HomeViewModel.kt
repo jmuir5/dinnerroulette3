@@ -2,12 +2,17 @@ package com.noxapps.dinnerroulette3.home
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.firebase.Firebase
+import com.google.firebase.database.database
+import com.noxapps.dinnerroulette3.BuildConfig
 import com.noxapps.dinnerroulette3.ObjectBox
 import com.noxapps.dinnerroulette3.Paths
 import com.noxapps.dinnerroulette3.input.QandA
@@ -45,6 +50,13 @@ class HomeViewModel: ViewModel() {
     val TAG = "Home Page Interstitial"
     val mInterstitialAd:MutableState<InterstitialAd?> = mutableStateOf(null)
 
+    val buildVersion = BuildConfig.VERSION_CODE
+    var upToDateVersion =mutableIntStateOf(0)
+
+    init {
+        getVersion(upToDateVersion)
+    }
+
 
     /**
      * generates a list of 5, random favourited recipes
@@ -59,7 +71,16 @@ class HomeViewModel: ViewModel() {
         val randQuestion = getRandomQuestion(randQuery)
         flag.value = true
 
-        getResponse(randQuestion, context, 1) {
+        getResponse(
+            randQuestion,
+            context,
+            1,
+            errorCallback = {
+                MainScope().launch {
+                    navController.navigate(Paths.Error.Path+"/"+it)
+                }
+            }
+        ) {
 
             try {
                 var received = SavedRecipe(QandA(randQuery, it, Json{ignoreUnknownKeys = true}.decodeFromString<ParsedResponse>(it.choices[0].message.content)))
@@ -239,6 +260,15 @@ class HomeViewModel: ViewModel() {
             else -> ".[fin]"
         }
         return question
+    }
+
+    fun getVersion(target:MutableIntState){
+        val task = Firebase.database.reference.child("Meta").child("Version").get()
+        task.addOnSuccessListener {
+            target.intValue = (it.value as Long).toInt()
+        }.addOnFailureListener{
+            Log.e("getVersion", "Failed to get version")
+        }
     }
 }
 

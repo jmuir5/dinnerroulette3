@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
+import com.noxapps.dinnerroulette3.R
 import com.noxapps.dinnerroulette3.adFlag
 import com.noxapps.dinnerroulette3.code1State
 import com.noxapps.dinnerroulette3.commons.addImageCredits
@@ -33,7 +34,7 @@ class RedeemViewModel: ViewModel() {
     ){
         Log.d("code", code)
         when (code) {
-            "dev//:czarsevetsW4QKa" -> {
+            context.getString(R.string.code_max_tokens) -> {
                 Log.d("redeemFlag", "success")
                 processingState.value = true
                 //functional code goes here
@@ -43,7 +44,7 @@ class RedeemViewModel: ViewModel() {
                 processingState.value = false
                 dialogueState.value = true
             }
-            "dev//:5FreePics" -> {
+            context.getString(R.string.code_img_trial) -> {
                 Log.d("redeemFlag", "success2")
                 processingState.value = true
                 //functional code goes here
@@ -79,7 +80,7 @@ class RedeemViewModel: ViewModel() {
                     }
                 }
             }
-            "dev//:ic0"->{
+            context.getString(R.string.code_reset_img_credits) ->{
                 Log.d("redeemFlag", "success")
                 processingState.value = true
                 //functional code goes here
@@ -89,7 +90,7 @@ class RedeemViewModel: ViewModel() {
                 processingState.value = false
                 dialogueState.value = true
             }
-            "dev//:adFlag0"->{
+            context.getString(R.string.code_reactivate_ads)->{
                 Log.d("redeemFlag", "success")
                 processingState.value = true
                 //functional code goes here
@@ -99,7 +100,21 @@ class RedeemViewModel: ViewModel() {
                     }
                 }
                 title.value = "ad flag reset:"
-                body.value = "ZERO MONEY ZERO PAPA"
+                body.value = "ZERO MONEY ZERO PAPA (ads on)"
+                processingState.value = false
+                dialogueState.value = true
+            }
+            context.getString(R.string.code_remove_ads)->{
+                Log.d("redeemFlag", "success")
+                processingState.value = true
+                //functional code goes here
+                scope.launch {
+                    context.dataStore.edit { settings ->
+                        settings[adFlag] = false
+                    }
+                }
+                title.value = "ads disabled:"
+                body.value = "ZERO MONEY ZERO PAPA (ads off)"
                 processingState.value = false
                 dialogueState.value = true
             }

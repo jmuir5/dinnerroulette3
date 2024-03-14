@@ -9,7 +9,6 @@ import com.noxapps.dinnerroulette3.input.QandA
 import com.noxapps.dinnerroulette3.input.Query
 import io.objectbox.annotation.Entity
 import io.objectbox.annotation.Id
-import kotlinx.serialization.Serializable
 
 
 @Entity
@@ -34,7 +33,9 @@ public data class SavedRecipe(
     var method:List<String> = listOf(),
     var notes:List<String> = listOf(),
     var image:String? = "",
-    var imageDescription:String?=""
+    var imageDescription:String?="",
+
+    var shareUrl:String?=""
     )  {
 
     constructor(recipe: QandA, image:String?) : this() {
@@ -78,6 +79,17 @@ public data class SavedRecipe(
         notes = recipe.parsed.notes
         imageDescription = recipe.parsed.image
 
+    }
+
+    fun nearlyEqual(other:SavedRecipe):Boolean{
+        return (
+            title==other.title&&
+            description== other.description&&
+            ingredients== other.ingredients&&
+            method== other.method&&
+            notes== other.notes&&
+            imageDescription ==other.imageDescription
+        )
     }
 
 }

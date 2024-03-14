@@ -3,6 +3,7 @@ package com.noxapps.dinnerroulette3.search
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
 import com.noxapps.dinnerroulette3.ObjectBox
@@ -30,10 +31,19 @@ class SearchViewModel:ViewModel() {
         }
     }
 
+    fun getImageOrPlaceholderPath(imageName:String?, context: Context): String {
+        return if(isImageValid(imageName, context)){
+            val currentFile =  File(context.filesDir, imageName)
+            currentFile.path
+
+        } else{
+            "android.resource://com.noxapps.dinnerroulette3/" + R.drawable.placeholder_tiny
+        }
+    }
+
     fun isImageValid(imageName:String?, context: Context) :Boolean{
         return if (imageName.isNullOrBlank()) false
         else File(context.filesDir, imageName).exists()
-
 
     }
 

@@ -75,7 +75,7 @@ class NotificationService(private val context: Context) {
     fun createReminderNotification() {
         //  No back-stack when launched
         val rand = Random(Date().time)
-        val rand1 = 4//rand.nextInt() % 5
+        val rand1 = rand.nextInt(0,4)
         val rand2 = rand.nextInt() % notificationContent[rand1].size
         val destination = when (rand1) {
             0 -> "Home"
